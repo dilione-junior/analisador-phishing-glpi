@@ -1,0 +1,12 @@
+# Segredos: nunca vão para o Git
+.env
+*.key
+
+# Sistema / editores
+Thumbs.db
+.DS_Store
+.vscode/
+__pycache__/
+
+# Pasta temporária do importar-fluxo.sh
+.importacao.*/

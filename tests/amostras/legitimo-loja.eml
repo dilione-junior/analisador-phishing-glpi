@@ -1,0 +1,10 @@
+Received: from out.loja.example (out.loja.example [93.184.216.35]) by mx.empresa.example; Thu, 05 Nov 2026 08:00:00 -0300
+Authentication-Results: mx.empresa.example; spf=pass smtp.mailfrom=loja.example; dkim=pass header.d=loja.example; dmarc=pass header.from=loja.example
+From: Loja Exemplo <ofertas@loja.example>
+To: maria@empresa.example
+Subject: Ofertas da semana
+List-Unsubscribe: <https://loja.example/descadastro>
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<p>Confira as ofertas da semana.</p><a href="https://loja.example/ofertas">Ver ofertas</a>

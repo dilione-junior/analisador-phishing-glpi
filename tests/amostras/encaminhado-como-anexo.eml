@@ -1,0 +1,21 @@
+From: Maria <maria@empresa.example>
+To: soc@empresa.example
+Subject: ENC: e-mail estranho
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="FW"
+
+--FW
+Content-Type: text/plain; charset=utf-8
+
+Segue o e-mail suspeito.
+--FW
+Content-Type: message/rfc822
+Content-Disposition: attachment; filename="suspeito.eml"
+
+From: Diretor <diretor.presidente@gmail.com>
+To: maria@empresa.example
+Subject: Preciso de um favor
+Content-Type: text/plain; charset=utf-8
+
+Estou em reunião. Preciso de um favor urgente: compre 5 cartões-presente e me mande os códigos.
+--FW--

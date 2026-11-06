@@ -1,0 +1,42 @@
+Return-Path: <bounce@envio-massa.example>
+Received: from mail.envio-massa.example (mail.envio-massa.example [93.184.216.34])
+	by mx.empresa.example with ESMTPS id abc123
+	for <maria@empresa.example>; Thu, 05 Nov 2026 10:00:00 -0300
+Received: from [10.0.0.5] by mail.envio-massa.example; Thu, 05 Nov 2026 09:59:58 -0300
+Authentication-Results: mx.empresa.example;
+	spf=fail smtp.mailfrom=envio-massa.example;
+	dkim=none;
+	dmarc=fail header.from=itau-seguranca.example
+Authentication-Results: forjado.example; spf=pass dkim=pass dmarc=pass
+From: "Itau Unibanco <atendimento@itau.com.br>" <alerta@itau-seguranca.example>
+Reply-To: suporte.cliente.itau@gmail.com
+To: maria@empresa.example
+Subject: =?UTF-8?B?U3VhIGNvbnRhIHNlcsOhIGJsb3F1ZWFkYQ==?=
+Date: Thu, 05 Nov 2026 09:59:58 -0300
+Message-ID: <123@itau-seguranca.example>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="XYZ"
+
+--XYZ
+Content-Type: multipart/alternative; boundary="ALT"
+
+--ALT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Prezado cliente, sua conta ser=C3=A1 bloqueada em 24 horas. Atualize seu c=
+adastro em https://www.itau.com.br
+--ALT
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<p>Prezado cliente, sua conta ser=C3=A1 bloqueada em 24 horas.</p><p><a hre=
+f=3D"http://itau-seguranca.example/atualizar?id=3D9">https://www.itau.com.br</a></p>
+--ALT--
+--XYZ
+Content-Type: text/html; name="boleto.pdf.html"
+Content-Disposition: attachment; filename="boleto.pdf.html"
+Content-Transfer-Encoding: base64
+
+PHA+dGVzdGU8L3A+
+--XYZ--
