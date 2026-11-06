@@ -10,7 +10,7 @@ const analises = $('Lê a análise').all().map((i) => i.json.analise);
 const travas = $input.all().map((i, k) => Number(i.json[acoes[k]?.chave_trava]));
 const lista = (nome) => { const b = $(nome).first().json.body; return Array.isArray(b) ? b : []; };
 const tipos = lista('Lê os tipos de solução');
-const grupos = lista('Lê os grupos');
+const grupos = lista('Lê os grupos (decisões)');
 const chat = String($env.PHISHING_TELEGRAM_CHAT_ID ?? '').trim();
 
 const ROTULO = { phishing: 'PHISHING', legitimo: 'LEGÍTIMO', spam: 'SPAM', escalar: 'ESCALADO PARA N2', inconclusivo: 'INCONCLUSIVO' };

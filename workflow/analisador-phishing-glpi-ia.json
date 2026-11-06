@@ -1,14 +1,14 @@
 {
-  "id": "phishAnalisa0001",
-  "name": "Phishing - analisa relatos do GLPI",
+  "id": "phishGlpiIA00001",
+  "name": "analisador-phishing-glpi-ia",
   "nodes": [
     {
-      "id": "942235e9-3e5a-58e5-bf8a-74c582235bc6",
+      "id": "72717c78-9212-559c-a0b7-ed757eef0497",
       "name": "A cada 2 minutos",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -2200,
+        -2860,
         300
       ],
       "parameters": {
@@ -23,58 +23,102 @@
       }
     },
     {
-      "id": "b29c2b04-91a6-5660-8461-3502dc135292",
+      "id": "dca60fb3-6697-5321-8952-9c4d50530415",
+      "name": "A cada minuto",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2860,
+        1500
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "845afa60-f6ad-5c09-9420-5e54f07ab98d",
       "name": "Configuração",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1980,
-        300
+        -2640,
+        900
       ],
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "1d3e8788-e81f-551e-8992-08ed88b54c7f",
+              "id": "137e1777-4e70-5364-9113-cfeec7850616",
               "name": "prefixoRedis",
               "value": "phishing:",
               "type": "string"
             },
             {
-              "id": "4ea6b60c-6242-5ec3-98c1-48e26dac4a39",
+              "id": "93a1aeeb-a24f-57b9-86a0-6e60788b5172",
               "name": "glpiTela",
               "value": "http://127.0.0.1:8080/front/ticket.form.php?id=",
               "type": "string"
             },
             {
-              "id": "338d0779-a540-51e5-aeca-db7f7c878647",
+              "id": "309b6265-9cbf-5db4-93e2-d80cf2c9ac4a",
               "name": "categoria",
               "value": "Segurança > Phishing e e-mail suspeito",
               "type": "string"
             },
             {
-              "id": "e3cca7f9-4475-508a-86ce-343faeb98296",
+              "id": "39456bc2-606c-587b-ab79-d0d69ffedb62",
               "name": "grupo",
               "value": "Segurança da Informação",
               "type": "string"
             },
             {
-              "id": "68e328e5-882a-5790-9bfb-197654f986f5",
+              "id": "3a24b712-b6c8-5c37-abcb-88a456e37be2",
               "name": "cotaDiaria",
               "value": 20,
               "type": "number"
             },
             {
-              "id": "24a27ef6-57d2-5307-8bb1-1236270bef54",
+              "id": "307da7ea-b6b9-5dc3-99f3-de9a86248e6f",
               "name": "maxVirusTotal",
               "value": 4,
               "type": "number"
             },
             {
-              "id": "3967783f-803f-5a8e-ad81-2a4559d662c7",
+              "id": "2c0eadfc-ac6c-57bf-8aef-28a7029af73b",
               "name": "maxAnexos",
               "value": 4,
               "type": "number"
+            },
+            {
+              "id": "37bc81f6-1b44-58bf-a75e-509c4ea9b680",
+              "name": "tipoPhishing",
+              "value": "Phishing confirmado",
+              "type": "string"
+            },
+            {
+              "id": "b1bc1887-8cc9-5501-8975-6add32dcdcc8",
+              "name": "tipoLegitimo",
+              "value": "Contato legítimo",
+              "type": "string"
+            },
+            {
+              "id": "15b1276f-f94a-5cf4-94a3-67f85193af6f",
+              "name": "tipoSpam",
+              "value": "Spam (não malicioso)",
+              "type": "string"
+            },
+            {
+              "id": "08509bbf-840d-5bf3-ad40-04744d78c845",
+              "name": "grupoN2",
+              "value": "SOC N2",
+              "type": "string"
             }
           ]
         },
@@ -82,8 +126,43 @@
       }
     },
     {
-      "id": "370e18c1-ba1b-526c-932e-25db9fb0de06",
-      "name": "Abre a sessão no GLPI",
+      "id": "3bd7907b-b486-5687-9175-67099aa5c9ac",
+      "name": "Qual rotina?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2420,
+        900
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a07f6847-994c-5943-b4cc-7b92cb7771b9",
+              "leftValue": "={{ $('A cada minuto').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "12cd8e31-3f55-5682-bfb0-2f7a7200ec77",
+      "name": "Abre a sessão no GLPI (análise)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -115,7 +194,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "aeeb48a7-62e8-5c68-a956-2c7d3e6fc0b1",
+      "id": "c54f58d5-ea42-5f80-9d79-381202fb9681",
       "name": "Lê as categorias",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -142,7 +221,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -158,7 +237,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "5d7d6e9a-80cf-5219-8dde-be7ee5506af0",
+      "id": "62bc2ebf-5a86-54f6-b994-bcc903018cb0",
       "name": "Lê os grupos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -185,7 +264,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -201,7 +280,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "8bae477c-a7e2-5dfc-a8fd-62cf449d0258",
+      "id": "4688b2f7-2a6f-5989-8a5f-3d06fa957798",
       "name": "Monta a busca",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -214,7 +293,7 @@
       }
     },
     {
-      "id": "1a5ea26a-67ab-5d0d-9c92-4a0954a7aeae",
+      "id": "ce47492a-e376-507f-8bb5-713b7d44cf71",
       "name": "Busca os relatos abertos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -241,7 +320,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -257,7 +336,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "45adb2eb-d37f-5217-ab19-5f3dd892cc13",
+      "id": "e64335df-2c1d-5d81-ae5d-f4e78c24a812",
       "name": "Tem relato aberto?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -275,7 +354,7 @@
           },
           "conditions": [
             {
-              "id": "5be2bcd3-58db-536a-b8d1-4e664af9a776",
+              "id": "2f6995d1-cc04-53c9-bc59-a7bd8cf46ba4",
               "leftValue": "={{ (($json.body ?? {}).data ?? []).length > 0 }}",
               "rightValue": true,
               "operator": {
@@ -292,7 +371,7 @@
       }
     },
     {
-      "id": "0fba8b99-4a2e-51fb-8456-9818132a8d82",
+      "id": "4a578b41-9db5-5721-94cd-0b33533105d4",
       "name": "Lista os candidatos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -305,7 +384,7 @@
       }
     },
     {
-      "id": "76c6b927-6c37-574f-a6e2-edf73844fbea",
+      "id": "df80a67a-7f24-5fa4-ba7f-43f36db4dc2c",
       "name": "Já foi analisado?",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -327,7 +406,7 @@
       }
     },
     {
-      "id": "762c8fe4-4821-54a5-b4df-5d49dc646b27",
+      "id": "a78fc903-9e8e-59f1-9695-69d3175aed5d",
       "name": "Escolhe o próximo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -340,7 +419,7 @@
       }
     },
     {
-      "id": "844fc70d-c66e-5c9b-9128-24e1c3b344ec",
+      "id": "1a95c4c2-ece4-5e9a-81d3-e349811477a1",
       "name": "Achou um novo?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -358,7 +437,7 @@
           },
           "conditions": [
             {
-              "id": "ce91b431-2902-53a2-bcca-7c465f222280",
+              "id": "91b03990-b95c-5068-90da-2f074ca77ab9",
               "leftValue": "={{ !$json.nenhum }}",
               "rightValue": true,
               "operator": {
@@ -375,7 +454,7 @@
       }
     },
     {
-      "id": "fce41338-580d-54a5-aae2-fafcbb9ddd4f",
+      "id": "d4ef4af0-123c-5c79-b299-fc948dd352fe",
       "name": "Reserva o chamado",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -397,7 +476,7 @@
       }
     },
     {
-      "id": "c472e8d0-3937-5c71-b4c3-5dabbcff3d50",
+      "id": "b1d127f4-6da0-5714-a1a7-1d3845b226f2",
       "name": "Reservado agora?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -415,7 +494,7 @@
           },
           "conditions": [
             {
-              "id": "4890c086-2abe-581a-9b5a-c0ce7c97d70f",
+              "id": "081ecdf8-bb46-5ee5-bc67-8bfd9b4b1bf4",
               "leftValue": "={{ Number($json[$('Escolhe o próximo').first().json.chave_reserva]) === 1 }}",
               "rightValue": true,
               "operator": {
@@ -432,7 +511,7 @@
       }
     },
     {
-      "id": "2f194920-ea17-5c50-bbc7-1b957129d90c",
+      "id": "68d457cf-a0b2-5967-9f57-a3fe4aa0d6f1",
       "name": "Conta a cota do dia",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -454,7 +533,7 @@
       }
     },
     {
-      "id": "401b4fe0-4611-55ec-9a90-3f647c795141",
+      "id": "909cf5ea-a6bd-58bc-afbf-d48116939a16",
       "name": "Dentro da cota?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -472,7 +551,7 @@
           },
           "conditions": [
             {
-              "id": "7be18825-57b6-550a-9510-e48cf0b21c1b",
+              "id": "0e046d81-038a-5934-aae4-16bd8e15d991",
               "leftValue": "={{ Number($json[$('Escolhe o próximo').first().json.chave_cota]) <= Number($('Configuração').first().json.cotaDiaria) }}",
               "rightValue": true,
               "operator": {
@@ -489,7 +568,7 @@
       }
     },
     {
-      "id": "db6b7c96-ad6c-5792-9774-7b5d21d6b1d8",
+      "id": "6aeed3d4-3dd2-53e6-933e-986a5ac0eda4",
       "name": "Devolve o chamado à fila",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -509,7 +588,7 @@
       }
     },
     {
-      "id": "e02fc039-00b7-599a-9346-c26826ea18e7",
+      "id": "76980d21-3d1d-5cec-bc55-d55067f0bb47",
       "name": "Lê o chamado",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -536,7 +615,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -552,7 +631,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "6bfa8378-583a-5ee8-ac41-db7b5f185177",
+      "id": "24ad699f-9891-5c26-80bf-ffdb7828f003",
       "name": "Lê os requerentes",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -579,7 +658,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -595,7 +674,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "59409aa9-5168-5d1d-bbef-01ec84a40def",
+      "id": "127ed55c-c94b-5f3c-a292-778e332b1683",
       "name": "Lê os acompanhamentos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -622,7 +701,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -638,7 +717,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "33084f91-4c04-50a3-afd4-046ca850fd18",
+      "id": "5eb3c843-07ac-5fba-9625-dda03798f36f",
       "name": "Lê os anexos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -665,7 +744,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -681,7 +760,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "2e88e2b5-c6ec-5832-b82b-4bfeb2ed0bd3",
+      "id": "169e6596-0dad-52df-8a7c-5117eb649eb6",
       "name": "Lista os anexos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -694,7 +773,7 @@
       }
     },
     {
-      "id": "9a6d4319-3f5a-5749-895a-219efed8e0d4",
+      "id": "1ce2d106-c748-50fd-8cf5-18c810e09de6",
       "name": "Tem anexo?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -712,7 +791,7 @@
           },
           "conditions": [
             {
-              "id": "3e5aa4b3-b7da-56c4-a8fb-681fa7cdda4d",
+              "id": "324a5d46-6175-5fc7-a870-8dfca4f784dd",
               "leftValue": "={{ !$json.sem_anexo }}",
               "rightValue": true,
               "operator": {
@@ -729,7 +808,7 @@
       }
     },
     {
-      "id": "7e72f4c9-5505-5ae8-a902-6b6ea78fd0c6",
+      "id": "4a488a17-8f32-57e9-a074-e3562b62e52a",
       "name": "Lê os documentos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -756,7 +835,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -772,7 +851,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "c52f5b95-3fc3-5c01-9b90-83bf44734738",
+      "id": "e512c559-f4ea-5791-8c49-588b71e1715c",
       "name": "Escolhe o que baixar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -785,7 +864,7 @@
       }
     },
     {
-      "id": "6e018d08-8c88-5b20-954b-184583f4f5de",
+      "id": "de8fcdf4-af01-5480-85c5-565589ad9c11",
       "name": "Baixa os anexos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -813,7 +892,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             },
             {
               "name": "Accept",
@@ -833,7 +912,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "52f1ceda-7129-5e88-a2d2-228db6039266",
+      "id": "8cc1c830-32eb-586f-84a0-55fc3fe9ef72",
       "name": "Extrai as evidências",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -846,7 +925,7 @@
       }
     },
     {
-      "id": "8326e512-3aa1-5caf-ba28-c2676c6398a1",
+      "id": "57c5f313-bd82-5d10-8fc5-f375e1a997ce",
       "name": "Consultar o VirusTotal?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -864,7 +943,7 @@
           },
           "conditions": [
             {
-              "id": "78591b4c-f37a-5a09-b72a-496cb8924f61",
+              "id": "67fb8fee-1978-50bc-992a-b420764e41c4",
               "leftValue": "={{ ($('Extrai as evidências').first().json.consultas.virustotal ?? []).length > 0 }}",
               "rightValue": true,
               "operator": {
@@ -881,7 +960,7 @@
       }
     },
     {
-      "id": "750af76d-408a-5fd3-ab5a-45b31d4090b4",
+      "id": "e48bfda2-5efd-5bb4-9ea5-a614d956c3f1",
       "name": "Fila do VirusTotal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -894,7 +973,7 @@
       }
     },
     {
-      "id": "30083f9d-ee23-597c-8406-dd74ed407307",
+      "id": "53bccfca-a01a-549e-8951-b4781bfcfedc",
       "name": "VirusTotal",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -931,7 +1010,7 @@
       }
     },
     {
-      "id": "4d3b382f-92e1-5781-845d-3c8c5c7ed8fb",
+      "id": "a63ae6b1-809a-5860-901f-48b42f99da3b",
       "name": "Resume o VirusTotal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -944,7 +1023,7 @@
       }
     },
     {
-      "id": "2cd4c8f1-5a66-5cc1-a36c-7d80e8908cff",
+      "id": "4db38f7b-bd75-5030-a927-0ec28f308e90",
       "name": "Consultar o URLhaus?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -962,7 +1041,7 @@
           },
           "conditions": [
             {
-              "id": "e0d456f8-00ac-531d-b337-d57f5615ba89",
+              "id": "7573ea67-bf87-569a-a27b-775ec996c97b",
               "leftValue": "={{ ($('Extrai as evidências').first().json.consultas.urlhaus ?? []).length > 0 }}",
               "rightValue": true,
               "operator": {
@@ -979,7 +1058,7 @@
       }
     },
     {
-      "id": "329bf761-24c1-5aa4-b6af-3f63ff78735d",
+      "id": "40429d87-5f70-59d0-9bd5-3152e99a17a3",
       "name": "Fila do URLhaus",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -992,7 +1071,7 @@
       }
     },
     {
-      "id": "450e80e4-c526-5ede-912c-6c712e18ae31",
+      "id": "b219506f-c91d-5de9-9302-2b713ab10ffe",
       "name": "URLhaus",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1034,7 +1113,7 @@
       }
     },
     {
-      "id": "7cf16dc5-d0be-50d0-8ace-cb367fd649f4",
+      "id": "aa1d43d9-63a1-5db6-9b67-6491fd211e8d",
       "name": "Resume o URLhaus",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1047,7 +1126,7 @@
       }
     },
     {
-      "id": "830fa83d-66cc-547a-bda6-a7e8aa276e40",
+      "id": "82d1459d-14d0-57fe-aba3-a0219766957e",
       "name": "Consultar o RDAP?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -1065,7 +1144,7 @@
           },
           "conditions": [
             {
-              "id": "19f3b46a-5a53-53fb-b925-18561e6d03d7",
+              "id": "b22d94da-c484-5117-8f90-224156481e74",
               "leftValue": "={{ ($('Extrai as evidências').first().json.consultas.rdap ?? []).length > 0 }}",
               "rightValue": true,
               "operator": {
@@ -1082,7 +1161,7 @@
       }
     },
     {
-      "id": "c0f20b3c-f9ff-510f-ac83-f05ecea477c8",
+      "id": "e312d522-13d9-57b4-9753-c9aaf28cfb61",
       "name": "Fila do RDAP",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1095,7 +1174,7 @@
       }
     },
     {
-      "id": "50bf60d3-5eaf-5467-afc7-49e27ae9f388",
+      "id": "6f5fa23e-d098-56bf-bdd6-3e6090719eb2",
       "name": "RDAP",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1118,7 +1197,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "2049505a-0215-519c-8691-04130bd2a86a",
+      "id": "300790b6-ad47-5de9-a058-22d82d80270f",
       "name": "Resume o RDAP",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1131,7 +1210,7 @@
       }
     },
     {
-      "id": "8e0e897f-f437-5917-b193-42e29827979a",
+      "id": "9fecbdf8-66e1-5d96-9c87-f8a76539f89f",
       "name": "Monta o dossiê",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1144,7 +1223,7 @@
       }
     },
     {
-      "id": "58bc4d06-42f9-5f78-b2b5-0ffea991d1e3",
+      "id": "5c38901f-fdb1-56b0-9178-8671b7141c35",
       "name": "IA - analista SOC",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
@@ -1162,7 +1241,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "478ddf76-cf71-5ce4-a02b-6e559f7f694c",
+      "id": "4ad5c144-dd69-56bf-bdbd-e97cbebb3c91",
       "name": "Gemini",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
@@ -1185,7 +1264,7 @@
       }
     },
     {
-      "id": "6dbf3c18-84fe-5edc-9406-93e41ff792c7",
+      "id": "220841e8-ac87-5a9d-95a3-2e9b1e074f2e",
       "name": "Parecer final",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1198,7 +1277,7 @@
       }
     },
     {
-      "id": "6975bc31-8786-5568-9bc6-4e46de3ae050",
+      "id": "9be3f606-86be-5dcb-85c1-60196cc8beaf",
       "name": "Monta o registro e o aviso",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1211,7 +1290,7 @@
       }
     },
     {
-      "id": "47f66749-a667-5526-8f1f-09338367dd81",
+      "id": "4783fb77-29f7-59e2-a33e-174de4b72975",
       "name": "Grava a análise no GLPI",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1238,7 +1317,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         },
@@ -1257,7 +1336,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "56b2a7df-7894-5f32-9d67-1b2ba328f2bd",
+      "id": "adf2f5bc-e0d0-5647-a6bb-666ea815a5a5",
       "name": "Envia ao grupo de phishing",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1283,7 +1362,7 @@
       }
     },
     {
-      "id": "741751e8-664a-59e7-a112-a9e88ab5dae3",
+      "id": "2a1e774f-9b26-5eb2-bdc2-a780aad4962a",
       "name": "Guarda a análise (90 dias)",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -1306,8 +1385,8 @@
       }
     },
     {
-      "id": "d94a0eb7-d485-5dbf-916b-03e411a77fcf",
-      "name": "Fecha a sessão no GLPI",
+      "id": "fe99d38e-2dfd-5f7b-9495-085016e1d5fa",
+      "name": "Fecha a sessão no GLPI (análise)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -1333,7 +1412,7 @@
           "parameters": [
             {
               "name": "Session-Token",
-              "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"
+              "value": "={{ $('Abre a sessão no GLPI (análise)').first().json.body.session_token }}"
             }
           ]
         }
@@ -1350,7 +1429,7 @@
       "executeOnce": true
     },
     {
-      "id": "7b2108c2-a26f-564a-afa0-8c21aa68e647",
+      "id": "60609009-82e5-5582-ac52-36522e2a8fb9",
       "name": "Nota - Como funciona",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -1359,8 +1438,606 @@
         -260
       ],
       "parameters": {
-        "content": "## Analisador de relatos de phishing (GLPI)\nA cada 2 minutos procura no GLPI chamados **abertos**, da categoria **Segurança > Phishing e e-mail suspeito** e atribuídos ao grupo **Segurança da Informação**. Analisa **um por vez** (cota da IA: `cotaDiaria`).\n\n1. Lê o chamado, os acompanhamentos e os anexos (o `.eml`/`.msg` do e-mail é **lido como texto**; os outros anexos só têm o hash conferido, **nunca são abertos**).\n2. Extrai remetente real, SPF/DKIM/DMARC, IP de origem, links, anexos e sinais de phishing.\n3. Consulta a reputação **só para leitura** (VirusTotal, URLhaus, RDAP): nenhum link é visitado.\n4. A IA (Gemini) dá o parecer; travas impedem que um e-mail malicioso a faça dizer \"legítimo\".\n5. Grava a análise como acompanhamento **privado** no GLPI e manda no grupo do Telegram com os botões.\n\nQuem decide é o **analista** (fluxo \"Phishing - decisões do analista\").",
+        "content": "## Rotina 1: análise dos relatos (GLPI -> IA -> Telegram)\nA cada 2 minutos procura no GLPI chamados **abertos**, da categoria **Segurança > Phishing e e-mail suspeito** e atribuídos ao grupo **Segurança da Informação**. Analisa **um por vez** (cota da IA: `cotaDiaria`).\n\n1. Lê o chamado, os acompanhamentos e os anexos (o `.eml`/`.msg` do e-mail é **lido como texto**; os outros anexos só têm o hash conferido, **nunca são abertos**).\n2. Extrai remetente real, SPF/DKIM/DMARC, IP de origem, links, anexos e sinais de phishing.\n3. Consulta a reputação **só para leitura** (VirusTotal, URLhaus, RDAP): nenhum link é visitado.\n4. A IA (Gemini) dá o parecer; travas impedem que um e-mail malicioso a faça dizer \"legítimo\".\n5. Grava a análise como acompanhamento **privado** no GLPI e manda no grupo do Telegram com os botões.\n\nQuem decide é o **analista** (rotina 2, mais abaixo).",
         "width": 760,
+        "height": 460,
+        "color": 4
+      }
+    },
+    {
+      "id": "5bd8c706-90fd-5c00-990a-abfe0f77f8d0",
+      "name": "Lê o ponto de leitura",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1540,
+        1500
+      ],
+      "parameters": {
+        "operation": "get",
+        "propertyName": "offset",
+        "key": "phishing:telegram:offset",
+        "options": {}
+      },
+      "credentials": {
+        "redis": {
+          "id": "ngsocRedisLocal",
+          "name": "Redis local"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "62b8e3ee-ee94-52b5-a84c-f4221173e152",
+      "name": "Busca as mensagens",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1320,
+        1500
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.PHISHING_TELEGRAM_TOKEN }}/getUpdates",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ offset: Number($json.offset) || 0, timeout: 45, allowed_updates: ['callback_query', 'message'] }) }}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "6ba2c6a5-7907-5a65-b4cb-104d9d75c5f4",
+      "name": "Lê as mensagens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1100,
+        1500
+      ],
+      "parameters": {
+        "jsCode": "// ---- Biblioteca: texto seguro ----\n// Tudo o que vem do chamado e do e-mail suspeito foi escrito por um usuário ou por um ATACANTE.\n// Por isso: esc() antes de ir para o Telegram/GLPI (vira texto, nunca HTML) e desarmar() nos\n// indicadores (hxxps://site[.]com), para o analista não abrir um link malicioso sem querer.\n\nconst ENTIDADES = { amp: '&', lt: '<', gt: '>', quot: '\"', apos: \"'\", nbsp: ' ', ordm: 'º', ordf: 'ª', euro: '€', copy: '©', reg: '®', ndash: '–', mdash: '—', hellip: '…', laquo: '«', raquo: '»' };\n// Letras acentuadas do português: &aacute; &Atilde; &ccedil; ...\nfor (const [letras, acento, base] of [['aeiou', 'acute', 0x301], ['aeiou', 'grave', 0x300], ['aeiou', 'circ', 0x302], ['aon', 'tilde', 0x303], ['aeiou', 'uml', 0x308], ['c', 'cedil', 0x327]]) {\n  for (const l of letras) {\n    ENTIDADES[l + acento] = (l + String.fromCharCode(base)).normalize('NFC');\n    ENTIDADES[l.toUpperCase() + acento] = (l.toUpperCase() + String.fromCharCode(base)).normalize('NFC');\n  }\n}\n\nfunction decodificarEntidades(texto) {\n  return String(texto ?? '').replace(/&(#x[0-9a-f]{1,6}|#\\d{1,7}|[a-z]{2,8});/gi, (inteiro, e) => {\n    if (e[0] === '#') {\n      const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);\n      return n > 0 && n < 0x110000 && !(n >= 0xd800 && n <= 0xdfff) ? String.fromCodePoint(n) : inteiro;\n    }\n    return ENTIDADES[e] ?? ENTIDADES[e.toLowerCase()] ?? inteiro;\n  });\n}\n\n// HTML -> texto. O GLPI guarda o conteúdo do chamado com as tags escapadas (&lt;p&gt;): desfaz isso antes.\nfunction htmlParaTexto(html) {\n  let s = String(html ?? '');\n  if (/&lt;\\/?[a-z][\\s\\S]*?&gt;/i.test(s) && !/<\\/?[a-z][^>]*>/i.test(s)) s = decodificarEntidades(s);\n  s = s.replace(/<(script|style|head|title)\\b[\\s\\S]*?<\\/\\1\\s*>/gi, ' ')\n    .replace(/<!--[\\s\\S]*?-->/g, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/(p|div|tr|li|h\\d|blockquote|table)\\s*>/gi, '\\n')\n    .replace(/<[^>]*>/g, ' ');\n  return decodificarEntidades(s)\n    .replace(/[ \\t ]+/g, ' ')\n    .replace(/ *\\n */g, '\\n')\n    .replace(/\\n{3,}/g, '\\n\\n')\n    .trim();\n}\n\n// Escapa para HTML do Telegram e do GLPI (o Telegram só reconhece &, < e >; \" protege atributos).\nfunction esc(texto) {\n  return String(texto ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\n}\n\n// Corta o texto e remove caracteres de controle (mantém quebras de linha).\nfunction curto(texto, maximo = 200) {\n  const t = String(texto ?? '').replace(/[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f​-‏‪-‮⁦-⁩]/g, '').trim();\n  return t.length > maximo ? t.slice(0, maximo - 1) + '…' : t;\n}\n\n// Uma linha só (sem quebras), cortada.\nfunction linha(texto, maximo = 200) {\n  return curto(String(texto ?? '').replace(/\\s+/g, ' '), maximo);\n}\n\n// Indicador \"desarmado\": https://mal.com/x -> hxxps://mal[.]com/x ; a@mal.com -> a[@]mal[.]com ; 1.2.3.4 -> 1.2.3[.]4\nfunction desarmar(ioc) {\n  const texto = String(ioc ?? '');\n  const url = texto.match(/^([a-z][a-z0-9+.-]*)(:\\/\\/)([^/?#]*)(.*)$/i);\n  if (url) return url[1].replace(/^http/i, (p) => p[0] + 'xx' + p[3]) + url[2] + url[3].replace(/\\./g, '[.]').replace(/@/g, '[@]') + url[4];\n  return texto.replace(/@/g, '[@]').replace(/\\.(?=[^.]*$)/, '[.]');\n}\n\nfunction unicos(lista, maximo = 50) {\n  const vistos = new Set();\n  const saida = [];\n  for (const item of lista) {\n    const chave = String(item).toLowerCase();\n    if (!item || vistos.has(chave)) continue;\n    vistos.add(chave);\n    saida.push(item);\n    if (saida.length >= maximo) break;\n  }\n  return saida;\n}\n// ---- fim da biblioteca ----\n\n// Nó \"Lê as mensagens\": transforma o que chegou no Telegram em ações.\n//  - Clique num botão do relato (ph|<chamado>|p/l/s/e) -> decidir: phishing, legítimo, spam ou escalar N2.\n//  - /nota <chamado> <texto>  -> nota interna no chamado (justificativa, contexto, o que foi feito).\n//  - /reanalisar <chamado>    -> o fluxo de análise pega o chamado de novo (ex.: o usuário anexou o .eml depois).\n//  - /ajuda                   -> lista os comandos.\n// Só vale o que vem do grupo configurado (PHISHING_TELEGRAM_CHAT_ID) e, para decidir ou anotar, só\n// analistas autorizados (IDs do Telegram em PHISHING_ANALISTAS). Sem configuração, nada é aceito.\nconst r = $input.first().json;\nif (r.statusCode !== 200 || !r.body?.ok) return []; // 409 = outra leitura em andamento; tenta no próximo minuto\nconst atualizacoes = Array.isArray(r.body.result) ? r.body.result : [];\nif (!atualizacoes.length) return [];\n\nconst grupo = String($env.PHISHING_TELEGRAM_CHAT_ID ?? '').trim();\nconst analistas = new Set(String($env.PHISHING_ANALISTAS ?? '').split(/[\\s,;]+/).filter((x) => /^\\d{3,20}$/.test(x)));\nconst DECISOES = { p: 'phishing', l: 'legitimo', s: 'spam', e: 'escalar' };\nconst AJUDA = 'Comandos do grupo de relatos de phishing:\\n' +\n  '• Botões do relato: decidem o caso (responde ao usuário e encerra/escala no GLPI)\\n' +\n  '• /nota 123 texto: nota interna no chamado 123\\n' +\n  '• /reanalisar 123: analisa o chamado 123 de novo (ex.: o usuário anexou o e-mail depois)\\n' +\n  'Só analistas autorizados podem decidir e anotar.';\nconst pessoa = (de) => ({\n  id: String(de?.id ?? ''),\n  nome: linha([de?.first_name, de?.last_name].filter(Boolean).join(' ') || 'sem nome', 60),\n  usuario: linha(de?.username ?? '', 40),\n});\n\nconst acoes = [];\nconst decididosAgora = new Set();\nfor (const u of atualizacoes) {\n  const base = { update_id: Number(u.update_id) };\n  const cb = u.callback_query;\n  if (cb) {\n    const analista = pessoa(cb.from);\n    const resposta = (texto, alerta = false) => acoes.push({ ...base, tipo: 'responder', callback_id: String(cb.id), texto, alerta, analista });\n    const m = String(cb.data ?? '').match(/^ph\\|(\\d{1,9})\\|([plsex])$/);\n    if (!grupo || String(cb.message?.chat?.id ?? '') !== grupo || !m) { resposta('Botão inválido ou de outro grupo.'); continue; }\n    if (m[2] === 'x') { resposta('Este relato já foi decidido.'); continue; }\n    if (!analistas.has(analista.id)) { resposta(`Sem permissão para decidir. Peça para incluir o seu ID do Telegram (${analista.id}) em PHISHING_ANALISTAS.`, true); continue; }\n    const chamado = Number(m[1]);\n    if (decididosAgora.has(chamado)) { resposta(`Chamado #${chamado} já está sendo decidido.`); continue; }\n    decididosAgora.add(chamado);\n    acoes.push({ ...base, tipo: 'decidir', chamado_id: chamado, decisao: DECISOES[m[2]], callback_id: String(cb.id), mensagem_id: Number(cb.message.message_id), analista });\n    continue;\n  }\n  const msg = u.message;\n  if (!grupo || !msg || String(msg.chat?.id ?? '') !== grupo) continue; // outras conversas: ignora em silêncio\n  const cmd = String(msg.text ?? '').trim().match(/^\\/(nota|reanalisar|ajuda|help|start)(?:@\\w+)?(?:\\s+#?(\\d{1,9}))?(?:\\s+([\\s\\S]+))?$/i);\n  if (!cmd) continue;\n  const analista = pessoa(msg.from);\n  const comum = { ...base, mensagem_id: Number(msg.message_id), analista };\n  const responder = (texto) => acoes.push({ ...comum, tipo: 'responder', texto });\n  const nome = cmd[1].toLowerCase();\n  if (['ajuda', 'help', 'start'].includes(nome)) { responder(AJUDA); continue; }\n  if (!analistas.has(analista.id)) { responder(`Sem permissão. Peça para incluir o seu ID do Telegram (${analista.id}) em PHISHING_ANALISTAS.`); continue; }\n  if (!cmd[2]) { responder(`Informe o número do chamado. Ex.: /${nome} 123${nome === 'nota' ? ' texto da nota' : ''}`); continue; }\n  if (nome === 'nota' && !String(cmd[3] ?? '').trim()) { responder(`Escreva o texto da nota. Ex.: /nota ${cmd[2]} usuário confirmou que não clicou`); continue; }\n  acoes.push({ ...comum, tipo: nome, chamado_id: Number(cmd[2]), texto: curto(cmd[3] ?? '', 2000) });\n}\n\nreturn [{ json: {\n  offset: Math.max(...atualizacoes.map((u) => Number(u.update_id))) + 1,\n  acoes: acoes.slice(0, 20),\n} }];\n"
+      }
+    },
+    {
+      "id": "5a2c5906-fc61-5ea5-95c8-bd5f0c291d17",
+      "name": "Guarda o ponto de leitura",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        1500
+      ],
+      "parameters": {
+        "operation": "set",
+        "key": "phishing:telegram:offset",
+        "value": "={{ $('Lê as mensagens').first().json.offset }}"
+      },
+      "credentials": {
+        "redis": {
+          "id": "ngsocRedisLocal",
+          "name": "Redis local"
+        }
+      }
+    },
+    {
+      "id": "c78bebc0-3e36-561f-bbf8-e62028de7fd9",
+      "name": "Tem ações?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -660,
+        1500
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d649fcdc-b1eb-5e5d-bddf-24ecc629bbef",
+              "leftValue": "={{ $('Lê as mensagens').first().json.acoes.length > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "34ec7d70-cb65-524e-bf08-f79479cbbc88",
+      "name": "Abre a sessão no GLPI (decisões)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        1500
+      ],
+      "parameters": {
+        "url": "http://glpi/apirest.php/initSession",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "ngsocGlpiN8nApi1",
+          "name": "GLPI (n8n-api)"
+        }
+      },
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "id": "e9a927a1-312f-505b-9ffa-0b86dbc80896",
+      "name": "Lê os tipos de solução",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -220,
+        1500
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://glpi/apirest.php/SolutionType?range=0-200",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Abre a sessão no GLPI (decisões)').first().json.body.session_token }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "ngsocGlpiN8nApi1",
+          "name": "GLPI (n8n-api)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "executeOnce": true
+    },
+    {
+      "id": "d311ed7d-cd40-5684-a7d0-cdf2082a39cc",
+      "name": "Lê os grupos (decisões)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        1500
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://glpi/apirest.php/Group?range=0-200",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Abre a sessão no GLPI (decisões)').first().json.body.session_token }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "ngsocGlpiN8nApi1",
+          "name": "GLPI (n8n-api)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "executeOnce": true
+    },
+    {
+      "id": "d4d810e3-7661-539e-baf3-ad568ec7f6d4",
+      "name": "Separa as ações",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        1500
+      ],
+      "parameters": {
+        "jsCode": "// Nó \"Separa as ações\": um item por ação, com as chaves do Redis que cada uma usa.\n//  - trava: decisão = uma por chamado (dois cliques ou dois analistas não encerram duas vezes);\n//    outras ações = uma por mensagem do Telegram (não repete se a mesma mensagem chegar de novo).\nconst prefixo = $('Configuração').first().json.prefixoRedis;\nreturn $('Lê as mensagens').first().json.acoes.map((a, i) => ({ json: {\n  ...a,\n  chave_analise: `${prefixo}analise:${a.chamado_id ?? 0}`,\n  chave_trava: a.tipo === 'decidir' ? `${prefixo}decisao:${a.chamado_id}` : `${prefixo}update:${a.update_id}`,\n}, pairedItem: 0 }));\n"
+      }
+    },
+    {
+      "id": "3c94f4aa-001f-537e-9138-03a9db405f56",
+      "name": "Lê a análise",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        440,
+        1500
+      ],
+      "parameters": {
+        "operation": "get",
+        "propertyName": "analise",
+        "key": "={{ $json.chave_analise }}",
+        "options": {}
+      },
+      "credentials": {
+        "redis": {
+          "id": "ngsocRedisLocal",
+          "name": "Redis local"
+        }
+      }
+    },
+    {
+      "id": "854b1369-f50c-5b47-98c5-1f5074ad0beb",
+      "name": "Trava a ação",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        660,
+        1500
+      ],
+      "parameters": {
+        "operation": "incr",
+        "key": "={{ $('Separa as ações').item.json.chave_trava }}",
+        "expire": true,
+        "ttl": 7776000
+      },
+      "credentials": {
+        "redis": {
+          "id": "ngsocRedisLocal",
+          "name": "Redis local"
+        }
+      }
+    },
+    {
+      "id": "2e7a906c-e9fc-5752-abc0-e2d832f8802d",
+      "name": "Monta as ações",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        1500
+      ],
+      "parameters": {
+        "jsCode": "// ---- Biblioteca: texto seguro ----\n// Tudo o que vem do chamado e do e-mail suspeito foi escrito por um usuário ou por um ATACANTE.\n// Por isso: esc() antes de ir para o Telegram/GLPI (vira texto, nunca HTML) e desarmar() nos\n// indicadores (hxxps://site[.]com), para o analista não abrir um link malicioso sem querer.\n\nconst ENTIDADES = { amp: '&', lt: '<', gt: '>', quot: '\"', apos: \"'\", nbsp: ' ', ordm: 'º', ordf: 'ª', euro: '€', copy: '©', reg: '®', ndash: '–', mdash: '—', hellip: '…', laquo: '«', raquo: '»' };\n// Letras acentuadas do português: &aacute; &Atilde; &ccedil; ...\nfor (const [letras, acento, base] of [['aeiou', 'acute', 0x301], ['aeiou', 'grave', 0x300], ['aeiou', 'circ', 0x302], ['aon', 'tilde', 0x303], ['aeiou', 'uml', 0x308], ['c', 'cedil', 0x327]]) {\n  for (const l of letras) {\n    ENTIDADES[l + acento] = (l + String.fromCharCode(base)).normalize('NFC');\n    ENTIDADES[l.toUpperCase() + acento] = (l.toUpperCase() + String.fromCharCode(base)).normalize('NFC');\n  }\n}\n\nfunction decodificarEntidades(texto) {\n  return String(texto ?? '').replace(/&(#x[0-9a-f]{1,6}|#\\d{1,7}|[a-z]{2,8});/gi, (inteiro, e) => {\n    if (e[0] === '#') {\n      const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);\n      return n > 0 && n < 0x110000 && !(n >= 0xd800 && n <= 0xdfff) ? String.fromCodePoint(n) : inteiro;\n    }\n    return ENTIDADES[e] ?? ENTIDADES[e.toLowerCase()] ?? inteiro;\n  });\n}\n\n// HTML -> texto. O GLPI guarda o conteúdo do chamado com as tags escapadas (&lt;p&gt;): desfaz isso antes.\nfunction htmlParaTexto(html) {\n  let s = String(html ?? '');\n  if (/&lt;\\/?[a-z][\\s\\S]*?&gt;/i.test(s) && !/<\\/?[a-z][^>]*>/i.test(s)) s = decodificarEntidades(s);\n  s = s.replace(/<(script|style|head|title)\\b[\\s\\S]*?<\\/\\1\\s*>/gi, ' ')\n    .replace(/<!--[\\s\\S]*?-->/g, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/(p|div|tr|li|h\\d|blockquote|table)\\s*>/gi, '\\n')\n    .replace(/<[^>]*>/g, ' ');\n  return decodificarEntidades(s)\n    .replace(/[ \\t ]+/g, ' ')\n    .replace(/ *\\n */g, '\\n')\n    .replace(/\\n{3,}/g, '\\n\\n')\n    .trim();\n}\n\n// Escapa para HTML do Telegram e do GLPI (o Telegram só reconhece &, < e >; \" protege atributos).\nfunction esc(texto) {\n  return String(texto ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\n}\n\n// Corta o texto e remove caracteres de controle (mantém quebras de linha).\nfunction curto(texto, maximo = 200) {\n  const t = String(texto ?? '').replace(/[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f​-‏‪-‮⁦-⁩]/g, '').trim();\n  return t.length > maximo ? t.slice(0, maximo - 1) + '…' : t;\n}\n\n// Uma linha só (sem quebras), cortada.\nfunction linha(texto, maximo = 200) {\n  return curto(String(texto ?? '').replace(/\\s+/g, ' '), maximo);\n}\n\n// Indicador \"desarmado\": https://mal.com/x -> hxxps://mal[.]com/x ; a@mal.com -> a[@]mal[.]com ; 1.2.3.4 -> 1.2.3[.]4\nfunction desarmar(ioc) {\n  const texto = String(ioc ?? '');\n  const url = texto.match(/^([a-z][a-z0-9+.-]*)(:\\/\\/)([^/?#]*)(.*)$/i);\n  if (url) return url[1].replace(/^http/i, (p) => p[0] + 'xx' + p[3]) + url[2] + url[3].replace(/\\./g, '[.]').replace(/@/g, '[@]') + url[4];\n  return texto.replace(/@/g, '[@]').replace(/\\.(?=[^.]*$)/, '[.]');\n}\n\nfunction unicos(lista, maximo = 50) {\n  const vistos = new Set();\n  const saida = [];\n  for (const item of lista) {\n    const chave = String(item).toLowerCase();\n    if (!item || vistos.has(chave)) continue;\n    vistos.add(chave);\n    saida.push(item);\n    if (saida.length >= maximo) break;\n  }\n  return saida;\n}\n// ---- fim da biblioteca ----\n\n// Nó \"Monta as ações\": para cada ação, os passos no GLPI e as mensagens no Telegram.\n// Saída: itens com destino \"glpi\" (um por chamada à API, em ordem) ou \"telegram\" (resposta direta).\n// Os passos do GLPI levam junto as mensagens de sucesso e de falha; quem as envia é \"Confere o GLPI\".\n//\n// SEGURANÇA: a resposta ao USUÁRIO usa só textos fixos deste arquivo. Nada escrito pela IA vai para o\n// usuário: um e-mail malicioso poderia \"convencer\" a IA a escrever um golpe em nome da Segurança.\nconst cfg = $('Configuração').first().json;\nconst acoes = $('Separa as ações').all().map((i) => i.json);\nconst analises = $('Lê a análise').all().map((i) => i.json.analise);\nconst travas = $input.all().map((i, k) => Number(i.json[acoes[k]?.chave_trava]));\nconst lista = (nome) => { const b = $(nome).first().json.body; return Array.isArray(b) ? b : []; };\nconst tipos = lista('Lê os tipos de solução');\nconst grupos = lista('Lê os grupos (decisões)');\nconst chat = String($env.PHISHING_TELEGRAM_CHAT_ID ?? '').trim();\n\nconst ROTULO = { phishing: 'PHISHING', legitimo: 'LEGÍTIMO', spam: 'SPAM', escalar: 'ESCALADO PARA N2', inconclusivo: 'INCONCLUSIVO' };\nconst ICONE = { phishing: '🎣', legitimo: '✅', spam: '📨', escalar: '⬆️' };\nconst TIPO_SOLUCAO = { phishing: cfg.tipoPhishing, legitimo: cfg.tipoLegitimo, spam: cfg.tipoSpam };\nconst agora = new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';\nconst quem = (a) => `${a.nome}${a.usuario ? ' (@' + a.usuario + ')' : ''}`;\nconst li = (itens) => '<ul>' + itens.map((x) => `<li>${x}</li>`).join('') + '</ul>';\n\nconst tg = (metodo, corpo, extra = {}) => ({ json: { destino: 'telegram', tg_metodo: metodo, tg_corpo: corpo, ...extra } });\nconst responder = (a, texto, alerta = false) => (a.callback_id\n  ? tg('answerCallbackQuery', { callback_query_id: a.callback_id, text: texto.slice(0, 190), show_alert: alerta })\n  : tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, text: texto, allow_sending_without_reply: true }));\n\nconst RESPOSTA_USUARIO = {\n  phishing: '<p>Olá! Obrigado por reportar: você ajudou a proteger todo mundo.</p>' +\n    '<p>Analisamos a mensagem e <strong>confirmamos que é PHISHING</strong> (uma tentativa de golpe).</p>' +\n    '<p><strong>O que fazer agora:</strong></p>' + li([\n      'Não clique nos links, não abra os anexos e não responda ao remetente.',\n      'Apague a mensagem (e esvazie a lixeira).',\n      'Se você clicou, digitou sua senha, abriu o anexo ou fez algum pagamento, <strong>responda este chamado agora</strong> e troque sua senha. Quanto antes, melhor.',\n    ]) + '<p>A equipe de Segurança da Informação já está bloqueando o remetente e os links.</p>',\n  legitimo: '<p>Olá! Obrigado por reportar.</p>' +\n    '<p>Analisamos e <strong>o contato é legítimo</strong>: você pode seguir normalmente.</p>' +\n    '<p>Continue desconfiando: na dúvida, confirme por um canal oficial (telefone conhecido ou site digitado por você) e reporte de novo. Reportar nunca é incômodo.</p>',\n  spam: '<p>Olá! Obrigado por reportar.</p>' +\n    '<p>Analisamos e a mensagem é <strong>spam</strong> (propaganda não solicitada), sem sinal de golpe.</p>' +\n    '<p>Pode apagar ou marcar como lixo eletrônico. Evite clicar em \"descadastrar\" de remetentes que você não conhece.</p>',\n  escalar: '<p>Olá! Seu relato foi encaminhado para uma análise mais aprofundada da equipe de Segurança da Informação.</p>' +\n    '<p>Enquanto isso, <strong>não interaja</strong> com a mensagem (não clique, não abra anexos, não responda). Avisaremos por aqui.</p>',\n};\n\nconst CHECKLIST_PHISHING = [\n  'Bloquear o remetente e o domínio no filtro/gateway de e-mail',\n  'Procurar e apagar cópias da mesma mensagem nas outras caixas (ex.: Microsoft Purview, busca de conteúdo e limpeza)',\n  'Bloquear os links e domínios no proxy, DNS ou firewall',\n  'Ver nos logs de proxy/DNS quem mais acessou esses domínios',\n  'Incluir os IOCs na lista de bloqueio (ex.: lista CDB do Wazuh)',\n  'Se houve interação: trocar a senha, encerrar as sessões, conferir o MFA e as regras da caixa de e-mail do usuário',\n];\n\nconst saida = [];\nacoes.forEach((a, k) => {\n  const trava = travas[k];\n  let registro = null;\n  try { registro = analises[k] ? JSON.parse(analises[k]) : null; } catch (erro) { registro = null; }\n\n  if (a.tipo === 'responder') { saida.push(responder(a, a.texto, a.alerta)); return; }\n  if (trava > 1) {\n    // Mesma mensagem do Telegram chegando de novo: ignora. Decisão repetida: avisa quem clicou.\n    if (a.tipo === 'decidir') saida.push(responder(a, `O chamado #${a.chamado_id} já foi decidido antes.`));\n    return;\n  }\n  const liberar = a.tipo === 'decidir' ? a.chave_trava : '';\n  if (a.tipo === 'reanalisar') {\n    saida.push(tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, allow_sending_without_reply: true,\n      text: `🔁 Chamado #${a.chamado_id} volta para a fila: será analisado de novo em até 2 minutos (se ainda estiver aberto e na categoria de phishing).` },\n    { apagar_chave: `${cfg.prefixoRedis}relato:${a.chamado_id}` }));\n    return;\n  }\n  if (!registro) {\n    saida.push({ ...responder(a, `O chamado #${a.chamado_id} não foi analisado por este fluxo (ou a análise expirou). Use /reanalisar ${a.chamado_id}.`, true) });\n    if (liberar) saida[saida.length - 1].json.apagar_chave = liberar;\n    return;\n  }\n\n  const id = a.chamado_id;\n  const passos = [];\n  let sucesso = [];\n  let chaveMetrica = '';\n  if (a.tipo === 'nota') {\n    passos.push({ caminho: 'ITILFollowup', corpo: { input: { itemtype: 'Ticket', items_id: id, is_private: 1,\n      content: `<p><strong>📝 Nota do analista</strong> ${esc(quem(a.analista))} pelo Telegram, ${agora}:</p><p>${esc(a.texto).replace(/\\n/g, '<br>')}</p>` } } });\n    sucesso = [tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, allow_sending_without_reply: true, text: `📝 Nota registrada no chamado #${id}.` })];\n  } else {\n    const decisao = a.decisao;\n    const concordou = registro.sugestao === decisao;\n    chaveMetrica = `${cfg.prefixoRedis}metricas:ia_${registro.sugestao}:analista_${decisao}`;\n    const iocs = registro.iocs ?? {};\n    const linhasIocs = [...(iocs.remetente ?? []), ...(iocs.urls ?? []), ...(iocs.dominios ?? []), ...(iocs.ips ?? []), ...(iocs.hashes ?? [])]\n      .slice(0, 30).map((x) => esc(desarmar(linha(x, 150))));\n    const nota = `<p><strong>${ICONE[decisao]} Decisão do analista: ${ROTULO[decisao]}</strong></p>` +\n      `<p>Por ${esc(quem(a.analista))} (Telegram ID ${esc(a.analista.id)}), ${agora}. ` +\n      `Sugestão da IA: ${ROTULO[registro.sugestao] ?? esc(registro.sugestao)} (${Number(registro.confianca) || 0}%): <strong>${concordou ? 'o analista concordou' : 'o analista DISCORDOU (caso útil para calibrar a IA)'}</strong>.</p>` +\n      (decisao === 'phishing' ? '<p><strong>Checklist de resposta</strong> (registre o que fizer com /nota):</p>' + li(CHECKLIST_PHISHING.map(esc)) : '') +\n      (decisao === 'phishing' && linhasIocs.length ? '<p><strong>IOCs para bloqueio (desarmados)</strong></p>' + li(linhasIocs) : '');\n    passos.push({ caminho: 'ITILFollowup', corpo: { input: { itemtype: 'Ticket', items_id: id, is_private: 1, content: nota } } });\n\n    if (decisao === 'escalar') {\n      const n2 = grupos.find((g) => String(g.name ?? '').trim() === cfg.grupoN2);\n      if (!n2) { saida.push({ ...responder(a, `Não achei o grupo \"${cfg.grupoN2}\" no GLPI.`, true) }); saida[saida.length - 1].json.apagar_chave = liberar; return; }\n      passos.push({ caminho: 'Group_Ticket', corpo: { input: { tickets_id: id, groups_id: Number(n2.id), type: 2 } } });\n      passos.push({ caminho: 'ITILFollowup', corpo: { input: { itemtype: 'Ticket', items_id: id, is_private: 0, content: RESPOSTA_USUARIO.escalar } } });\n    } else {\n      const tipo = tipos.find((t) => String(t.name ?? '').trim() === TIPO_SOLUCAO[decisao]);\n      if (!tipo) { saida.push({ ...responder(a, `Não achei o tipo de solução \"${TIPO_SOLUCAO[decisao]}\" no GLPI. Rode glpi/preparar-glpi.sh.`, true) }); saida[saida.length - 1].json.apagar_chave = liberar; return; }\n      passos.push({ caminho: 'ITILSolution', corpo: { input: { itemtype: 'Ticket', items_id: id, solutiontypes_id: Number(tipo.id), content: RESPOSTA_USUARIO[decisao] } } });\n    }\n\n    const interacao = Array.isArray(registro.interacao) && registro.interacao.length && decisao !== 'legitimo' && decisao !== 'spam'\n      ? `\\n⚠️ O usuário disse que ${esc(registro.interacao.join(', '))}: comece por trocar a senha / isolar a máquina.` : '';\n    const proximos = decisao === 'phishing'\n      ? '\\n\\n<b>Próximos passos</b>\\n' + CHECKLIST_PHISHING.slice(0, 5).map((x, n) => `${n + 1}. ${esc(x)}`).join('\\n') + `\\nRegistre o que fizer com /nota ${id} texto`\n      : '';\n    sucesso = [\n      tg('editMessageReplyMarkup', { chat_id: chat, message_id: a.mensagem_id,\n        reply_markup: { inline_keyboard: [[{ text: `✔️ ${ROTULO[decisao]} · ${a.analista.nome}`.slice(0, 60), callback_data: `ph|${id}|x` }]] } }),\n      tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, allow_sending_without_reply: true, parse_mode: 'HTML',\n        text: `${ICONE[decisao]} <b>Chamado #${id}: ${ROTULO[decisao]}</b> por ${esc(a.analista.nome)}\\n` +\n          (decisao === 'escalar' ? 'Grupo SOC N2 incluído no chamado e usuário avisado.' : 'Usuário respondido e chamado solucionado no GLPI.') +\n          `\\nIA sugeriu ${ROTULO[registro.sugestao] ?? esc(registro.sugestao)} (${Number(registro.confianca) || 0}%): ${concordou ? '👍 concordou' : '👎 discordou'}` +\n          interacao + proximos }),\n      tg('answerCallbackQuery', { callback_query_id: a.callback_id, text: 'Decisão registrada no GLPI ✔' }),\n    ];\n  }\n  const falha = [responder(a, `Não consegui gravar no GLPI o chamado #${id}. Tente de novo em 1 minuto.`, true)];\n  passos.forEach((p, n) => saida.push({ json: {\n    destino: 'glpi', acao_indice: k, passo: n, caminho: p.caminho, corpo: p.corpo,\n    ...(n === 0 ? { sucesso: sucesso.map((x) => x.json), falha: falha.map((x) => x.json), chave_trava: liberar, chave_metrica: chaveMetrica } : {}),\n  } }));\n});\nreturn saida;\n"
+      }
+    },
+    {
+      "id": "f1986d2a-388c-5e43-95e8-cb7513aa916e",
+      "name": "Vai ao GLPI?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        1500
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "196aaf7e-b6ea-51e9-829f-1e394354619e",
+              "leftValue": "={{ $json.destino }}",
+              "rightValue": "glpi",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "f49ea2b2-0ba9-5294-b46d-8f72d5de3997",
+      "name": "Grava no GLPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        1300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://glpi/apirest.php/{{ $json.caminho }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Abre a sessão no GLPI (decisões)').first().json.body.session_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.corpo) }}"
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "ngsocGlpiN8nApi1",
+          "name": "GLPI (n8n-api)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "id": "430f804e-14f6-5c42-9a9e-747b525f5a29",
+      "name": "Confere o GLPI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        1300
+      ],
+      "parameters": {
+        "jsCode": "// ---- Biblioteca: texto seguro ----\n// Tudo o que vem do chamado e do e-mail suspeito foi escrito por um usuário ou por um ATACANTE.\n// Por isso: esc() antes de ir para o Telegram/GLPI (vira texto, nunca HTML) e desarmar() nos\n// indicadores (hxxps://site[.]com), para o analista não abrir um link malicioso sem querer.\n\nconst ENTIDADES = { amp: '&', lt: '<', gt: '>', quot: '\"', apos: \"'\", nbsp: ' ', ordm: 'º', ordf: 'ª', euro: '€', copy: '©', reg: '®', ndash: '–', mdash: '—', hellip: '…', laquo: '«', raquo: '»' };\n// Letras acentuadas do português: &aacute; &Atilde; &ccedil; ...\nfor (const [letras, acento, base] of [['aeiou', 'acute', 0x301], ['aeiou', 'grave', 0x300], ['aeiou', 'circ', 0x302], ['aon', 'tilde', 0x303], ['aeiou', 'uml', 0x308], ['c', 'cedil', 0x327]]) {\n  for (const l of letras) {\n    ENTIDADES[l + acento] = (l + String.fromCharCode(base)).normalize('NFC');\n    ENTIDADES[l.toUpperCase() + acento] = (l.toUpperCase() + String.fromCharCode(base)).normalize('NFC');\n  }\n}\n\nfunction decodificarEntidades(texto) {\n  return String(texto ?? '').replace(/&(#x[0-9a-f]{1,6}|#\\d{1,7}|[a-z]{2,8});/gi, (inteiro, e) => {\n    if (e[0] === '#') {\n      const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);\n      return n > 0 && n < 0x110000 && !(n >= 0xd800 && n <= 0xdfff) ? String.fromCodePoint(n) : inteiro;\n    }\n    return ENTIDADES[e] ?? ENTIDADES[e.toLowerCase()] ?? inteiro;\n  });\n}\n\n// HTML -> texto. O GLPI guarda o conteúdo do chamado com as tags escapadas (&lt;p&gt;): desfaz isso antes.\nfunction htmlParaTexto(html) {\n  let s = String(html ?? '');\n  if (/&lt;\\/?[a-z][\\s\\S]*?&gt;/i.test(s) && !/<\\/?[a-z][^>]*>/i.test(s)) s = decodificarEntidades(s);\n  s = s.replace(/<(script|style|head|title)\\b[\\s\\S]*?<\\/\\1\\s*>/gi, ' ')\n    .replace(/<!--[\\s\\S]*?-->/g, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/(p|div|tr|li|h\\d|blockquote|table)\\s*>/gi, '\\n')\n    .replace(/<[^>]*>/g, ' ');\n  return decodificarEntidades(s)\n    .replace(/[ \\t ]+/g, ' ')\n    .replace(/ *\\n */g, '\\n')\n    .replace(/\\n{3,}/g, '\\n\\n')\n    .trim();\n}\n\n// Escapa para HTML do Telegram e do GLPI (o Telegram só reconhece &, < e >; \" protege atributos).\nfunction esc(texto) {\n  return String(texto ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\n}\n\n// Corta o texto e remove caracteres de controle (mantém quebras de linha).\nfunction curto(texto, maximo = 200) {\n  const t = String(texto ?? '').replace(/[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f​-‏‪-‮⁦-⁩]/g, '').trim();\n  return t.length > maximo ? t.slice(0, maximo - 1) + '…' : t;\n}\n\n// Uma linha só (sem quebras), cortada.\nfunction linha(texto, maximo = 200) {\n  return curto(String(texto ?? '').replace(/\\s+/g, ' '), maximo);\n}\n\n// Indicador \"desarmado\": https://mal.com/x -> hxxps://mal[.]com/x ; a@mal.com -> a[@]mal[.]com ; 1.2.3.4 -> 1.2.3[.]4\nfunction desarmar(ioc) {\n  const texto = String(ioc ?? '');\n  const url = texto.match(/^([a-z][a-z0-9+.-]*)(:\\/\\/)([^/?#]*)(.*)$/i);\n  if (url) return url[1].replace(/^http/i, (p) => p[0] + 'xx' + p[3]) + url[2] + url[3].replace(/\\./g, '[.]').replace(/@/g, '[@]') + url[4];\n  return texto.replace(/@/g, '[@]').replace(/\\.(?=[^.]*$)/, '[.]');\n}\n\nfunction unicos(lista, maximo = 50) {\n  const vistos = new Set();\n  const saida = [];\n  for (const item of lista) {\n    const chave = String(item).toLowerCase();\n    if (!item || vistos.has(chave)) continue;\n    vistos.add(chave);\n    saida.push(item);\n    if (saida.length >= maximo) break;\n  }\n  return saida;\n}\n// ---- fim da biblioteca ----\n\n// Nó \"Confere o GLPI\": viu se TODOS os passos de cada ação deram certo no GLPI.\n//  - Deu certo: envia as mensagens de sucesso no Telegram (e conta a métrica de acerto da IA).\n//  - Falhou: avisa no Telegram e libera a trava, para o analista poder clicar de novo.\n// Os itens chegam na mesma ordem em que \"Monta as ações\" criou os passos do GLPI.\nconst passos = $('Monta as ações').all().map((i) => i.json).filter((x) => x.destino === 'glpi');\nconst respostas = $input.all().map((i) => i.json);\nconst grupos = new Map();\npassos.forEach((p, n) => {\n  const g = grupos.get(p.acao_indice) ?? { primeiro: null, ok: true, erros: [] };\n  if (p.passo === 0) g.primeiro = p;\n  const codigo = Number(respostas[n]?.statusCode);\n  if (!(codigo >= 200 && codigo < 300)) {\n    g.ok = false;\n    g.erros.push(`${p.caminho}: HTTP ${respostas[n]?.statusCode ?? '?'} ${linha(JSON.stringify(respostas[n]?.body ?? ''), 160)}`);\n  }\n  grupos.set(p.acao_indice, g);\n});\nconst saida = [];\nfor (const g of grupos.values()) {\n  if (!g.primeiro) continue;\n  if (g.ok) {\n    g.primeiro.sucesso.forEach((m, n) => saida.push({ json: { ...m, chave_metrica: n === 0 ? g.primeiro.chave_metrica : '' } }));\n  } else {\n    g.primeiro.falha.forEach((m) => saida.push({ json: { ...m, apagar_chave: g.primeiro.chave_trava, erros: g.erros } }));\n  }\n}\nreturn saida;\n"
+      }
+    },
+    {
+      "id": "0012a4ea-1a06-52e4-af26-a90a6a7b307a",
+      "name": "Fecha a sessão no GLPI (decisões)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        1100
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://glpi/apirest.php/killSession",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Session-Token",
+              "value": "={{ $('Abre a sessão no GLPI (decisões)').first().json.body.session_token }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "ngsocGlpiN8nApi1",
+          "name": "GLPI (n8n-api)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "executeOnce": true
+    },
+    {
+      "id": "570036ec-263c-5936-aae5-712a61ac18fa",
+      "name": "Fala no Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        1500
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.PHISHING_TELEGRAM_TOKEN }}/{{ $json.tg_metodo }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.tg_corpo) }}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "a14b6cb2-20c9-5394-8e30-8cd78803e4ab",
+      "name": "Apaga alguma chave?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1980,
+        1720
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4f25a073-0fdd-5c10-9422-a52f1bb7efa4",
+              "leftValue": "={{ $json.apagar_chave ?? '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "97a8b2be-ddee-50aa-be99-1e9e2db59951",
+      "name": "Apaga a chave",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        1720
+      ],
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $json.apagar_chave }}"
+      },
+      "credentials": {
+        "redis": {
+          "id": "ngsocRedisLocal",
+          "name": "Redis local"
+        }
+      }
+    },
+    {
+      "id": "75868c81-8c83-54f6-bf73-faa9e0cd23a3",
+      "name": "Conta a métrica?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1980,
+        1300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b4915195-b69c-51fc-b7c6-fc9ac9f0bfdd",
+              "leftValue": "={{ $json.chave_metrica ?? '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "4ece327c-4fb8-5de0-a34a-d2ef5ff23c02",
+      "name": "Conta acerto da IA",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        1300
+      ],
+      "parameters": {
+        "operation": "incr",
+        "key": "={{ $json.chave_metrica }}"
+      },
+      "credentials": {
+        "redis": {
+          "id": "ngsocRedisLocal",
+          "name": "Redis local"
+        }
+      }
+    },
+    {
+      "id": "145b35a0-8127-5ea9-9288-73a6de1f4bc0",
+      "name": "Nota - Decisões",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2040,
+        940
+      ],
+      "parameters": {
+        "content": "## Rotina 2: decisões do analista (Telegram -> GLPI)\nA cada minuto lê o grupo **Relatos de Phishing** (espera até 45 s por novidades).\n\n- **Botões** do relato: 🎣 phishing · ✅ legítimo · 📨 spam · ⬆️ escalar N2.\n  Grava a decisão como nota interna (com checklist e IOCs), responde ao usuário com **texto fixo** e soluciona o chamado (ou inclui o grupo SOC N2).\n- **/nota 123 texto**: nota interna no chamado. **/reanalisar 123**: analisa de novo. **/ajuda**.\n\nSegurança: só o grupo `PHISHING_TELEGRAM_CHAT_ID` e só os IDs em `PHISHING_ANALISTAS` decidem. Uma decisão por chamado (trava no Redis). Nada escrito pela IA vai para o usuário.\nMétrica: `phishing:metricas:ia_<sugestão>:analista_<decisão>` (quanto a IA acerta).",
+        "width": 720,
         "height": 460,
         "color": 4
       }
@@ -1378,18 +2055,47 @@
         ]
       ]
     },
-    "Configuração": {
+    "A cada minuto": {
       "main": [
         [
           {
-            "node": "Abre a sessão no GLPI",
+            "node": "Configuração",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Abre a sessão no GLPI": {
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "Qual rotina?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qual rotina?": {
+      "main": [
+        [
+          {
+            "node": "Lê o ponto de leitura",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Abre a sessão no GLPI (análise)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Abre a sessão no GLPI (análise)": {
       "main": [
         [
           {
@@ -1455,7 +2161,7 @@
         ],
         [
           {
-            "node": "Fecha a sessão no GLPI",
+            "node": "Fecha a sessão no GLPI (análise)",
             "type": "main",
             "index": 0
           }
@@ -1506,7 +2212,7 @@
         ],
         [
           {
-            "node": "Fecha a sessão no GLPI",
+            "node": "Fecha a sessão no GLPI (análise)",
             "type": "main",
             "index": 0
           }
@@ -1535,7 +2241,7 @@
         ],
         [
           {
-            "node": "Fecha a sessão no GLPI",
+            "node": "Fecha a sessão no GLPI (análise)",
             "type": "main",
             "index": 0
           }
@@ -1922,7 +2628,7 @@
       "main": [
         [
           {
-            "node": "Fecha a sessão no GLPI",
+            "node": "Fecha a sessão no GLPI (análise)",
             "type": "main",
             "index": 0
           }
@@ -1933,7 +2639,221 @@
       "main": [
         [
           {
-            "node": "Fecha a sessão no GLPI",
+            "node": "Fecha a sessão no GLPI (análise)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lê o ponto de leitura": {
+      "main": [
+        [
+          {
+            "node": "Busca as mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca as mensagens": {
+      "main": [
+        [
+          {
+            "node": "Lê as mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lê as mensagens": {
+      "main": [
+        [
+          {
+            "node": "Guarda o ponto de leitura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guarda o ponto de leitura": {
+      "main": [
+        [
+          {
+            "node": "Tem ações?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem ações?": {
+      "main": [
+        [
+          {
+            "node": "Abre a sessão no GLPI (decisões)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Abre a sessão no GLPI (decisões)": {
+      "main": [
+        [
+          {
+            "node": "Lê os tipos de solução",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lê os tipos de solução": {
+      "main": [
+        [
+          {
+            "node": "Lê os grupos (decisões)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lê os grupos (decisões)": {
+      "main": [
+        [
+          {
+            "node": "Separa as ações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separa as ações": {
+      "main": [
+        [
+          {
+            "node": "Lê a análise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lê a análise": {
+      "main": [
+        [
+          {
+            "node": "Trava a ação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trava a ação": {
+      "main": [
+        [
+          {
+            "node": "Monta as ações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monta as ações": {
+      "main": [
+        [
+          {
+            "node": "Vai ao GLPI?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vai ao GLPI?": {
+      "main": [
+        [
+          {
+            "node": "Grava no GLPI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fala no Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Apaga alguma chave?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grava no GLPI": {
+      "main": [
+        [
+          {
+            "node": "Confere o GLPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confere o GLPI": {
+      "main": [
+        [
+          {
+            "node": "Fala no Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Apaga alguma chave?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Conta a métrica?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fecha a sessão no GLPI (decisões)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apaga alguma chave?": {
+      "main": [
+        [
+          {
+            "node": "Apaga a chave",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conta a métrica?": {
+      "main": [
+        [
+          {
+            "node": "Conta acerto da IA",
             "type": "main",
             "index": 0
           }
@@ -1943,7 +2863,7 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
     "saveDataErrorExecution": "all",
     "saveManualExecutions": true
   },

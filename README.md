@@ -7,8 +7,11 @@ e decide com um clique (**phishing**, **legítimo**, **spam** ou **escalar N2**)
 Faz parte do laboratório [NG-SOC](../ng-soc-lab) e reaproveita a mesma infraestrutura (n8n, GLPI, Redis) e as chaves de reputação do
 [Scanner de Segurança Web](../scanner-seguranca-web). Custo zero: só serviços gratuitos.
 
+Tudo roda num **único fluxo do n8n, `analisador-phishing-glpi-ia`**, com duas rotinas: cada uma tem o seu gatilho
+(análise a cada 2 min, decisões a cada 1 min) e o nó **Qual rotina?** manda cada execução para o seu ramo.
+
 ```
-Usuário abre chamado no GLPI                      Fluxo 1 (a cada 2 min)
+Usuário abre chamado no GLPI                      Rotina 1: análise (a cada 2 min)
 categoria "Segurança > Phishing e      ──────►    1. busca chamados ABERTOS da categoria + grupo Segurança da Informação
 e-mail suspeito" (anexa o .eml)                   2. lê o relato, os acompanhamentos e o .eml/.msg anexado
            │                                      3. extrai remetente real, SPF/DKIM/DMARC, IP de origem, links, anexos, sinais
@@ -16,7 +19,7 @@ e-mail suspeito" (anexa o .eml)                   2. lê o relato, os acompanham
            ▼ (atribuído pela categoria)           5. IA (Gemini) dá o parecer  →  travas  →  sugestão final
                                                   6. acompanhamento PRIVADO no GLPI + ficha no Telegram com botões
 
-Analista no grupo "Relatos de Phishing"           Fluxo 2 (a cada 1 min, resposta quase imediata)
+Analista no grupo "Relatos de Phishing"           Rotina 2: decisões (a cada 1 min, resposta quase imediata)
   [🎣 É phishing] [✅ É legítimo]       ──────►    nota interna (decisão, checklist, IOCs) + resposta ao usuário (texto fixo)
   [📨 Spam]       [⬆️ Escalar N2]                  + solução no GLPI (ou inclui o grupo SOC N2) + confirmação no grupo
   /nota 123 texto · /reanalisar 123                + métrica: a IA acertou?
@@ -115,7 +118,7 @@ bash glpi/preparar-glpi.sh
 2. Crie o grupo **Relatos de Phishing**, adicione o bot e os analistas.
 3. Para descobrir o número do grupo e o seu ID: mande `/ajuda` no grupo e abra
    `https://api.telegram.org/bot<TOKEN>/getUpdates` no navegador (`chat.id` do grupo e `from.id` de cada analista).
-   Faça isso **antes** de importar os fluxos (depois, o fluxo 2 passa a ler as mensagens).
+   Faça isso **antes** de importar o fluxo (depois, a rotina de decisões passa a ler as mensagens).
 
 **3. Variáveis no n8n.** Abra o `infra/n8n/.env` do ng-soc-lab no Bloco de Notas e acrescente:
 
@@ -139,11 +142,14 @@ e recrie o container: `docker compose up -d n8n` (na pasta `infra/n8n`; só rein
 > e a credencial do n8n não consegue colocá-lo lá para o `getUpdates`. Qualquer fluxo do n8n consegue ler variáveis,
 > então use um bot exclusivo, que só está nesse grupo: o pior caso é alguém com acesso ao n8n mandar mensagens nesse grupo.
 
-**4. Importar e publicar os dois fluxos** (reinicia o n8n):
+**4. Importar e publicar o fluxo** (reinicia o n8n):
 
 ```bash
 bash scripts/importar-fluxo.sh
 ```
+
+Se os dois fluxos antigos (`Phishing - analisa relatos do GLPI` e `Phishing - decisões do analista (Telegram)`) estiverem no n8n,
+o script os **despublica** antes (dois leitores do Telegram entrariam em conflito). Depois de conferir o novo, apague-os pela tela.
 
 **5. Testar com um chamado fictício:**
 
@@ -156,7 +162,7 @@ Outros exemplos: `tests/amostras/legitimo-loja.eml` (contato legítimo) e `tests
 
 ## Configuração
 
-No nó **Configuração** de cada fluxo (o JSON é gerado por `scripts/gerar-fluxo.py`; mude lá e gere de novo):
+No nó **Configuração** (um só, para as duas rotinas; o JSON é gerado por `scripts/gerar-fluxo.py`; mude lá e gere de novo):
 
 | Campo | Padrão | Para quê |
 |---|---|---|
@@ -173,8 +179,11 @@ Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `
 
 ```bash
 node tests/testar-codigo.js      # 55 testes do código dos nós, sem n8n
-python scripts/gerar-fluxo.py    # gera workflow/*.json a partir de src/ (nunca edite o JSON à mão)
+python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
+
+Execuções que deram certo não são guardadas no n8n (a rotina de decisões roda a cada minuto); as com erro, sim.
+O resultado de cada análise fica no GLPI, no Telegram e no Redis.
 
 O CI roda os testes, confere se o JSON está atualizado e passa o gitleaks.
 

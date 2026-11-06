@@ -332,7 +332,7 @@ function montarAcoes(acoes, analises, travas) {
   return executar('montar-acoes.js', ['texto.js'], travas.map((t, k) => ({ [separadas[k].chave_trava]: t })), {
     'Configuração': CFG, 'Separa as ações': separadas, 'Lê a análise': analises.map((analise) => ({ analise })),
     'Lê os tipos de solução': { body: [{ id: 7, name: 'Phishing confirmado' }, { id: 8, name: 'Contato legítimo' }, { id: 9, name: 'Spam (não malicioso)' }] },
-    'Lê os grupos': { body: [{ id: 2, name: 'SOC N2' }] },
+    'Lê os grupos (decisões)': { body: [{ id: 2, name: 'SOC N2' }] },
   });
 }
 const analista = { id: '111111', nome: 'Ana', usuario: 'ana_soc' };
@@ -388,13 +388,39 @@ teste('confere o GLPI: sucesso manda mensagens; falha libera a trava', () => {
 
 // ---------------------------------------------------------------- Fluxos gerados
 console.log('Fluxos gerados');
-for (const arquivo of ['phishing-analisa-relatos.json', 'phishing-decisoes-analista.json']) {
+for (const arquivo of ['analisador-phishing-glpi-ia.json']) {
   teste(`${arquivo}: JSON válido e Code com sintaxe correta`, () => {
     const f = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'workflow', arquivo), 'utf8'));
     for (const n of f.nodes.filter((x) => x.type === 'n8n-nodes-base.code')) {
       try { new Function('$input', '$', '$env', 'require', n.parameters.jsCode); } catch (erro) { throw new Error(`${n.name}: ${erro.message}`); }
     }
     assert.ok(!JSON.stringify(f).match(/\b\d{8,10}:[A-Za-z0-9_-]{30,}\b/), 'token do Telegram no JSON!');
+  });
+  // As duas rotinas estão no mesmo fluxo: um nó só pode ler $('outro nó') se esse outro já rodou
+  // antes dele na MESMA execução (está antes dele nas ligações). O gatilho é a exceção ($('A cada minuto').isExecuted).
+  teste(`${arquivo}: toda referência $('nó') aponta para um nó anterior do mesmo ramo`, () => {
+    const f = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'workflow', arquivo), 'utf8'));
+    const antes = new Map(f.nodes.map((n) => [n.name, new Set()]));
+    for (const [origem, saidas] of Object.entries(f.connections)) {
+      for (const lista of Object.values(saidas)) for (const grupo of lista) for (const d of grupo) antes.get(d.node).add(origem);
+    }
+    const anteriores = (nome, vistos = new Set()) => {
+      for (const o of antes.get(nome)) if (!vistos.has(o)) { vistos.add(o); anteriores(o, vistos); }
+      return vistos;
+    };
+    const gatilhos = new Set(f.nodes.filter((n) => n.type.endsWith('scheduleTrigger')).map((n) => n.name));
+    const erros = [];
+    let total = 0;
+    for (const n of f.nodes) {
+      const texto = (n.parameters.jsCode ?? '') + JSON.stringify({ ...n.parameters, jsCode: '' });
+      const ok = anteriores(n.name);
+      for (const [, citado] of texto.matchAll(/(?:\$|\blista|\bcorpoDe|\btodos)\('([^']+)'\)/g)) {
+        total++;
+        if (!ok.has(citado) && !gatilhos.has(citado)) erros.push(`${n.name} -> ${citado}`);
+      }
+    }
+    assert.ok(total > 20, String(total));
+    assert.deepStrictEqual([...new Set(erros)], []);
   });
 }
 

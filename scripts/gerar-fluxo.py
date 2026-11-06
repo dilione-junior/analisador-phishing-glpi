@@ -1,7 +1,9 @@
-"""Gera os dois fluxos do n8n a partir do código em src/.
+"""Gera o fluxo único do n8n (analisador-phishing-glpi-ia) a partir do código em src/.
 
-  workflow/phishing-analisa-relatos.json    (a cada 2 min: GLPI -> evidências -> reputação -> IA -> GLPI + Telegram)
-  workflow/phishing-decisoes-analista.json  (a cada 1 min: botões/comandos do Telegram -> GLPI)
+  workflow/analisador-phishing-glpi-ia.json, com duas rotinas no mesmo fluxo:
+    - análise  (a cada 2 min): GLPI -> evidências -> reputação -> IA -> GLPI + Telegram
+    - decisões (a cada 1 min): botões/comandos do Telegram -> GLPI
+  Cada gatilho começa uma execução separada; o nó "Qual rotina?" manda cada uma para o seu ramo.
 
 O código de cada nó "Code" fica em src/*.js (mais fácil de ler, revisar e testar).
 As bibliotecas de src/lib/ são coladas no começo dos nós que precisam delas.
@@ -43,6 +45,8 @@ class Fluxo:
     def __init__(self, id_fluxo, nome, arquivo, salvar_sucesso="all"):
         self.id, self.nome, self.arquivo, self.salvar_sucesso = id_fluxo, nome, arquivo, salvar_sucesso
         self.nos, self.ligacoes = [], []
+        # Nó que abre a sessão do GLPI na rotina que está sendo montada (cada rotina abre a sua).
+        self.sessao = "Abre a sessão no GLPI"
 
     def id_no(self, nome):
         return str(uuid.uuid5(uuid.NAMESPACE_URL, f"analisador-phishing-glpi/{self.id}/{nome}"))
@@ -82,7 +86,7 @@ class Fluxo:
              "genericAuthType": "httpCustomAuth",
              "options": {"timeout": 30000, "response": {"response": {"fullResponse": True, "neverError": True,
                                                                       **({"responseFormat": "text"} if texto else {})}}}}
-        heads = ([{"name": "Session-Token", "value": "={{ $('Abre a sessão no GLPI').first().json.body.session_token }}"}] if sessao else []) \
+        heads = ([{"name": "Session-Token", "value": "={{ $('" + self.sessao + "').first().json.body.session_token }}"}] if sessao else []) \
             + [{"name": k, "value": v} for k, v in (cabecalhos or {}).items()]
         if heads:
             p.update({"sendHeaders": True, "headerParameters": {"parameters": heads}})
@@ -93,7 +97,7 @@ class Fluxo:
 
     def abre_sessao(self, posicao):
         # Sessão aberta só com as chaves da credencial (App-Token + user_token): nada de senha.
-        self.no("Abre a sessão no GLPI", "n8n-nodes-base.httpRequest", 4.2, posicao, {
+        self.no(self.sessao, "n8n-nodes-base.httpRequest", 4.2, posicao, {
             "url": GLPI_API + "/initSession", "authentication": "genericCredentialType", "genericAuthType": "httpCustomAuth",
             "options": {"timeout": 30000, "response": {"response": {"fullResponse": True}}}},
             credentials=CRED_GLPI, executeOnce=True, **REPETE)
@@ -142,9 +146,6 @@ class Fluxo:
         print(f"Gerado: {saida.relative_to(RAIZ).as_posix()} ({len(self.nos)} nós)")
 
 
-# ===========================================================================
-# Fluxo 1: analisa os relatos abertos no GLPI
-# ===========================================================================
 SISTEMA_SOC = """Você é analista SOC N2 especialista em phishing e fraude por e-mail, numa equipe brasileira de Segurança da Informação. Responda SEMPRE em português do Brasil e SOMENTE com um objeto JSON.
 
 Você recebe um DOSSIÊ de um chamado do GLPI em que um usuário relatou um e-mail ou contato suspeito: o relato, o e-mail (cabeçalhos, autenticação, corpo), os links, os anexos, os sinais automáticos com pesos e a reputação (VirusTotal, URLhaus, RDAP).
@@ -168,16 +169,39 @@ Responda exatamente neste formato, sem texto fora do JSON e sem markdown:
 {"classificacao":"phishing|spam|legitimo|inconclusivo","confianca":0,"gravidade":"baixa|media|alta|critica","tipo_ataque":"ex.: roubo de credenciais (página falsa da Microsoft), fraude de pagamento (BEC), malware em anexo, golpe do boleto/PIX, spam, nenhum","mitre":["T1566.002"],"resumo":"2 a 4 frases para o analista: o que é, por quê e qual o risco","evidencias":["até 6 itens, os mais fortes primeiro, citando o dado (ex.: DMARC=fail para itau.com.br)"],"contra_evidencias":["até 4 sinais de legitimidade, se houver"],"acoes_soc":["até 6 ações concretas para o SOC, em ordem"],"orientacao_usuario":"1 a 3 frases simples para o usuário","perguntas_ao_usuario":["até 3 perguntas, se faltar informação"]}
 MITRE ATT&CK: T1566.001 (anexo), T1566.002 (link), T1566.003 (por serviço, rede social ou mensageiro), T1566.004 (voz), T1598 (coleta de informações), T1534 (phishing interno), quando fizer sentido."""
 
-a = Fluxo("phishAnalisa0001", "Phishing - analisa relatos do GLPI", "phishing-analisa-relatos.json")
-Y = 300
-a.agenda("A cada 2 minutos", [-2200, Y], 2)
-a.config([-1980, Y], [
+# Um fluxo só, com duas rotinas. Como a de decisões roda a cada minuto, as execuções que deram
+# certo não são guardadas (economiza disco); as com erro, sim. A análise fica registrada no GLPI,
+# no Telegram e no Redis.
+f = Fluxo("phishGlpiIA00001", "analisador-phishing-glpi-ia", "analisador-phishing-glpi-ia.json", salvar_sucesso="none")
+Y_ANALISE, Y_DECISAO = 300, 1500
+f.agenda("A cada 2 minutos", [-2860, Y_ANALISE], 2)
+f.agenda("A cada minuto", [-2860, Y_DECISAO], 1)
+f.config([-2640, (Y_ANALISE + Y_DECISAO) // 2], [
+    # rotina de análise
     ("categoria", "Segurança > Phishing e e-mail suspeito", "string"),
     ("grupo", "Segurança da Informação", "string"),
     ("cotaDiaria", 20, "number"),
     ("maxVirusTotal", 4, "number"),
     ("maxAnexos", 4, "number"),
+    # rotina de decisões
+    ("tipoPhishing", "Phishing confirmado", "string"),
+    ("tipoLegitimo", "Contato legítimo", "string"),
+    ("tipoSpam", "Spam (não malicioso)", "string"),
+    ("grupoN2", "SOC N2", "string"),
 ])
+f.se("Qual rotina?", [-2420, (Y_ANALISE + Y_DECISAO) // 2], "={{ $('A cada minuto').isExecuted }}")
+f.liga("A cada 2 minutos", "Configuração")
+f.liga("A cada minuto", "Configuração")
+f.liga("Configuração", "Qual rotina?")
+f.liga("Qual rotina?", "Lê o ponto de leitura", 0)               # verdadeiro: decisões
+f.liga("Qual rotina?", "Abre a sessão no GLPI (análise)", 1)     # falso: análise
+
+# ===========================================================================
+# Rotina 1: analisa os relatos abertos no GLPI
+# ===========================================================================
+a = f
+a.sessao = "Abre a sessão no GLPI (análise)"
+Y = Y_ANALISE
 a.abre_sessao([-1760, Y])
 a.glpi("Lê as categorias", [-1540, Y], "GET", "/ITILCategory?range=0-500")
 a.glpi("Lê os grupos", [-1320, Y], "GET", "/Group?range=0-200")
@@ -250,25 +274,23 @@ a.redis("Guarda a análise (90 dias)", [x + 1320, Y], {
     "value": "={{ JSON.stringify({ ...$('Monta o registro e o aviso').first().json.registro, "
              "mensagem_id: $json.body?.result?.message_id ?? null, telegram_ok: $json.body?.ok === true }) }}",
     "expire": True, "ttl": NOVENTA_DIAS})
-a.glpi("Fecha a sessão no GLPI", [x + 1540, Y], "GET", "/killSession", uma_vez=True)
+a.glpi("Fecha a sessão no GLPI (análise)", [x + 1540, Y], "GET", "/killSession", uma_vez=True)
 
-a.liga("A cada 2 minutos", "Configuração")
-a.liga("Configuração", "Abre a sessão no GLPI")
-a.liga("Abre a sessão no GLPI", "Lê as categorias")
+a.liga("Abre a sessão no GLPI (análise)", "Lê as categorias")
 a.liga("Lê as categorias", "Lê os grupos")
 a.liga("Lê os grupos", "Monta a busca")
 a.liga("Monta a busca", "Busca os relatos abertos")
 a.liga("Busca os relatos abertos", "Tem relato aberto?")
 a.liga("Tem relato aberto?", "Lista os candidatos", 0)
-a.liga("Tem relato aberto?", "Fecha a sessão no GLPI", 1)
+a.liga("Tem relato aberto?", "Fecha a sessão no GLPI (análise)", 1)
 a.liga("Lista os candidatos", "Já foi analisado?")
 a.liga("Já foi analisado?", "Escolhe o próximo")
 a.liga("Escolhe o próximo", "Achou um novo?")
 a.liga("Achou um novo?", "Reserva o chamado", 0)
-a.liga("Achou um novo?", "Fecha a sessão no GLPI", 1)
+a.liga("Achou um novo?", "Fecha a sessão no GLPI (análise)", 1)
 a.liga("Reserva o chamado", "Reservado agora?")
 a.liga("Reservado agora?", "Conta a cota do dia", 0)
-a.liga("Reservado agora?", "Fecha a sessão no GLPI", 1)
+a.liga("Reservado agora?", "Fecha a sessão no GLPI (análise)", 1)
 a.liga("Conta a cota do dia", "Dentro da cota?")
 a.liga("Dentro da cota?", "Lê o chamado", 0)
 a.liga("Dentro da cota?", "Devolve o chamado à fila", 1)
@@ -297,10 +319,10 @@ a.liga("Parecer final", "Monta o registro e o aviso")
 a.liga("Monta o registro e o aviso", "Grava a análise no GLPI")
 a.liga("Grava a análise no GLPI", "Envia ao grupo de phishing")
 a.liga("Envia ao grupo de phishing", "Guarda a análise (90 dias)")
-a.liga("Guarda a análise (90 dias)", "Fecha a sessão no GLPI")
-a.liga("Devolve o chamado à fila", "Fecha a sessão no GLPI")
+a.liga("Guarda a análise (90 dias)", "Fecha a sessão no GLPI (análise)")
+a.liga("Devolve o chamado à fila", "Fecha a sessão no GLPI (análise)")
 
-a.nota("Nota - Como funciona", [-2260, -260], 760, 460, """## Analisador de relatos de phishing (GLPI)
+a.nota("Nota - Como funciona", [-2260, -260], 760, 460, """## Rotina 1: análise dos relatos (GLPI -> IA -> Telegram)
 A cada 2 minutos procura no GLPI chamados **abertos**, da categoria **Segurança > Phishing e e-mail suspeito** e atribuídos ao grupo **Segurança da Informação**. Analisa **um por vez** (cota da IA: `cotaDiaria`).
 
 1. Lê o chamado, os acompanhamentos e os anexos (o `.eml`/`.msg` do e-mail é **lido como texto**; os outros anexos só têm o hash conferido, **nunca são abertos**).
@@ -309,23 +331,14 @@ A cada 2 minutos procura no GLPI chamados **abertos**, da categoria **Segurança
 4. A IA (Gemini) dá o parecer; travas impedem que um e-mail malicioso a faça dizer "legítimo".
 5. Grava a análise como acompanhamento **privado** no GLPI e manda no grupo do Telegram com os botões.
 
-Quem decide é o **analista** (fluxo "Phishing - decisões do analista").""")
-
-a.salvar()
+Quem decide é o **analista** (rotina 2, mais abaixo).""")
 
 # ===========================================================================
-# Fluxo 2: decisões do analista no Telegram
+# Rotina 2: decisões do analista no Telegram
 # ===========================================================================
-b = Fluxo("phishDecisao0001", "Phishing - decisões do analista (Telegram)", "phishing-decisoes-analista.json",
-          salvar_sucesso="none")  # roda a cada minuto: não guarda execuções que deram certo (economiza disco)
-Y = 300
-b.agenda("A cada minuto", [-1980, Y], 1)
-b.config([-1760, Y], [
-    ("tipoPhishing", "Phishing confirmado", "string"),
-    ("tipoLegitimo", "Contato legítimo", "string"),
-    ("tipoSpam", "Spam (não malicioso)", "string"),
-    ("grupoN2", "SOC N2", "string"),
-])
+b = f
+b.sessao = "Abre a sessão no GLPI (decisões)"
+Y = Y_DECISAO
 b.redis("Lê o ponto de leitura", [-1540, Y], {"operation": "get", "propertyName": "offset",
                                                "key": PREFIXO_REDIS + "telegram:offset", "options": {}}, alwaysOutputData=True)
 # Espera até 45 s por novidades (long polling): o clique chega quase na hora, com 1 execução por minuto.
@@ -337,7 +350,7 @@ b.redis("Guarda o ponto de leitura", [-880, Y], {"operation": "set", "key": PREF
 b.se("Tem ações?", [-660, Y], "={{ $('Lê as mensagens').first().json.acoes.length > 0 }}")
 b.abre_sessao([-440, Y])
 b.glpi("Lê os tipos de solução", [-220, Y], "GET", "/SolutionType?range=0-200", uma_vez=True)
-b.glpi("Lê os grupos", [0, Y], "GET", "/Group?range=0-200", uma_vez=True)
+b.glpi("Lê os grupos (decisões)", [0, Y], "GET", "/Group?range=0-200", uma_vez=True)
 b.codigo("Separa as ações", [220, Y], "separar-acoes.js")
 b.redis("Lê a análise", [440, Y], {"operation": "get", "propertyName": "analise", "key": "={{ $json.chave_analise }}", "options": {}})
 b.redis("Trava a ação", [660, Y], {"operation": "incr", "key": "={{ $('Separa as ações').item.json.chave_trava }}",
@@ -352,7 +365,7 @@ b.no("Vai ao GLPI?", "n8n-nodes-base.if", 2.2, [1100, Y], {
     }, "looseTypeValidation": True, "options": {}})
 b.glpi("Grava no GLPI", [1320, Y - 200], "POST", "/{{ $json.caminho }}", corpo="={{ JSON.stringify($json.corpo) }}")
 b.codigo("Confere o GLPI", [1540, Y - 200], "conferir-glpi.js", "texto.js")
-b.glpi("Fecha a sessão no GLPI", [1760, Y - 400], "GET", "/killSession", uma_vez=True)
+b.glpi("Fecha a sessão no GLPI (decisões)", [1760, Y - 400], "GET", "/killSession", uma_vez=True)
 b.telegram("Fala no Telegram", [1980, Y], "{{ $json.tg_metodo }}", "={{ JSON.stringify($json.tg_corpo) }}")
 b.no("Apaga alguma chave?", "n8n-nodes-base.if", 2.2, [1980, Y + 220], {
     "conditions": {
@@ -371,16 +384,14 @@ b.no("Conta a métrica?", "n8n-nodes-base.if", 2.2, [1980, Y - 200], {
     }, "looseTypeValidation": True, "options": {}})
 b.redis("Conta acerto da IA", [2200, Y - 200], {"operation": "incr", "key": "={{ $json.chave_metrica }}"})
 
-b.liga("A cada minuto", "Configuração")
-b.liga("Configuração", "Lê o ponto de leitura")
 b.liga("Lê o ponto de leitura", "Busca as mensagens")
 b.liga("Busca as mensagens", "Lê as mensagens")
 b.liga("Lê as mensagens", "Guarda o ponto de leitura")
 b.liga("Guarda o ponto de leitura", "Tem ações?")
-b.liga("Tem ações?", "Abre a sessão no GLPI", 0)
-b.liga("Abre a sessão no GLPI", "Lê os tipos de solução")
-b.liga("Lê os tipos de solução", "Lê os grupos")
-b.liga("Lê os grupos", "Separa as ações")
+b.liga("Tem ações?", "Abre a sessão no GLPI (decisões)", 0)
+b.liga("Abre a sessão no GLPI (decisões)", "Lê os tipos de solução")
+b.liga("Lê os tipos de solução", "Lê os grupos (decisões)")
+b.liga("Lê os grupos (decisões)", "Separa as ações")
 b.liga("Separa as ações", "Lê a análise")
 b.liga("Lê a análise", "Trava a ação")
 b.liga("Trava a ação", "Monta as ações")
@@ -388,11 +399,11 @@ b.liga("Monta as ações", "Vai ao GLPI?")
 b.liga("Vai ao GLPI?", "Grava no GLPI", 0)
 b.liga("Vai ao GLPI?", ["Fala no Telegram", "Apaga alguma chave?"], 1)
 b.liga("Grava no GLPI", "Confere o GLPI")
-b.liga("Confere o GLPI", ["Fala no Telegram", "Apaga alguma chave?", "Conta a métrica?", "Fecha a sessão no GLPI"])
+b.liga("Confere o GLPI", ["Fala no Telegram", "Apaga alguma chave?", "Conta a métrica?", "Fecha a sessão no GLPI (decisões)"])
 b.liga("Apaga alguma chave?", "Apaga a chave", 0)
 b.liga("Conta a métrica?", "Conta acerto da IA", 0)
 
-b.nota("Nota - Decisões", [-2040, -260], 720, 460, """## Decisões do analista (Telegram -> GLPI)
+b.nota("Nota - Decisões", [-2040, Y - 560], 720, 460, """## Rotina 2: decisões do analista (Telegram -> GLPI)
 A cada minuto lê o grupo **Relatos de Phishing** (espera até 45 s por novidades).
 
 - **Botões** do relato: 🎣 phishing · ✅ legítimo · 📨 spam · ⬆️ escalar N2.
@@ -402,4 +413,4 @@ A cada minuto lê o grupo **Relatos de Phishing** (espera até 45 s por novidade
 Segurança: só o grupo `PHISHING_TELEGRAM_CHAT_ID` e só os IDs em `PHISHING_ANALISTAS` decidem. Uma decisão por chamado (trava no Redis). Nada escrito pela IA vai para o usuário.
 Métrica: `phishing:metricas:ia_<sugestão>:analista_<decisão>` (quanto a IA acerta).""")
 
-b.salvar()
+f.salvar()
