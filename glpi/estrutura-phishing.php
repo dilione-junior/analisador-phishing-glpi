@@ -70,7 +70,8 @@ if ($modo === 'estrutura') {
 
     // Atribuição automática pela categoria (só preenche o que vier vazio; não muda os chamados do Wazuh).
     $entidade = api('GET', '/Entity/0');
-    if ((int)($entidade['auto_assign_mode'] ?? 0) === 0) {
+    // -10 (Entity::CONFIG_NEVER) e 0 = desligada; 1 e 2 = ligada.
+    if (in_array((int)($entidade['auto_assign_mode'] ?? 0), [0, -10], true)) {
         api('PUT', '/Entity/0', ['input' => ['id' => 0, 'auto_assign_mode' => 2]]);
         echo "  entidade: atribuição automática pela categoria LIGADA\n";
     } else {
