@@ -4,7 +4,7 @@
 //
 //   estrutura  -> grupo "Segurança da Informação", categoria "Segurança > Phishing e e-mail suspeito"
 //                 (visível para o usuário abrir chamado), tipos de solução e permissões de leitura do n8n-api.
-//   teste      -> abre um chamado de teste em nome de "usuario.teste", com o .eml anexado.
+//   teste      -> abre um chamado de teste em nome de "soc-analyst", com o .eml anexado.
 //
 // Uso: bash glpi/preparar-glpi.sh [estrutura | teste arquivo.eml "texto do relato"]
 
@@ -98,7 +98,7 @@ if ($modo === 'estrutura') {
     }
 
     echo "Usuário de teste (fictício, sem senha: não entra pela tela)\n";
-    garante('User', 'name', 'usuario.teste', ['name' => 'usuario.teste', 'realname' => 'Teste', 'firstname' => 'Usuária',
+    garante('User', 'name', 'soc-analyst', ['name' => 'soc-analyst', 'realname' => 'Analyst (teste)', 'firstname' => 'SOC',
         '_profiles_id' => 1, '_entities_id' => 0, '_is_recursive' => 0, 'comment' => 'Requerente dos chamados de teste do analisador de phishing.']);
 }
 
@@ -107,7 +107,7 @@ if ($modo === 'teste') {
     $relato = $argv[3] ?? 'Recebi este e-mail estranho. Não cliquei em nada.';
     $cat = procura('ITILCategory', 'completename', CATEGORIA);
     $si = procura('Group', 'name', GRUPO);
-    $usuario = procura('User', 'name', 'usuario.teste');
+    $usuario = procura('User', 'name', 'soc-analyst');
     if (!$cat || !$si || !$usuario) { fwrite(STDERR, "Falta a estrutura: rode antes 'bash glpi/preparar-glpi.sh'.\n"); exit(1); }
     $r = api('POST', '/Ticket', ['input' => ['name' => '[TESTE] E-mail suspeito', 'content' => '<p>' . htmlspecialchars($relato) . '</p>',
         'type' => 1, 'itilcategories_id' => $cat, '_users_id_requester' => $usuario, '_groups_id_assign' => $si, 'entities_id' => 0]]);
