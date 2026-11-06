@@ -1372,6 +1372,7 @@
       ],
       "parameters": {
         "operation": "set",
+        "keyType": "string",
         "key": "={{ $('Monta o registro e o aviso').first().json.chave_analise }}",
         "value": "={{ JSON.stringify({ ...$('Monta o registro e o aviso').first().json.registro, mensagem_id: $json.body?.result?.message_id ?? null, telegram_ok: $json.body?.ok === true }) }}",
         "expire": true,
@@ -1517,6 +1518,7 @@
       ],
       "parameters": {
         "operation": "set",
+        "keyType": "string",
         "key": "phishing:telegram:offset",
         "value": "={{ $('Lê as mensagens').first().json.offset }}"
       },

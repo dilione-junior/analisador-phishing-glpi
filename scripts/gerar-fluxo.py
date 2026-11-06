@@ -111,6 +111,8 @@ class Fluxo:
         }, **({"executeOnce": True} if uma_vez else {}))
 
     def redis(self, nome, posicao, parametros, **extra):
+        # "set" com tipo automático falha se o valor for número ("Could not identify the type to set"): sempre texto.
+        assert parametros.get("operation") != "set" or parametros.get("keyType") == "string", nome
         self.no(nome, "n8n-nodes-base.redis", 1, posicao, parametros, credentials=CRED_REDIS, **extra)
 
     def nota(self, nome, posicao, largura, altura, texto, cor=4):
@@ -270,7 +272,7 @@ a.codigo("Monta o registro e o aviso", [x + 660, Y], "montar-aviso.js", "texto.j
 a.glpi("Grava a análise no GLPI", [x + 880, Y], "POST", "/ITILFollowup", corpo="={{ JSON.stringify($json.acompanhamento) }}")
 a.telegram("Envia ao grupo de phishing", [x + 1100, Y], "sendMessage", "={{ JSON.stringify($('Monta o registro e o aviso').first().json.telegram) }}")
 a.redis("Guarda a análise (90 dias)", [x + 1320, Y], {
-    "operation": "set", "key": "={{ $('Monta o registro e o aviso').first().json.chave_analise }}",
+    "operation": "set", "keyType": "string", "key": "={{ $('Monta o registro e o aviso').first().json.chave_analise }}",
     "value": "={{ JSON.stringify({ ...$('Monta o registro e o aviso').first().json.registro, "
              "mensagem_id: $json.body?.result?.message_id ?? null, telegram_ok: $json.body?.ok === true }) }}",
     "expire": True, "ttl": NOVENTA_DIAS})
@@ -345,7 +347,7 @@ b.redis("Lê o ponto de leitura", [-1540, Y], {"operation": "get", "propertyName
 b.telegram("Busca as mensagens", [-1320, Y], "getUpdates",
            "={{ JSON.stringify({ offset: Number($json.offset) || 0, timeout: 45, allowed_updates: ['callback_query', 'message'] }) }}")
 b.codigo("Lê as mensagens", [-1100, Y], "ler-mensagens.js", "texto.js")
-b.redis("Guarda o ponto de leitura", [-880, Y], {"operation": "set", "key": PREFIXO_REDIS + "telegram:offset",
+b.redis("Guarda o ponto de leitura", [-880, Y], {"operation": "set", "keyType": "string", "key": PREFIXO_REDIS + "telegram:offset",
                                                   "value": "={{ $('Lê as mensagens').first().json.offset }}"})
 b.se("Tem ações?", [-660, Y], "={{ $('Lê as mensagens').first().json.acoes.length > 0 }}")
 b.abre_sessao([-440, Y])
