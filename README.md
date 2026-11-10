@@ -103,7 +103,8 @@ O e-mail analisado é **escrito pelo atacante**. Por isso:
 Pré-requisitos: o [ng-soc-lab](../ng-soc-lab) rodando (n8n, GLPI, Redis), a credencial `GLPI (n8n-api)` no n8n e as credenciais
 do scanner (`Gemini`, `VirusTotal (x-apikey)`, `abuse.ch (Auth-Key)`). Comandos no Git Bash, a partir desta pasta.
 
-**1. Estrutura no GLPI** (grupo, categoria visível para o usuário, tipos de solução, leitura de anexos para o `n8n-api`):
+**1. Estrutura no GLPI** (grupo, categoria visível para o usuário, tipos de solução, tipos de documento `.eml`/`.msg`
+para o GLPI aceitar o anexo, leitura de anexos para o `n8n-api`):
 
 ```bash
 bash glpi/preparar-glpi.sh

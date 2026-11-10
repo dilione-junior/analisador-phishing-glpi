@@ -85,6 +85,12 @@ if ($modo === 'estrutura') {
         garante('SolutionType', 'name', $nome, $todas + ['name' => $nome, 'comment' => $comentario]);
     }
 
+    echo "Tipos de documento (sem eles o GLPI descarta o anexo .eml/.msg em silêncio)\n";
+    foreach ([['E-mail (eml)', 'eml', 'message/rfc822'], ['E-mail do Outlook (msg)', 'msg', 'application/vnd.ms-outlook']] as [$nome, $ext, $mime]) {
+        $tipo = garante('DocumentType', 'ext', $ext, ['name' => $nome, 'ext' => $ext, 'mime' => $mime, 'is_uploadable' => 1]);
+        api('PUT', "/DocumentType/$tipo", ['input' => ['id' => $tipo, 'is_uploadable' => 1]]);
+    }
+
     echo "Permissões do n8n-api (só leitura a mais)\n";
     $perfil = procura('Profile', 'name', 'NG-SOC API (N8N)');
     if (!$perfil) { fwrite(STDERR, "Perfil 'NG-SOC API (N8N)' não existe: rode antes o infra/glpi/criar-estrutura.sh do ng-soc-lab.\n"); exit(1); }
@@ -120,6 +126,10 @@ if ($modo === 'teste') {
             'filename[0]' => new CURLFile($arquivo, 'message/rfc822', $nome),
         ]);
         if ($cod >= 300 || empty($doc['id'])) { fwrite(STDERR, "Falhou ao anexar (HTTP $cod) " . json_encode($doc) . "\n"); exit(1); }
+        // O GLPI cria o documento mesmo quando recusa o arquivo (extensão não cadastrada): confere se o arquivo ficou.
+        if (empty(api('GET', "/Document/{$doc['id']}")['filepath'])) {
+            fwrite(STDERR, "O GLPI recusou o arquivo $nome (tipo de documento não cadastrado?): rode antes 'bash glpi/preparar-glpi.sh'.\n"); exit(1);
+        }
         api('POST', '/Document_Item', ['input' => ['documents_id' => $doc['id'], 'itemtype' => 'Ticket', 'items_id' => $chamado, 'entities_id' => 0]]);
         echo "  anexo $nome ligado ao chamado\n";
     }
