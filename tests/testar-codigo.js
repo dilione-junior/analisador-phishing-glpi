@@ -472,15 +472,18 @@ teste('"Bloquear" vira item do Wazuh só com entradas de formato estrito (o e-ma
 const ACOES_W = montarAcoes([bloquear], [REGISTRO], [1]);
 const CFG_W = { ...CFG, listaDominios: 'ngsoc-phishing-dominios', listaIps: 'ngsoc-phishing-ips', listaHashes: 'ngsoc-phishing-hashes', diasNaLista: 90 };
 const JUNTA = executar('juntar-iocs-wazuh.js', [], {}, { 'Configuração': CFG_W, 'Monta as ações': ACOES_W });
-const TOKEN = { statusCode: 200, body: 'aaa.bbb.ccc' };
+// Formato real do n8n (conferido): resposta em texto + "resposta completa" vem em "data"; JSON vem em "body".
+const TOKEN = { statusCode: 200, data: 'aaa.bbb.ccc' };
+const SO_TESTE = (chave) => ({ statusCode: 200, data: `${chave}:teste-ngsoc\n` });
+const TRES = () => [SO_TESTE('phishing-teste.example'), SO_TESTE('203.0.113.77'), SO_TESTE('f'.repeat(64))];
 const montarListas = (lidas, login = TOKEN) => executar('montar-listas-wazuh.js', [], lidas, { 'Configuração': CFG_W, 'Junta os IOCs para o Wazuh': JUNTA, 'Login no Wazuh (listas)': login });
 teste('listas: junta com o que já existe, renova repetidos e tira os vencidos (90 dias)', () => {
   assert.deepStrictEqual(JUNTA.map((x) => x.lista), ['ngsoc-phishing-dominios', 'ngsoc-phishing-ips', 'ngsoc-phishing-hashes']);
   const velho = new Date(Date.now() - 100 * 86400000).toISOString().slice(0, 10);
   const l = montarListas([
-    { statusCode: 200, body: `phishing-teste.example:teste-ngsoc\nantigo.example:phishing chamado 3 em ${velho}\nitau-seguranca.example:phishing chamado 9 em 2026-11-01\n` },
-    { statusCode: 200, body: '203.0.113.77:teste-ngsoc\n' },
-    { statusCode: 200, body: '' },
+    { statusCode: 200, data: `phishing-teste.example:teste-ngsoc\nantigo.example:phishing chamado 3 em ${velho}\nitau-seguranca.example:phishing chamado 9 em 2026-11-01\n` },
+    SO_TESTE('203.0.113.77'),
+    SO_TESTE('f'.repeat(64)),
   ]);
   assert.ok(l.every((x) => x.enviar));
   const d = l[0];
@@ -488,13 +491,20 @@ teste('listas: junta com o que já existe, renova repetidos e tira os vencidos (
   assert.ok(!d.conteudo.includes('antigo.example'), 'vencida sai');
   assert.deepStrictEqual([d.vencidas, d.renovadas], [1, ['itau-seguranca.example']]);
   assert.match(d.conteudo, /itau-seguranca\.example:phishing chamado 42 em \d{4}-\d{2}-\d{2}\n/);
-  assert.ok(l[2].conteudo.split('\n').filter(Boolean).every((x) => /^[0-9a-f]{40,64}:phishing chamado 42 em /.test(x)));
+  assert.ok(l[2].conteudo.includes('f'.repeat(64) + ':teste-ngsoc'));
+  assert.ok(l[2].conteudo.split('\n').filter((x) => x && !x.endsWith(':teste-ngsoc')).every((x) => /^[0-9a-f]{40,64}:phishing chamado 42 em /.test(x)));
 });
 teste('listas: login ou leitura com erro -> nada é enviado (não apaga a lista)', () => {
-  const r = montarListas([{ statusCode: 200, body: '' }, { statusCode: 404, body: '' }, { statusCode: 200, body: '' }]);
+  const r = montarListas([SO_TESTE('a.example'), { statusCode: 404, data: '' }, SO_TESTE('f'.repeat(64))]);
   assert.deepStrictEqual([r.length, r[0].enviar], [1, false]);
   assert.match(r[0].erros[0], /ngsoc-phishing-ips: HTTP 404.*instalar-regras/);
-  assert.match(montarListas([{}, {}, {}], { statusCode: 401, body: '{"title":"Unauthorized"}' })[0].erros[0], /login/);
+  assert.match(montarListas([{}, {}, {}], { statusCode: 401, data: '{"title":"Unauthorized"}' })[0].erros[0], /login/);
+  // O erro de hoje: login com o token em "data" (e não em "body"). Agora o token é achado.
+  assert.ok(montarListas(TRES()).every((x) => x.enviar));
+  // Leitura com HTTP 200 mas sem conteúdo (ex.: campo errado): gravar apagaria a lista. Nada é enviado.
+  const semNada = montarListas([{ statusCode: 200, body: 'x:y' }, SO_TESTE('203.0.113.77'), SO_TESTE('f'.repeat(64))]);
+  assert.deepStrictEqual([semNada.length, semNada[0].enviar], [1, false]);
+  assert.match(semNada[0].erros[0], /veio vazia/);
 });
 const conferirWazuh = (listas, envios, recarga) => executar('conferir-wazuh.js', ['texto.js'], {}, {
   'Configuração': CFG_W, 'Monta as ações': ACOES_W, 'Monta as listas novas': listas,
@@ -502,7 +512,7 @@ const conferirWazuh = (listas, envios, recarga) => executar('conferir-wazuh.js',
 });
 const API_OK = { statusCode: 200, body: { error: 0, data: { failed_items: [] } } };
 teste('confere o Wazuh: sucesso registra no GLPI, troca o botão e avisa no grupo', () => {
-  const listas = montarListas([{ statusCode: 200, body: '' }, { statusCode: 200, body: '' }, { statusCode: 200, body: '' }]);
+  const listas = montarListas(TRES());
   const [r] = conferirWazuh(listas, [API_OK, API_OK, API_OK], API_OK);
   assert.strictEqual(r.nota.input.is_private, 1);
   assert.ok(r.nota.input.content.includes('IOCs enviados ao Wazuh') && r.nota.input.content.includes('itau-seguranca[.]example'));
@@ -515,7 +525,7 @@ teste('confere o Wazuh: falha registra a tentativa no GLPI e libera a trava', ()
   const [r] = conferirWazuh([{ enviar: false, erros: ['leitura da lista ngsoc-phishing-ips: HTTP 404'] }], [], {});
   assert.ok(r.nota.input.content.includes('Falha ao enviar'));
   assert.deepStrictEqual([r.mensagens[0].tg_metodo, r.mensagens[0].tg_corpo.show_alert, r.apagar_chave], ['answerCallbackQuery', true, 'phishing:bloqueio:42']);
-  const listas = montarListas([{ statusCode: 200, body: '' }, { statusCode: 200, body: '' }, { statusCode: 200, body: '' }]);
+  const listas = montarListas(TRES());
   const [recusado] = conferirWazuh(listas, [API_OK, { statusCode: 200, body: { error: 1, data: { failed_items: [{ error: 'x' }] } } }, API_OK], API_OK);
   assert.strictEqual(recusado.apagar_chave, 'phishing:bloqueio:42', 'Wazuh responde 200 com erro dentro: conta como falha');
 });

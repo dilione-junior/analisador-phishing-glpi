@@ -2200,7 +2200,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.body ?? '').trim() }}"
+              "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.data ?? '').trim() }}"
             }
           ]
         }
@@ -2216,7 +2216,7 @@
         2020
       ],
       "parameters": {
-        "jsCode": "// Nó \"Monta as listas novas\": junta o que já está em cada lista do Wazuh com as entradas novas.\n//  - Entradas gravadas pelo analisador (\"... em AAAA-MM-DD\") com mais de diasNaLista dias saem.\n//  - Entrada repetida fica com a data nova (renova o prazo); as outras (ex.: a de teste) ficam como estão.\n//  - Se o login ou a leitura de QUALQUER lista falhar, nada é enviado: um item só com { enviar: false, erros }.\n//    (Enviar sem ter lido apagaria o que já estava na lista.)\nconst cfg = $('Configuração').first().json;\nconst dias = Number(cfg.diasNaLista) || 90;\nconst pedidos = $('Junta os IOCs para o Wazuh').all().map((i) => i.json);\nconst lidas = $input.all().map((i) => i.json);\nconst login = $('Login no Wazuh (listas)').first().json;\nconst limite = Date.now() - dias * 86400000;\n\nconst erros = [];\nconst token = String(login.body ?? '').trim();\nif (Number(login.statusCode) !== 200 || !/^[\\w-]+\\.[\\w-]+\\.[\\w-]+$/.test(token)) {\n  erros.push(`login na API do Wazuh: HTTP ${login.statusCode ?? '?'} (confira a credencial \"Wazuh API (ngsoc-listas)\")`);\n}\nconst listas = pedidos.map((p, k) => {\n  const r = lidas[k] ?? {};\n  if (!erros.length && Number(r.statusCode) !== 200) {\n    erros.push(`leitura da lista ${p.lista}: HTTP ${r.statusCode ?? '?'}${Number(r.statusCode) === 404 ? ' (rode infra/wazuh/regras/instalar-regras.sh no ng-soc-lab)' : ''}`);\n  }\n  const atuais = new Map();\n  for (const bruta of String(r.body ?? '').split('\\n')) {\n    const l = bruta.trim();\n    const i = l.indexOf(':');\n    if (i > 0) atuais.set(l.slice(0, i), l.slice(i + 1));\n  }\n  let vencidas = 0;\n  for (const [chave, valor] of atuais) {\n    const m = valor.match(/ em (\\d{4}-\\d{2}-\\d{2})$/);\n    if (m && Date.parse(m[1]) < limite) { atuais.delete(chave); vencidas++; }\n  }\n  const adicionadas = [];\n  const renovadas = [];\n  for (const n of p.novas) {\n    (atuais.has(n.chave) ? renovadas : adicionadas).push(n.chave);\n    atuais.set(n.chave, n.valor);\n  }\n  return { ...p, conteudo: [...atuais].map(([c, v]) => `${c}:${v}`).join('\\n') + '\\n', adicionadas, renovadas, vencidas, total: atuais.size };\n});\n\nif (erros.length) return [{ json: { enviar: false, erros } }];\nreturn listas.map((x) => ({ json: { ...x, enviar: true } }));\n"
+        "jsCode": "// Nó \"Monta as listas novas\": junta o que já está em cada lista do Wazuh com as entradas novas.\n//  - Entradas gravadas pelo analisador (\"... em AAAA-MM-DD\") com mais de diasNaLista dias saem.\n//  - Entrada repetida fica com a data nova (renova o prazo); as outras (ex.: a de teste) ficam como estão.\n//  - Se o login ou a leitura de QUALQUER lista falhar, nada é enviado: um item só com { enviar: false, erros }.\n//    (Enviar sem ter lido apagaria o que já estava na lista.)\nconst cfg = $('Configuração').first().json;\nconst dias = Number(cfg.diasNaLista) || 90;\nconst pedidos = $('Junta os IOCs para o Wazuh').all().map((i) => i.json);\nconst lidas = $input.all().map((i) => i.json);\nconst login = $('Login no Wazuh (listas)').first().json;\nconst limite = Date.now() - dias * 86400000;\n\n// Resposta em texto com \"resposta completa\": o n8n põe o conteúdo em \"data\" (não em \"body\"; conferido no n8n 2.46).\n// Se um dia mudar, a leitura vem vazia e a trava abaixo impede de gravar por cima.\nconst texto = (r) => (typeof r?.data === 'string' ? r.data : '');\nconst erros = [];\nconst token = texto(login).trim();\nif (Number(login.statusCode) !== 200 || !/^[\\w-]+\\.[\\w-]+\\.[\\w-]+$/.test(token)) {\n  erros.push(`login na API do Wazuh: HTTP ${login.statusCode ?? '?'} (confira a credencial \"Wazuh API (ngsoc-listas)\")`);\n}\nconst listas = pedidos.map((p, k) => {\n  const r = lidas[k] ?? {};\n  if (!erros.length && Number(r.statusCode) !== 200) {\n    erros.push(`leitura da lista ${p.lista}: HTTP ${r.statusCode ?? '?'}${Number(r.statusCode) === 404 ? ' (rode infra/wazuh/regras/instalar-regras.sh no ng-soc-lab)' : ''}`);\n  }\n  const atuais = new Map();\n  for (const bruta of texto(r).split('\\n')) {\n    const l = bruta.trim();\n    const i = l.indexOf(':');\n    if (i > 0) atuais.set(l.slice(0, i), l.slice(i + 1));\n  }\n  // Trava: a lista criada pelo ng-soc-lab nunca fica vazia (tem a entrada de teste). Se veio vazia, a leitura\n  // não funcionou; gravar agora apagaria o que está lá.\n  if (!erros.length && !atuais.size) erros.push(`a lista ${p.lista} veio vazia na leitura (esperado pelo menos a entrada de teste): nada foi gravado`);\n  let vencidas = 0;\n  for (const [chave, valor] of atuais) {\n    const m = valor.match(/ em (\\d{4}-\\d{2}-\\d{2})$/);\n    if (m && Date.parse(m[1]) < limite) { atuais.delete(chave); vencidas++; }\n  }\n  const adicionadas = [];\n  const renovadas = [];\n  for (const n of p.novas) {\n    (atuais.has(n.chave) ? renovadas : adicionadas).push(n.chave);\n    atuais.set(n.chave, n.valor);\n  }\n  return { ...p, conteudo: [...atuais].map(([c, v]) => `${c}:${v}`).join('\\n') + '\\n', adicionadas, renovadas, vencidas, total: atuais.size };\n});\n\nif (erros.length) return [{ json: { enviar: false, erros } }];\nreturn listas.map((x) => ({ json: { ...x, enviar: true } }));\n"
       }
     },
     {
@@ -2281,7 +2281,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.body ?? '').trim() }}"
+              "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.data ?? '').trim() }}"
             }
           ]
         },
@@ -2318,7 +2318,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.body ?? '').trim() }}"
+              "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.data ?? '').trim() }}"
             }
           ]
         }

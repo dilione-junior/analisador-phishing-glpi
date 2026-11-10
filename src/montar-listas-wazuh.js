@@ -10,8 +10,11 @@ const lidas = $input.all().map((i) => i.json);
 const login = $('Login no Wazuh (listas)').first().json;
 const limite = Date.now() - dias * 86400000;
 
+// Resposta em texto com "resposta completa": o n8n põe o conteúdo em "data" (não em "body"; conferido no n8n 2.46).
+// Se um dia mudar, a leitura vem vazia e a trava abaixo impede de gravar por cima.
+const texto = (r) => (typeof r?.data === 'string' ? r.data : '');
 const erros = [];
-const token = String(login.body ?? '').trim();
+const token = texto(login).trim();
 if (Number(login.statusCode) !== 200 || !/^[\w-]+\.[\w-]+\.[\w-]+$/.test(token)) {
   erros.push(`login na API do Wazuh: HTTP ${login.statusCode ?? '?'} (confira a credencial "Wazuh API (ngsoc-listas)")`);
 }
@@ -21,11 +24,14 @@ const listas = pedidos.map((p, k) => {
     erros.push(`leitura da lista ${p.lista}: HTTP ${r.statusCode ?? '?'}${Number(r.statusCode) === 404 ? ' (rode infra/wazuh/regras/instalar-regras.sh no ng-soc-lab)' : ''}`);
   }
   const atuais = new Map();
-  for (const bruta of String(r.body ?? '').split('\n')) {
+  for (const bruta of texto(r).split('\n')) {
     const l = bruta.trim();
     const i = l.indexOf(':');
     if (i > 0) atuais.set(l.slice(0, i), l.slice(i + 1));
   }
+  // Trava: a lista criada pelo ng-soc-lab nunca fica vazia (tem a entrada de teste). Se veio vazia, a leitura
+  // não funcionou; gravar agora apagaria o que está lá.
+  if (!erros.length && !atuais.size) erros.push(`a lista ${p.lista} veio vazia na leitura (esperado pelo menos a entrada de teste): nada foi gravado`);
   let vencidas = 0;
   for (const [chave, valor] of atuais) {
     const m = valor.match(/ em (\d{4}-\d{2}-\d{2})$/);

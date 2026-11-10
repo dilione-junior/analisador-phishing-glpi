@@ -127,7 +127,7 @@ class Fluxo:
             extra["credentials"] = CRED_WAZUH
         else:
             p.update({"sendHeaders": True, "headerParameters": {"parameters": [
-                {"name": "Authorization", "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.body ?? '').trim() }}"}]}})
+                {"name": "Authorization", "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.data ?? '').trim() }}"}]}})
         if corpo:
             p.update({"sendBody": True, "contentType": "raw", "rawContentType": "application/octet-stream", "body": corpo})
         self.no(nome, "n8n-nodes-base.httpRequest", 4.2, posicao, p, **({"executeOnce": True} if uma_vez else {}), **extra)
