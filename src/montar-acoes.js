@@ -141,19 +141,30 @@ acoes.forEach((a, k) => {
         content: decisao === 'phishing' ? RESPOSTA_USUARIO.phishing(tiposDeInteracao(registro)) : RESPOSTA_USUARIO[decisao] } } });
     }
 
-    const interacao = Array.isArray(registro.interacao) && registro.interacao.length && decisao !== 'legitimo' && decisao !== 'spam'
-      ? `\n⚠️ O usuário disse que ${esc(registro.interacao.join(', '))}: comece por trocar a senha / isolar a máquina.` : '';
+    // Mensagem do grupo: seções separadas por linha em branco (o Telegram não tem espaçamento de linha).
+    const feitos = new Set(tiposDeInteracao(registro));
+    const primeiro = [(feitos.has('clicou') || feitos.has('senha')) && 'trocar a senha do usuário, encerrar as sessões abertas e conferir o MFA',
+      feitos.has('anexo') && 'isolar a máquina da rede', feitos.has('pagou') && 'acionar o banco para bloquear ou contestar o pagamento'].filter(Boolean);
+    const interacao = feitos.size && decisao !== 'legitimo' && decisao !== 'spam'
+      ? `\n\n⚠️ <b>O usuário disse que ${esc(registro.interacao.join(', '))}.</b>\n` +
+        (primeiro.length ? `Comece por: ${primeiro.join('; ')}.` : 'Confirme com ele o que foi feito.') : '';
     const proximos = decisao === 'phishing'
-      ? '\n\n<b>Próximos passos</b>\n' + CHECKLIST_PHISHING.slice(0, 5).map((x, n) => `${n + 1}. ${esc(x)}`).join('\n') + `\nRegistre o que fizer com /nota ${id} texto`
+      ? '\n\n📋 <b>Próximos passos</b>\n\n' + CHECKLIST_PHISHING.slice(0, 5).map((x, n) => `${n + 1}. ${esc(x)}`).join('\n\n')
       : '';
+    const comoAnotar = decisao === 'legitimo' || decisao === 'spam' ? '' :
+      `\n\n📝 <b>Registre no chamado o que você fizer</b>\n` +
+      `Envie aqui no grupo uma mensagem começando com <code>/nota ${id}</code> e, em seguida, o que foi feito. Exemplo:\n\n` +
+      `<code>/nota ${id} bloqueei o domínio no proxy e no filtro de e-mail</code>\n\n` +
+      `O texto entra no chamado #${id} do GLPI como nota interna, com o seu nome e a hora: só a equipe técnica vê, o usuário não. ` +
+      'Assim fica o histórico do que foi feito no incidente.';
     sucesso = [
       tg('editMessageReplyMarkup', { chat_id: chat, message_id: a.mensagem_id,
         reply_markup: { inline_keyboard: [[{ text: `✔️ ${ROTULO[decisao]} · ${a.analista.nome}`.slice(0, 60), callback_data: `ph|${id}|x` }]] } }),
       tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, allow_sending_without_reply: true, parse_mode: 'HTML',
-        text: `${ICONE[decisao]} <b>Chamado #${id}: ${ROTULO[decisao]}</b> por ${esc(a.analista.nome)}\n` +
-          (decisao === 'escalar' ? 'Grupo SOC N2 incluído no chamado e usuário avisado.' : 'Usuário respondido e chamado solucionado no GLPI.') +
-          `\nIA sugeriu ${ROTULO[registro.sugestao] ?? esc(registro.sugestao)} (${Number(registro.confianca) || 0}%): ${concordou ? '👍 concordou' : '👎 discordou'}` +
-          interacao + proximos }),
+        text: `${ICONE[decisao]} <b>Chamado #${id}: ${ROTULO[decisao]}</b>\nDecidido por ${esc(a.analista.nome)}\n\n` +
+          (decisao === 'escalar' ? '✔️ Grupo SOC N2 incluído no chamado e usuário avisado.' : '✔️ Usuário respondido e chamado solucionado no GLPI.') +
+          `\n\n🤖 IA sugeriu ${ROTULO[registro.sugestao] ?? esc(registro.sugestao)} (${Number(registro.confianca) || 0}%): ${concordou ? '👍 o analista concordou' : '👎 o analista discordou'}` +
+          interacao + proximos + comoAnotar }),
       tg('answerCallbackQuery', { callback_query_id: a.callback_id, text: 'Decisão registrada no GLPI ✔' }),
     ];
   }

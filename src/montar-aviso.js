@@ -65,19 +65,23 @@ if (ev.tem_email) {
   blocos.push('📧 <b>E-mail não anexado</b>: só o relato do usuário foi analisado.');
 }
 blocos.push(`🧠 <b>Análise</b>\n${esc(p.resumo)}`);
-const itens = (titulo, lista, expandir = true) => (lista.length
-  ? `${titulo}\n<blockquote${expandir ? ' expandable' : ''}>${lista.map((x) => '• ' + esc(x)).join('\n')}</blockquote>` : '');
+// O Telegram não tem espaçamento de linha: frases longas ganham uma linha em branco entre si; IOCs ficam juntos (para copiar).
+const itens = (titulo, lista, expandir = true, espacado = true) => (lista.length
+  ? `${titulo}\n<blockquote${expandir ? ' expandable' : ''}>${lista.map((x) => '• ' + esc(x)).join(espacado ? '\n\n' : '\n')}</blockquote>` : '');
 const opcionais = [
   itens('🔎 <b>Evidências</b>', p.evidencias, false),
   itens('✅ <b>Sinais de legitimidade</b>', p.contra_evidencias),
   itens('🌐 <b>Reputação</b>', reputacao),
-  p.acoes_soc.length ? `🛡️ <b>Ações recomendadas</b>\n${p.acoes_soc.map((a, k) => `${k + 1}. ${esc(a)}`).join('\n')}` : '',
+  p.acoes_soc.length ? `🛡️ <b>Ações recomendadas</b>\n\n${p.acoes_soc.map((a, k) => `${k + 1}. ${esc(a)}`).join('\n\n')}` : '',
   itens('❓ <b>Perguntar ao usuário</b>', p.perguntas_ao_usuario),
   itens('ℹ️ <b>Avisos</b>', p.avisos),
-  itens('🧾 <b>IOCs para bloqueio (desarmados)</b>', linhasIocs),
-  itens('🚫 <b>Fora do bloqueio (legítimos ou compartilhados)</b>', linhasFora),
+  itens('🧾 <b>IOCs para bloqueio (desarmados)</b>', linhasIocs, true, false),
+  itens('🚫 <b>Fora do bloqueio (legítimos ou compartilhados)</b>', linhasFora, true, false),
 ].filter(Boolean);
-const rodape = '<i>Decida abaixo: a decisão responde ao usuário e encerra o chamado no GLPI. Comandos: /nota ' + id + ' texto · /reanalisar ' + id + '</i>';
+const rodape = '👇 <b>Decida nos botões abaixo.</b> A decisão responde ao usuário e encerra (ou escala) o chamado no GLPI.\n\n' +
+  `📝 <b>Anotar o que você fez</b>: envie <code>/nota ${id}</code> seguido do texto. Ex.: <code>/nota ${id} bloqueei o domínio no proxy</code>\n` +
+  'Vira nota interna no chamado (só a equipe técnica vê).\n\n' +
+  `🔁 <b>Analisar de novo</b> (ex.: o usuário anexou o e-mail depois): <code>/reanalisar ${id}</code>`;
 
 // Limite do Telegram: 4096 caracteres. Tira os blocos opcionais do fim até caber (nunca corta HTML no meio).
 let texto = [...blocos, ...opcionais, rodape].join('\n\n');

@@ -183,7 +183,7 @@ Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `
 ## Desenvolvimento
 
 ```bash
-node tests/testar-codigo.js      # 61 testes do código dos nós, sem n8n
+node tests/testar-codigo.js      # 62 testes do código dos nós, sem n8n
 python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
 

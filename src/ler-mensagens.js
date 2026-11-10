@@ -13,10 +13,12 @@ if (!atualizacoes.length) return [];
 const grupo = String($env.PHISHING_TELEGRAM_CHAT_ID ?? '').trim();
 const analistas = new Set(String($env.PHISHING_ANALISTAS ?? '').split(/[\s,;]+/).filter((x) => /^\d{3,20}$/.test(x)));
 const DECISOES = { p: 'phishing', l: 'legitimo', s: 'spam', e: 'escalar' };
-const AJUDA = 'Comandos do grupo de relatos de phishing:\n' +
-  '• Botões do relato: decidem o caso (responde ao usuário e encerra/escala no GLPI)\n' +
-  '• /nota 123 texto: nota interna no chamado 123\n' +
-  '• /reanalisar 123: analisa o chamado 123 de novo (ex.: o usuário anexou o e-mail depois)\n' +
+const AJUDA = 'Comandos do grupo de relatos de phishing\n\n' +
+  '👆 Botões da ficha: decidem o caso. Respondem ao usuário e encerram (ou escalam para o N2) o chamado no GLPI.\n\n' +
+  '📝 /nota NÚMERO TEXTO: registra no chamado o que você fez, como nota interna (só a equipe técnica vê, o usuário não).\n' +
+  'Exemplo: /nota 123 bloqueei o domínio no proxy e no filtro de e-mail\n\n' +
+  '🔁 /reanalisar NÚMERO: analisa o chamado de novo (ex.: o usuário anexou o e-mail depois).\n' +
+  'Exemplo: /reanalisar 123\n\n' +
   'Só analistas autorizados podem decidir e anotar.';
 const pessoa = (de) => ({
   id: String(de?.id ?? ''),

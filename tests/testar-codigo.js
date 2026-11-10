@@ -372,6 +372,13 @@ teste('usuário clicou e digitou a senha: troca de senha IMEDIATA no topo da res
   assert.ok(t.indexOf('Troque a sua senha IMEDIATAMENTE') < t.indexOf('Apague a mensagem'), 'a troca de senha vem antes do resto');
   assert.ok(!t.includes('Desconecte o computador'), 'não abriu o anexo: sem o passo de isolar a máquina');
 });
+teste('mensagem do grupo: seções espaçadas e /nota explicado com exemplo', () => {
+  const t = montarAcoes([decidir('phishing')], [REGISTRO], [1])[0].sucesso.find((m) => m.tg_metodo === 'sendMessage').tg_corpo.text;
+  assert.ok(t.includes('Comece por: trocar a senha do usuário'));
+  assert.ok(t.includes('1. Bloquear o remetente') && /\n\n2\. /.test(t), 'passos separados por linha em branco');
+  assert.ok(t.includes('<code>/nota 42 bloqueei o domínio') && t.includes('só a equipe técnica vê'));
+  assert.ok(A.telegram.text.includes('<code>/reanalisar 42</code>') && A.telegram.text.length <= 4096);
+});
 teste('sem interação: resposta mantém o aviso condicional de troca de senha', () => {
   const r = JSON.stringify({ ...A.registro, interacao: [], interacao_tipos: [] });
   const t = montarAcoes([decidir('phishing')], [r], [1])[1].corpo.input.content;
