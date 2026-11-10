@@ -204,6 +204,23 @@ teste('consultas de reputação com limite e prioridade', () => {
   assert.ok(EV.consultas.rdap.includes('itau-seguranca.example'));
   assert.ok(!EV.consultas.rdap.includes('gmail.com'));
 });
+teste('IOCs: só o que é do atacante; oficial, webmail e compartilhado ficam fora com o motivo', () => {
+  assert.ok(EV.iocs.dominios.includes('itau-seguranca.example'));
+  assert.ok(!EV.iocs.dominios.includes('gmail.com') && !EV.iocs.dominios.includes('itau.com.br'), EV.iocs.dominios.join(', '));
+  assert.ok(!EV.iocs.urls.some((u) => /itau\.com\.br/.test(u)), 'link verdadeiro do Itaú não é IOC');
+  assert.ok(EV.iocs.urls.includes('http://itau-seguranca.example/atualizar?id=9'));
+  assert.ok(EV.iocs.remetente.includes('suporte.cliente.itau@gmail.com'), 'endereço do golpista no Gmail continua IOC');
+  const motivo = (v) => (EV.iocs_fora.find((x) => x.valor === v) ?? {}).motivo ?? '';
+  assert.match(motivo('gmail.com'), /webmail/);
+  assert.match(motivo('itau.com.br'), /oficial de Itaú/);
+});
+teste('IOCs: domínio da organização (dominiosConfiaveis) nunca entra', () => {
+  const nos = nosDoChamado(amostra('phishing-banco.eml'));
+  nos['Configuração'] = { ...CFG, dominiosConfiaveis: 'itau-seguranca.example' };
+  const ev = extrair(nos);
+  assert.ok(!ev.iocs.dominios.includes('itau-seguranca.example') && !ev.iocs.remetente.includes('alerta@itau-seguranca.example'));
+  assert.ok(ev.iocs_fora.some((x) => /organização/.test(x.motivo)));
+});
 teste('e-mail legítimo: autenticação ok e poucos sinais', () => {
   const ev = extrair(nosDoChamado(amostra('legitimo-loja.eml'), 'email.eml', '&lt;p&gt;É legítimo? Não cliquei.&lt;/p&gt;'));
   assert.ok(ids(ev).includes('autenticado'));
@@ -348,6 +365,33 @@ teste('decisão "phishing": nota interna + solução com texto fixo', () => {
   assert.strictEqual(s[0].chave_metrica, 'phishing:metricas:ia_phishing:analista_phishing');
   assert.deepStrictEqual(s[0].sucesso.map((m) => m.tg_metodo), ['editMessageReplyMarkup', 'sendMessage', 'answerCallbackQuery']);
 });
+teste('usuário clicou e digitou a senha: troca de senha IMEDIATA no topo da resposta', () => {
+  assert.deepStrictEqual(A.registro.interacao_tipos, ['clicou', 'senha']);
+  const t = montarAcoes([decidir('phishing')], [REGISTRO], [1])[1].corpo.input.content;
+  assert.ok(t.includes('Você nos contou que clicou no link, digitou sua senha ou seus dados'));
+  assert.ok(t.indexOf('Troque a sua senha IMEDIATAMENTE') < t.indexOf('Apague a mensagem'), 'a troca de senha vem antes do resto');
+  assert.ok(!t.includes('Desconecte o computador'), 'não abriu o anexo: sem o passo de isolar a máquina');
+});
+teste('mensagem do grupo: seções espaçadas e /nota explicado com exemplo', () => {
+  const t = montarAcoes([decidir('phishing')], [REGISTRO], [1])[0].sucesso.find((m) => m.tg_metodo === 'sendMessage').tg_corpo.text;
+  assert.ok(t.includes('Comece por: trocar a senha do usuário'));
+  assert.ok(t.includes('1. Bloquear o remetente') && /\n\n2\. /.test(t), 'passos separados por linha em branco');
+  assert.ok(t.includes('<code>/nota 42 bloqueei o domínio') && t.includes('só a equipe técnica vê'));
+  assert.ok(A.telegram.text.includes('<code>/reanalisar 42</code>') && A.telegram.text.length <= 4096);
+});
+teste('sem interação: resposta mantém o aviso condicional de troca de senha', () => {
+  const r = JSON.stringify({ ...A.registro, interacao: [], interacao_tipos: [] });
+  const t = montarAcoes([decidir('phishing')], [r], [1])[1].corpo.input.content;
+  assert.ok(!t.includes('Você nos contou') && t.includes('troque a sua senha imediatamente'));
+});
+teste('registro antigo (só rótulos) e anexo aberto: deduz os tipos e manda isolar a máquina', () => {
+  const r = JSON.stringify({ ...A.registro, interacao: ['abriu ou baixou o anexo'], interacao_tipos: undefined });
+  const t = montarAcoes([decidir('phishing')], [r], [1])[1].corpo.input.content;
+  assert.ok(t.includes('Desconecte o computador da rede agora') && !t.includes('IMEDIATAMENTE'));
+});
+teste('escalar N2 com senha digitada: o usuário também é orientado a trocar já', () => {
+  assert.ok(montarAcoes([decidir('escalar')], [REGISTRO], [1])[2].corpo.input.content.includes('Troque a sua senha IMEDIATAMENTE'));
+});
 teste('decisão "legítimo" contra a IA conta como discordância', () => {
   const s = montarAcoes([decidir('legitimo')], [REGISTRO], [1]);
   assert.strictEqual(s[1].corpo.input.solutiontypes_id, 8);
@@ -384,6 +428,106 @@ teste('confere o GLPI: sucesso manda mensagens; falha libera a trava', () => {
   assert.strictEqual(ok[0].chave_metrica, 'phishing:metricas:ia_phishing:analista_phishing');
   const ruim = executar('conferir-glpi.js', ['texto.js'], [{ statusCode: 201, body: {} }, { statusCode: 400, body: ['ERROR'] }], { 'Monta as ações': passos });
   assert.deepStrictEqual([ruim.length, ruim[0].tg_metodo, ruim[0].apagar_chave], [1, 'answerCallbackQuery', 'phishing:decisao:42']);
+});
+
+// ---------------------------------------------------------------- Bloquear IOCs no Wazuh
+console.log('Bloquear IOCs no Wazuh');
+teste('o que vai para o Wazuh: domínios e hosts do atacante e hashes; nada oficial, webmail ou IP do remetente', () => {
+  const b = EV.bloqueio;
+  assert.ok(b.dominios.includes('itau-seguranca.example'));
+  assert.ok(!b.dominios.some((d) => /gmail\.com|itau\.com\.br/.test(d)), b.dominios.join(', '));
+  assert.deepStrictEqual(b.ips, [], 'o IP de origem do e-mail não vai');
+  assert.ok(b.hashes.some((h) => /^[0-9a-f]{64}$/.test(h)), 'SHA-256 do anexo de dentro do .eml');
+  assert.ok(!b.hashes.includes('c'.repeat(40)), 'o print do usuário não vai para o Wazuh');
+  const ev = extrair(nosDoChamado(null, '', '&lt;p&gt;Link: http://45.33.32.156/login e http://10.0.0.5/x e http://198.51.100.20/y e hxxps://login.golpe[.]example/a&lt;/p&gt;'));
+  assert.deepStrictEqual(ev.bloqueio.ips, ['45.33.32.156'], 'IP público de link vai; IP interno ou reservado não');
+  assert.ok(ev.bloqueio.dominios.includes('login.golpe.example') && ev.bloqueio.dominios.includes('golpe.example'));
+});
+teste('confirmação do phishing mostra a prévia e o botão "Bloquear IOCs no Wazuh"', () => {
+  const m = montarAcoes([decidir('phishing')], [REGISTRO], [1])[0].sucesso.find((x) => x.tg_metodo === 'sendMessage').tg_corpo;
+  assert.deepStrictEqual(m.reply_markup.inline_keyboard[0][0].callback_data, 'ph|42|b');
+  assert.ok(m.text.includes('<code>itau-seguranca[.]example</code>') && m.text.includes('Confira antes de clicar'));
+  const sem = JSON.stringify({ ...A.registro, bloqueio: { dominios: [], ips: [], hashes: [] } });
+  assert.ok(!montarAcoes([decidir('phishing')], [sem], [1])[0].sucesso.find((x) => x.tg_metodo === 'sendMessage').tg_corpo.reply_markup);
+  assert.ok(!montarAcoes([decidir('legitimo')], [REGISTRO], [1])[0].sucesso.find((x) => x.tg_metodo === 'sendMessage').tg_corpo.reply_markup);
+});
+teste('clique em "Bloquear": analista autorizado; trava por chamado', () => {
+  const r = lerMsgs([clique(10, 111111, 'ph|42|b'), clique(11, 111111, 'ph|42|b')])[0].acoes;
+  assert.deepStrictEqual(r.map((a) => a.tipo), ['bloquear', 'responder']);
+  assert.strictEqual(lerMsgs([clique(10, 999, 'ph|42|b')])[0].acoes[0].tipo, 'responder');
+  const s = executar('separar-acoes.js', [], {}, { 'Configuração': CFG, 'Lê as mensagens': { acoes: [r[0]] } });
+  assert.strictEqual(s[0].chave_trava, 'phishing:bloqueio:42');
+});
+const bloquear = { update_id: 12, tipo: 'bloquear', chamado_id: 42, callback_id: 'cb12', mensagem_id: 501, analista };
+teste('"Bloquear" vira item do Wazuh só com entradas de formato estrito (o e-mail é do atacante)', () => {
+  const malicioso = JSON.stringify({ ...A.registro, bloqueio: { dominios: ['ok.example', 'x.example:valor\nlinha-nova.example', 'Ruim Com Espaço.example'], ips: ['198.51.100.20', '1.2.3.4:80'], hashes: ['A'.repeat(64), 'zz'] } });
+  const s = montarAcoes([bloquear], [malicioso], [1]);
+  assert.deepStrictEqual([s.length, s[0].destino], [1, 'wazuh']);
+  assert.deepStrictEqual(s[0].entradas, { dominios: ['ok.example'], ips: ['198.51.100.20'], hashes: ['a'.repeat(64)] });
+  assert.strictEqual(s[0].chave_trava, 'phishing:bloqueio:42');
+  assert.ok(montarAcoes([bloquear], [REGISTRO], [2])[0].tg_corpo.text.includes('já foram enviados'));
+  const vazio = montarAcoes([bloquear], [JSON.stringify({ ...A.registro, bloqueio: { dominios: [], ips: [], hashes: [] } })], [1]);
+  assert.deepStrictEqual([vazio[0].destino, vazio[0].apagar_chave], ['telegram', 'phishing:bloqueio:42']);
+});
+const ACOES_W = montarAcoes([bloquear], [REGISTRO], [1]);
+const CFG_W = { ...CFG, listaDominios: 'ngsoc-phishing-dominios', listaIps: 'ngsoc-phishing-ips', listaHashes: 'ngsoc-phishing-hashes', diasNaLista: 90 };
+const JUNTA = executar('juntar-iocs-wazuh.js', [], {}, { 'Configuração': CFG_W, 'Monta as ações': ACOES_W });
+// Formato real do n8n (conferido): resposta em texto + "resposta completa" vem em "data"; JSON vem em "body".
+const TOKEN = { statusCode: 200, data: 'aaa.bbb.ccc' };
+const SO_TESTE = (chave) => ({ statusCode: 200, data: `${chave}:teste-ngsoc\n` });
+const TRES = () => [SO_TESTE('phishing-teste.example'), SO_TESTE('203.0.113.77'), SO_TESTE('f'.repeat(64))];
+const montarListas = (lidas, login = TOKEN) => executar('montar-listas-wazuh.js', [], lidas, { 'Configuração': CFG_W, 'Junta os IOCs para o Wazuh': JUNTA, 'Login no Wazuh (listas)': login });
+teste('listas: junta com o que já existe, renova repetidos e tira os vencidos (90 dias)', () => {
+  assert.deepStrictEqual(JUNTA.map((x) => x.lista), ['ngsoc-phishing-dominios', 'ngsoc-phishing-ips', 'ngsoc-phishing-hashes']);
+  const velho = new Date(Date.now() - 100 * 86400000).toISOString().slice(0, 10);
+  const l = montarListas([
+    { statusCode: 200, data: `phishing-teste.example:teste-ngsoc\nantigo.example:phishing chamado 3 em ${velho}\nitau-seguranca.example:phishing chamado 9 em 2026-11-01\n` },
+    SO_TESTE('203.0.113.77'),
+    SO_TESTE('f'.repeat(64)),
+  ]);
+  assert.ok(l.every((x) => x.enviar));
+  const d = l[0];
+  assert.ok(d.conteudo.includes('phishing-teste.example:teste-ngsoc'), 'entrada de teste fica');
+  assert.ok(!d.conteudo.includes('antigo.example'), 'vencida sai');
+  assert.deepStrictEqual([d.vencidas, d.renovadas], [1, ['itau-seguranca.example']]);
+  assert.match(d.conteudo, /itau-seguranca\.example:phishing chamado 42 em \d{4}-\d{2}-\d{2}\n/);
+  assert.ok(l[2].conteudo.includes('f'.repeat(64) + ':teste-ngsoc'));
+  assert.ok(l[2].conteudo.split('\n').filter((x) => x && !x.endsWith(':teste-ngsoc')).every((x) => /^[0-9a-f]{40,64}:phishing chamado 42 em /.test(x)));
+});
+teste('listas: login ou leitura com erro -> nada é enviado (não apaga a lista)', () => {
+  const r = montarListas([SO_TESTE('a.example'), { statusCode: 404, data: '' }, SO_TESTE('f'.repeat(64))]);
+  assert.deepStrictEqual([r.length, r[0].enviar], [1, false]);
+  assert.match(r[0].erros[0], /ngsoc-phishing-ips: HTTP 404.*instalar-regras/);
+  assert.match(montarListas([{}, {}, {}], { statusCode: 401, data: '{"title":"Unauthorized"}' })[0].erros[0], /login/);
+  // O erro de hoje: login com o token em "data" (e não em "body"). Agora o token é achado.
+  assert.ok(montarListas(TRES()).every((x) => x.enviar));
+  // Leitura com HTTP 200 mas sem conteúdo (ex.: campo errado): gravar apagaria a lista. Nada é enviado.
+  const semNada = montarListas([{ statusCode: 200, body: 'x:y' }, SO_TESTE('203.0.113.77'), SO_TESTE('f'.repeat(64))]);
+  assert.deepStrictEqual([semNada.length, semNada[0].enviar], [1, false]);
+  assert.match(semNada[0].erros[0], /veio vazia/);
+});
+const conferirWazuh = (listas, envios, recarga) => executar('conferir-wazuh.js', ['texto.js'], {}, {
+  'Configuração': CFG_W, 'Monta as ações': ACOES_W, 'Monta as listas novas': listas,
+  'Envia a lista ao Wazuh (phishing)': envios, 'Recarrega as regras (phishing)': recarga,
+});
+const API_OK = { statusCode: 200, body: { error: 0, data: { failed_items: [] } } };
+teste('confere o Wazuh: sucesso registra no GLPI, troca o botão e avisa no grupo', () => {
+  const listas = montarListas(TRES());
+  const [r] = conferirWazuh(listas, [API_OK, API_OK, API_OK], API_OK);
+  assert.strictEqual(r.nota.input.is_private, 1);
+  assert.ok(r.nota.input.content.includes('IOCs enviados ao Wazuh') && r.nota.input.content.includes('itau-seguranca[.]example'));
+  assert.deepStrictEqual(r.mensagens.map((m) => m.tg_metodo), ['editMessageReplyMarkup', 'sendMessage', 'answerCallbackQuery']);
+  assert.strictEqual(r.apagar_chave, '');
+  const msgs = executar('mensagens-bloqueio.js', [], {}, { 'Confere o Wazuh': [r] });
+  assert.deepStrictEqual(msgs.map((m) => m.destino), ['telegram', 'telegram', 'telegram']);
+});
+teste('confere o Wazuh: falha registra a tentativa no GLPI e libera a trava', () => {
+  const [r] = conferirWazuh([{ enviar: false, erros: ['leitura da lista ngsoc-phishing-ips: HTTP 404'] }], [], {});
+  assert.ok(r.nota.input.content.includes('Falha ao enviar'));
+  assert.deepStrictEqual([r.mensagens[0].tg_metodo, r.mensagens[0].tg_corpo.show_alert, r.apagar_chave], ['answerCallbackQuery', true, 'phishing:bloqueio:42']);
+  const listas = montarListas(TRES());
+  const [recusado] = conferirWazuh(listas, [API_OK, { statusCode: 200, body: { error: 1, data: { failed_items: [{ error: 'x' }] } } }, API_OK], API_OK);
+  assert.strictEqual(recusado.apagar_chave, 'phishing:bloqueio:42', 'Wazuh responde 200 com erro dentro: conta como falha');
 });
 
 // ---------------------------------------------------------------- Fluxos gerados

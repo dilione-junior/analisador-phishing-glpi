@@ -37,19 +37,38 @@ A ficha que chega no Telegram responde às perguntas da triagem de phishing, nes
 4. **Evidências** e **sinais de legitimidade**, para o analista concordar ou discordar com base em fatos.
 5. **Reputação**: VirusTotal (link, domínio, hash do anexo), URLhaus e idade do domínio.
 6. **Ações recomendadas**: as de resposta a incidente vêm primeiro (trocar senha, isolar máquina, acionar o banco).
-7. **IOCs desarmados** (`hxxps://site[.]com`), prontos para copiar para o bloqueio sem virar link clicável.
+7. **IOCs desarmados** (`hxxps://site[.]com`), prontos para copiar para o bloqueio sem virar link clicável. Só entra o que é do
+   atacante: domínio oficial de marca (`itau.com.br`), webmail gratuito (`gmail.com`), serviço compartilhado (`drive.google.com`)
+   e os domínios da organização ficam numa lista à parte, **Fora do bloqueio**, com o motivo. O endereço do golpista no Gmail
+   continua IOC; o domínio `gmail.com`, não.
 
 O que acontece em cada decisão:
 
 | Botão | No GLPI | Para o usuário (texto fixo) |
 |---|---|---|
-| 🎣 É phishing | nota interna com checklist de resposta e IOCs; solução **Phishing confirmado** | "confirmamos que é phishing: não clique, apague; se clicou ou digitou a senha, responda agora" |
+| 🎣 É phishing | nota interna com checklist de resposta e IOCs; solução **Phishing confirmado** | "confirmamos que é phishing: não clique, apague". Se o relato diz que clicou ou digitou a senha, vem **no topo**: "troque a sua senha IMEDIATAMENTE" (e isolar a máquina se abriu o anexo, ligar para o banco se pagou) |
 | ✅ É legítimo | nota interna; solução **Contato legítimo** | "o contato é legítimo; na dúvida, confirme por canal oficial" |
 | 📨 Spam | nota interna; solução **Spam (não malicioso)** | "é propaganda, sem sinal de golpe; pode apagar" |
-| ⬆️ Escalar N2 | nota interna; grupo **SOC N2** incluído (chamado continua aberto) | "encaminhado para análise aprofundada; não interaja com a mensagem" |
+| ⬆️ Escalar N2 | nota interna; grupo **SOC N2** incluído (chamado continua aberto) | "encaminhado para análise aprofundada; não interaja com a mensagem" (com o mesmo aviso de troca imediata de senha, se houve interação) |
 
 Comandos no grupo: `/nota 123 texto` (nota interna, ex.: "bloqueei o domínio no proxy"), `/reanalisar 123`
 (analisa de novo, ex.: o usuário anexou o e-mail depois) e `/ajuda`.
+
+### Bloquear IOCs no Wazuh
+
+Depois de **🎣 É phishing**, a confirmação no grupo mostra o que iria para o Wazuh e o botão **🛡️ Bloquear IOCs no Wazuh**.
+Nada é enviado sem esse segundo clique (de um analista autorizado), e só uma vez por chamado.
+
+- **O que vai:** domínios e hosts dos links do atacante, IPs públicos que aparecem *dentro* dos links e os hashes dos anexos.
+  Não vão domínios oficiais, webmail gratuito, serviços compartilhados, os `dominiosConfiaveis`, nem o IP do servidor que
+  mandou o e-mail (num phishing pelo Gmail, ele é do Google). Cada item passa por uma validação estrita de formato: o e-mail
+  é do atacante e não pode "injetar" linhas na lista.
+- **Para onde:** listas CDB `ngsoc-phishing-dominios`, `ngsoc-phishing-ips` e `ngsoc-phishing-hashes` do Wazuh do
+  [ng-soc-lab](../ng-soc-lab), por **90 dias** (cada entrada leva o chamado e a data; as vencidas saem na gravação seguinte).
+  O fluxo lê a lista, junta, regrava e recarrega as regras, sem reiniciar o manager. Se a leitura falhar, nada é gravado.
+- **O que o Wazuh faz com elas:** regra 100170/100171 (o anexo apareceu num arquivo vigiado de um endpoint) e 100172
+  (uma máquina com Sysmon consultou o domínio no DNS). Alerta de nível 10 ou mais vira chamado no GLPI pelo NG-SOC.
+- **Registro:** nota interna no GLPI com quem pediu e o que foi (ou a falha, e aí o botão pode ser clicado de novo).
 
 O roteiro completo de atendimento está em [docs/playbook-phishing.md](docs/playbook-phishing.md).
 
@@ -103,7 +122,12 @@ O e-mail analisado é **escrito pelo atacante**. Por isso:
 Pré-requisitos: o [ng-soc-lab](../ng-soc-lab) rodando (n8n, GLPI, Redis), a credencial `GLPI (n8n-api)` no n8n e as credenciais
 do scanner (`Gemini`, `VirusTotal (x-apikey)`, `abuse.ch (Auth-Key)`). Comandos no Git Bash, a partir desta pasta.
 
-**1. Estrutura no GLPI** (grupo, categoria visível para o usuário, tipos de solução, leitura de anexos para o `n8n-api`):
+Para o botão **Bloquear IOCs no Wazuh**: a credencial `Wazuh API (ngsoc-listas)` (a mesma da lista de botnets) e, no ng-soc-lab,
+`bash infra/wazuh/regras/criar-usuario-api-listas.sh` (libera as listas de phishing para esse usuário) e
+`bash infra/wazuh/regras/instalar-regras.sh` (cria as listas e as regras 100170-100172; reinicia o manager).
+
+**1. Estrutura no GLPI** (grupo, categoria visível para o usuário, tipos de solução, tipos de documento `.eml`/`.msg`
+para o GLPI aceitar o anexo, leitura de anexos para o `n8n-api`):
 
 ```bash
 bash glpi/preparar-glpi.sh
@@ -170,6 +194,9 @@ No nó **Configuração** (um só, para as duas rotinas; o JSON é gerado por `s
 | `grupo` | `Segurança da Informação` | ... e atribuídos a este grupo |
 | `cotaDiaria` | 20 | máximo de análises por dia (cota gratuita do Gemini); o excedente fica para o dia seguinte |
 | `maxVirusTotal` | 4 | consultas por chamado (plano grátis: 4/min, 500/dia, compartilhado com o scanner) |
+| `dominiosConfiaveis` | `cybersecurity.local` | domínios da organização (separados por vírgula): nunca entram nos IOCs para bloqueio |
+| `listaDominios` / `listaIps` / `listaHashes` | `ngsoc-phishing-*` | listas CDB do Wazuh do botão "Bloquear IOCs" |
+| `diasNaLista` | 90 | quantos dias cada IOC fica nas listas do Wazuh |
 | `tipoPhishing` / `tipoLegitimo` / `tipoSpam` / `grupoN2` | nomes do GLPI | usados na decisão |
 
 Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `analise:<id>` (ficha usada na decisão, 90 dias),
@@ -178,7 +205,7 @@ Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `
 ## Desenvolvimento
 
 ```bash
-node tests/testar-codigo.js      # 55 testes do código dos nós, sem n8n
+node tests/testar-codigo.js      # 70 testes do código dos nós, sem n8n
 python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
 
@@ -196,7 +223,7 @@ O CI roda os testes, confere se o JSON está atualizado e passa o gitleaks.
 
 ## Roteiro
 
-- [ ] Ação "bloquear IOCs": ao confirmar phishing, enviar os domínios para a lista CDB do Wazuh (com aprovação).
+- [x] Ação "bloquear IOCs": ao confirmar phishing, enviar os domínios, IPs de links e hashes para as listas CDB do Wazuh (com aprovação).
 - [ ] Busca de outras vítimas: quantos chamados/usuários relataram o mesmo remetente ou link (campanha).
 - [ ] `/painel` no Telegram: relatos do dia, tempo até a decisão e precisão da IA (métricas do Redis).
 - [ ] Ler o caixa de e-mail `phishing@` (botão "Reportar" do Outlook) e abrir o chamado sozinho.

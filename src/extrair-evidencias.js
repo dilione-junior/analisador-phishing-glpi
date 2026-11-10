@@ -218,6 +218,50 @@ const rdap = unicos([de.dominio, responder.dominio, ...urls.map((u) => u.dominio
   .map((d) => dominioRegistravel(d))
   .filter((d) => !conhecido(d) && !ENCURTADORES.has(d)), 3);
 
+// ---------------- IOCs para bloqueio ----------------
+// Só entra o que é do atacante. Bloquear gmail.com, itau.com.br ou um serviço compartilhado pararia a empresa:
+// esses ficam fora da lista, com o motivo, para o analista ver por que não entraram.
+const confiaveis = String(cfg.dominiosConfiaveis ?? '').toLowerCase().split(/[\s,;]+/).filter(Boolean);
+function motivoLegitimo(host) {
+  const h = String(host ?? '').toLowerCase();
+  if (!h) return null;
+  if (noDominio(h, confiaveis)) return { tipo: 'casa', motivo: 'domínio da própria organização' };
+  if (WEBMAIL_GRATUITO.has(h) || WEBMAIL_GRATUITO.has(dominioRegistravel(h))) return { tipo: 'webmail', motivo: 'webmail gratuito: bloqueie só o endereço, não o domínio' };
+  if (noDominio(h, HOSPEDAGEM_ABUSADA)) return { tipo: 'compartilhado', motivo: 'serviço compartilhado: bloqueie só a URL, não o domínio' };
+  const marca = MARCAS.find((m) => noDominio(h, m.oficiais));
+  if (marca) return { tipo: 'oficial', motivo: `domínio oficial de ${marca.nome}` };
+  return null;
+}
+const iocsFora = [];
+const fora = (valor, motivo) => { if (!iocsFora.some((x) => x.valor === valor)) iocsFora.push({ valor, motivo }); };
+// Endereço e URL saem só se forem de um domínio oficial ou da casa (endereço forjado / link verdadeiro da marca).
+const filtra = (lista, hostDe) => lista.filter((valor) => {
+  const m = motivoLegitimo(hostDe(valor));
+  if (m && (m.tipo === 'oficial' || m.tipo === 'casa')) { fora(valor, m.motivo); return false; }
+  return true;
+});
+const iocs = {
+  remetente: filtra(unicos([de.email, responder.email, retorno.email].filter(Boolean), 5), (x) => x.split('@')[1]),
+  urls: filtra(unicos(urls.map((u) => u.url), 15), (x) => partesDaUrl(x).host),
+  dominios: unicos([de.dominio, responder.dominio, ...urls.map((u) => u.dominio)].filter(Boolean), 15).filter((d) => {
+    const m = motivoLegitimo(d);
+    if (m) { fora(d, m.motivo); return false; }
+    return true;
+  }),
+  ips: ips.slice(0, 10),
+  hashes: anexos.filter((a) => !a.print && (a.sha256 || a.sha1)).map((a) => `${a.sha256 || a.sha1} (${a.nome})`),
+};
+
+// O que pode ir para as listas do Wazuh (botão "Bloquear IOCs"): domínios e hosts dos links que não são
+// legítimos nem compartilhados, IPs que aparecem DENTRO dos links (públicos) e os hashes dos anexos.
+// O IP do servidor que enviou o e-mail fica de fora: num phishing mandado pelo Gmail, ele é do Google.
+const hostsLinks = unicos(urls.map((u) => u.host).filter(Boolean), 30);
+const bloqueio = {
+  dominios: unicos([...iocs.dominios, ...hostsLinks.filter((h) => !ehIPv4(h) && !motivoLegitimo(h))].map((d) => d.toLowerCase()), 30),
+  ips: hostsLinks.filter((h) => ehIPv4(h) && !ipBloqueado(h)),
+  hashes: unicos(anexos.filter((a) => !a.print).flatMap((a) => [a.sha256, a.sha1]).filter(Boolean).map((h) => String(h).toLowerCase()), 20),
+};
+
 return [{ json: {
   chamado: {
     id: chamadoId,
@@ -234,6 +278,9 @@ return [{ json: {
   anexos,
   sinais,
   interacao,
+  iocs,
+  iocs_fora: iocsFora.slice(0, 15),
+  bloqueio,
   tem_email: fonte !== 'nenhuma',
   consultas: { virustotal, urlhaus, rdap },
 } }];

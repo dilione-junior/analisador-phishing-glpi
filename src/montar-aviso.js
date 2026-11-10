@@ -30,13 +30,8 @@ for (const v of d.reputacao.virustotal) {
 for (const u of d.reputacao.urlhaus) if (u.listado) reputacao.push(`URLhaus: ${desarmar(u.host)} LISTADO (${u.online} URL no ar${u.tags.length ? '; ' + u.tags.join(', ') : ''})`);
 for (const r of d.reputacao.rdap) if (r.idade_dias !== null && r.idade_dias !== undefined) reputacao.push(`Domínio ${desarmar(r.dominio)} criado em ${r.criado_em} (${r.idade_dias} dias)`);
 
-const iocs = {
-  remetente: [e.de.email, e.responder.email, e.retorno.email].filter(Boolean),
-  urls: ev.urls.map((u) => u.url).slice(0, 15),
-  dominios: [...new Set([e.de.dominio, e.responder.dominio, ...ev.urls.map((u) => u.dominio)].filter(Boolean))].slice(0, 15),
-  ips: ev.ips.slice(0, 10),
-  hashes: ev.anexos.filter((a) => !a.print && (a.sha256 || a.sha1)).map((a) => `${a.sha256 || a.sha1} (${a.nome})`),
-};
+// IOCs já separados em "Extrai as evidências": domínios oficiais, webmail e serviços compartilhados ficam fora.
+const iocs = ev.iocs;
 const linhasIocs = [
   ...iocs.remetente.map((x) => 'remetente: ' + desarmar(x)),
   ...iocs.urls.map((x) => 'url: ' + desarmar(linha(x, 150))),
@@ -44,6 +39,7 @@ const linhasIocs = [
   ...iocs.ips.map((x) => 'ip: ' + desarmar(x)),
   ...iocs.hashes.map((x) => 'hash: ' + x),
 ];
+const linhasFora = (ev.iocs_fora ?? []).map((x) => `${desarmar(linha(x.valor, 100))}: ${x.motivo}`);
 
 // ---------------- Telegram (HTML do Telegram: b, i, a, code, blockquote) ----------------
 const blocos = [];
@@ -69,18 +65,23 @@ if (ev.tem_email) {
   blocos.push('📧 <b>E-mail não anexado</b>: só o relato do usuário foi analisado.');
 }
 blocos.push(`🧠 <b>Análise</b>\n${esc(p.resumo)}`);
-const itens = (titulo, lista, expandir = true) => (lista.length
-  ? `${titulo}\n<blockquote${expandir ? ' expandable' : ''}>${lista.map((x) => '• ' + esc(x)).join('\n')}</blockquote>` : '');
+// O Telegram não tem espaçamento de linha: frases longas ganham uma linha em branco entre si; IOCs ficam juntos (para copiar).
+const itens = (titulo, lista, expandir = true, espacado = true) => (lista.length
+  ? `${titulo}\n<blockquote${expandir ? ' expandable' : ''}>${lista.map((x) => '• ' + esc(x)).join(espacado ? '\n\n' : '\n')}</blockquote>` : '');
 const opcionais = [
   itens('🔎 <b>Evidências</b>', p.evidencias, false),
   itens('✅ <b>Sinais de legitimidade</b>', p.contra_evidencias),
   itens('🌐 <b>Reputação</b>', reputacao),
-  p.acoes_soc.length ? `🛡️ <b>Ações recomendadas</b>\n${p.acoes_soc.map((a, k) => `${k + 1}. ${esc(a)}`).join('\n')}` : '',
+  p.acoes_soc.length ? `🛡️ <b>Ações recomendadas</b>\n\n${p.acoes_soc.map((a, k) => `${k + 1}. ${esc(a)}`).join('\n\n')}` : '',
   itens('❓ <b>Perguntar ao usuário</b>', p.perguntas_ao_usuario),
   itens('ℹ️ <b>Avisos</b>', p.avisos),
-  itens('🧾 <b>IOCs (desarmados)</b>', linhasIocs),
+  itens('🧾 <b>IOCs para bloqueio (desarmados)</b>', linhasIocs, true, false),
+  itens('🚫 <b>Fora do bloqueio (legítimos ou compartilhados)</b>', linhasFora, true, false),
 ].filter(Boolean);
-const rodape = '<i>Decida abaixo: a decisão responde ao usuário e encerra o chamado no GLPI. Comandos: /nota ' + id + ' texto · /reanalisar ' + id + '</i>';
+const rodape = '👇 <b>Decida nos botões abaixo.</b> A decisão responde ao usuário e encerra (ou escala) o chamado no GLPI.\n\n' +
+  `📝 <b>Anotar o que você fez</b>: envie <code>/nota ${id}</code> seguido do texto. Ex.: <code>/nota ${id} bloqueei o domínio no proxy</code>\n` +
+  'Vira nota interna no chamado (só a equipe técnica vê).\n\n' +
+  `🔁 <b>Analisar de novo</b> (ex.: o usuário anexou o e-mail depois): <code>/reanalisar ${id}</code>`;
 
 // Limite do Telegram: 4096 caracteres. Tira os blocos opcionais do fim até caber (nunca corta HTML no meio).
 let texto = [...blocos, ...opcionais, rodape].join('\n\n');
@@ -128,7 +129,8 @@ const html = [
   '<p><strong>Ações recomendadas</strong></p>' + li(p.acoes_soc),
   p.perguntas_ao_usuario.length ? '<p><strong>Perguntar ao usuário</strong></p>' + li(p.perguntas_ao_usuario) : '',
   p.avisos.length ? '<p><strong>Avisos</strong></p>' + li(p.avisos) : '',
-  '<p><strong>IOCs (desarmados)</strong></p>' + li(linhasIocs),
+  '<p><strong>IOCs para bloqueio (desarmados)</strong></p>' + li(linhasIocs),
+  linhasFora.length ? '<p><strong>Fora do bloqueio (legítimos ou compartilhados)</strong></p>' + li(linhasFora) : '',
 ].filter(Boolean).join('\n');
 
 return [{ json: {
@@ -146,7 +148,10 @@ return [{ json: {
     tipo_ataque: p.tipo_ataque,
     orientacao_usuario: p.orientacao_usuario,
     interacao: ev.interacao.rotulos,
+    // Tipos fixos (clicou, senha, anexo, respondeu, pagou), detectados por regra no relato: a resposta ao usuário usa estes.
+    interacao_tipos: ['clicou', 'senha', 'anexo', 'respondeu', 'pagou'].filter((t) => ev.interacao[t]),
     iocs,
+    bloqueio: ev.bloqueio ?? null, // o que o botão "Bloquear IOCs no Wazuh" envia
     analisado_em: new Date().toISOString(),
   },
 } }];

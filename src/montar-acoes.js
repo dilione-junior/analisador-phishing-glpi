@@ -25,13 +25,42 @@ const responder = (a, texto, alerta = false) => (a.callback_id
   ? tg('answerCallbackQuery', { callback_query_id: a.callback_id, text: texto.slice(0, 190), show_alert: alerta })
   : tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, text: texto, allow_sending_without_reply: true }));
 
+// O que o usuário contou que fez (tipos fixos detectados por regra no relato, nunca texto da IA).
+// Registros antigos só têm os rótulos: deduz os tipos deles.
+function tiposDeInteracao(registro) {
+  if (Array.isArray(registro.interacao_tipos)) return registro.interacao_tipos;
+  const r = (Array.isArray(registro.interacao) ? registro.interacao : []).join(' ');
+  return [['clicou', /clicou/], ['senha', /senha|dados/], ['anexo', /anexo/], ['respondeu', /respondeu/], ['pagou', /pagamento|transfer/]]
+    .filter(([, re]) => re.test(r)).map(([t]) => t);
+}
+
+// Bloco URGENTE, no topo da resposta, quando o usuário disse que interagiu com a mensagem.
+function blocoUrgente(tipos) {
+  const t = new Set(tipos);
+  const fez = [t.has('clicou') && 'clicou no link', t.has('senha') && 'digitou sua senha ou seus dados', t.has('anexo') && 'abriu o anexo',
+    t.has('pagou') && 'fez um pagamento', t.has('respondeu') && 'respondeu ao remetente'].filter(Boolean);
+  if (!fez.length) return '';
+  const passos = [];
+  if (t.has('clicou') || t.has('senha')) {
+    passos.push('<strong>Troque a sua senha IMEDIATAMENTE</strong>, antes de qualquer outra coisa. Abra o site ou o portal digitando o endereço você mesmo (nunca pelo link do e-mail).');
+    passos.push('Se você usa a mesma senha em outros serviços (outro e-mail, banco, redes sociais), troque também em todos eles.');
+    passos.push('Se aparecer um pedido de aprovação de login (MFA) que você não fez, <strong>recuse</strong> e nos avise.');
+  }
+  if (t.has('anexo')) passos.push('<strong>Desconecte o computador da rede agora</strong> (tire o cabo ou desligue o Wi-Fi), mas não desligue a máquina: a equipe vai examiná-la.');
+  if (t.has('pagou')) passos.push('<strong>Ligue agora para o seu banco</strong> pelo telefone oficial (o do verso do cartão) e peça o bloqueio ou a contestação do pagamento.');
+  if (t.has('respondeu')) passos.push('Não envie mais nada ao remetente e desconfie de ligações ou mensagens de quem disser ser dessa empresa.');
+  passos.push('<strong>Responda este chamado</strong> confirmando o que já fez' + (t.has('clicou') || t.has('senha') ? ' (por exemplo: "troquei a senha"). Se não conseguir trocar a senha, responda agora: a equipe faz isso por você.' : '.'));
+  return `<p>⚠️ <strong>Você nos contou que ${fez.join(', ')}. Faça isto agora:</strong></p>` + li(passos);
+}
+
 const RESPOSTA_USUARIO = {
-  phishing: '<p>Olá! Obrigado por reportar: você ajudou a proteger todo mundo.</p>' +
+  phishing: (tipos) => '<p>Olá! Obrigado por reportar: você ajudou a proteger todo mundo.</p>' +
     '<p>Analisamos a mensagem e <strong>confirmamos que é PHISHING</strong> (uma tentativa de golpe).</p>' +
-    '<p><strong>O que fazer agora:</strong></p>' + li([
+    blocoUrgente(tipos) +
+    `<p><strong>${tipos.length ? 'Depois disso' : 'O que fazer agora'}:</strong></p>` + li([
       'Não clique nos links, não abra os anexos e não responda ao remetente.',
       'Apague a mensagem (e esvazie a lixeira).',
-      'Se você clicou, digitou sua senha, abriu o anexo ou fez algum pagamento, <strong>responda este chamado agora</strong> e troque sua senha. Quanto antes, melhor.',
+      ...(tipos.length ? [] : ['Se você clicou no link ou digitou sua senha, <strong>troque a sua senha imediatamente</strong> e responda este chamado. Se abriu o anexo ou fez algum pagamento, responda este chamado agora.']),
     ]) + '<p>A equipe de Segurança da Informação já está bloqueando o remetente e os links.</p>',
   legitimo: '<p>Olá! Obrigado por reportar.</p>' +
     '<p>Analisamos e <strong>o contato é legítimo</strong>: você pode seguir normalmente.</p>' +
@@ -39,7 +68,8 @@ const RESPOSTA_USUARIO = {
   spam: '<p>Olá! Obrigado por reportar.</p>' +
     '<p>Analisamos e a mensagem é <strong>spam</strong> (propaganda não solicitada), sem sinal de golpe.</p>' +
     '<p>Pode apagar ou marcar como lixo eletrônico. Evite clicar em "descadastrar" de remetentes que você não conhece.</p>',
-  escalar: '<p>Olá! Seu relato foi encaminhado para uma análise mais aprofundada da equipe de Segurança da Informação.</p>' +
+  escalar: (tipos) => '<p>Olá! Seu relato foi encaminhado para uma análise mais aprofundada da equipe de Segurança da Informação.</p>' +
+    blocoUrgente(tipos) +
     '<p>Enquanto isso, <strong>não interaja</strong> com a mensagem (não clique, não abra anexos, não responda). Avisaremos por aqui.</p>',
 };
 
@@ -52,6 +82,25 @@ const CHECKLIST_PHISHING = [
   'Se houve interação: trocar a senha, encerrar as sessões, conferir o MFA e as regras da caixa de e-mail do usuário',
 ];
 
+// O que o botão "Bloquear IOCs no Wazuh" envia. Os IOCs vêm de um e-mail escrito pelo atacante: só passa
+// o que tem formato estrito de domínio, IPv4 ou hash (nada de ":" ou quebra de linha, que estragariam a lista CDB).
+const RE_DOMINIO = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
+const RE_IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const RE_HASH = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+function entradasDoWazuh(registro) {
+  const iocs = registro.iocs ?? {};
+  // Registros antigos não têm "bloqueio": usa os domínios já filtrados e os hashes da lista de IOCs.
+  const b = registro.bloqueio ?? { dominios: iocs.dominios ?? [], ips: [], hashes: (iocs.hashes ?? []).map((h) => String(h).split(' ')[0]) };
+  const limpa = (lista, re, max) => [...new Set((lista ?? []).map((x) => String(x).trim().toLowerCase()))].filter((x) => re.test(x)).slice(0, max);
+  return { dominios: limpa(b.dominios, RE_DOMINIO, 30), ips: limpa(b.ips, RE_IPV4, 20), hashes: limpa(b.hashes, RE_HASH, 20) };
+}
+const totalEntradas = (e) => e.dominios.length + e.ips.length + e.hashes.length;
+const previa = (e) => [
+  e.dominios.length && `Domínios (${e.dominios.length}): ` + e.dominios.map((d) => `<code>${esc(desarmar(d))}</code>`).join(', '),
+  e.ips.length && `IPs de links (${e.ips.length}): ` + e.ips.map((d) => `<code>${esc(desarmar(d))}</code>`).join(', '),
+  e.hashes.length && `Hashes de anexos (${e.hashes.length}): ` + e.hashes.map((h) => `<code>${h.slice(0, 12)}…</code>`).join(', '),
+].filter(Boolean).join('\n');
+
 const saida = [];
 acoes.forEach((a, k) => {
   const trava = travas[k];
@@ -62,9 +111,10 @@ acoes.forEach((a, k) => {
   if (trava > 1) {
     // Mesma mensagem do Telegram chegando de novo: ignora. Decisão repetida: avisa quem clicou.
     if (a.tipo === 'decidir') saida.push(responder(a, `O chamado #${a.chamado_id} já foi decidido antes.`));
+    if (a.tipo === 'bloquear') saida.push(responder(a, `Os IOCs do chamado #${a.chamado_id} já foram enviados ao Wazuh.`));
     return;
   }
-  const liberar = a.tipo === 'decidir' ? a.chave_trava : '';
+  const liberar = a.tipo === 'decidir' || a.tipo === 'bloquear' ? a.chave_trava : '';
   if (a.tipo === 'reanalisar') {
     saida.push(tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, allow_sending_without_reply: true,
       text: `🔁 Chamado #${a.chamado_id} volta para a fila: será analisado de novo em até 2 minutos (se ainda estiver aberto e na categoria de phishing).` },
@@ -74,6 +124,19 @@ acoes.forEach((a, k) => {
   if (!registro) {
     saida.push({ ...responder(a, `O chamado #${a.chamado_id} não foi analisado por este fluxo (ou a análise expirou). Use /reanalisar ${a.chamado_id}.`, true) });
     if (liberar) saida[saida.length - 1].json.apagar_chave = liberar;
+    return;
+  }
+
+  if (a.tipo === 'bloquear') {
+    // Vai para o ramo do Wazuh ("Junta os IOCs para o Wazuh"); quem responde no Telegram é "Confere o Wazuh".
+    const entradas = entradasDoWazuh(registro);
+    if (!totalEntradas(entradas)) {
+      saida.push(responder(a, `O chamado #${a.chamado_id} não tem domínio, IP de link nem hash para bloquear.`, true));
+      saida[saida.length - 1].json.apagar_chave = liberar;
+      return;
+    }
+    saida.push({ json: { destino: 'wazuh', chamado_id: a.chamado_id, analista: a.analista, mensagem_id: a.mensagem_id,
+      callback_id: a.callback_id, chave_trava: a.chave_trava, entradas } });
     return;
   }
 
@@ -103,26 +166,47 @@ acoes.forEach((a, k) => {
       const n2 = grupos.find((g) => String(g.name ?? '').trim() === cfg.grupoN2);
       if (!n2) { saida.push({ ...responder(a, `Não achei o grupo "${cfg.grupoN2}" no GLPI.`, true) }); saida[saida.length - 1].json.apagar_chave = liberar; return; }
       passos.push({ caminho: 'Group_Ticket', corpo: { input: { tickets_id: id, groups_id: Number(n2.id), type: 2 } } });
-      passos.push({ caminho: 'ITILFollowup', corpo: { input: { itemtype: 'Ticket', items_id: id, is_private: 0, content: RESPOSTA_USUARIO.escalar } } });
+      passos.push({ caminho: 'ITILFollowup', corpo: { input: { itemtype: 'Ticket', items_id: id, is_private: 0, content: RESPOSTA_USUARIO.escalar(tiposDeInteracao(registro)) } } });
     } else {
       const tipo = tipos.find((t) => String(t.name ?? '').trim() === TIPO_SOLUCAO[decisao]);
       if (!tipo) { saida.push({ ...responder(a, `Não achei o tipo de solução "${TIPO_SOLUCAO[decisao]}" no GLPI. Rode glpi/preparar-glpi.sh.`, true) }); saida[saida.length - 1].json.apagar_chave = liberar; return; }
-      passos.push({ caminho: 'ITILSolution', corpo: { input: { itemtype: 'Ticket', items_id: id, solutiontypes_id: Number(tipo.id), content: RESPOSTA_USUARIO[decisao] } } });
+      passos.push({ caminho: 'ITILSolution', corpo: { input: { itemtype: 'Ticket', items_id: id, solutiontypes_id: Number(tipo.id),
+        content: decisao === 'phishing' ? RESPOSTA_USUARIO.phishing(tiposDeInteracao(registro)) : RESPOSTA_USUARIO[decisao] } } });
     }
 
-    const interacao = Array.isArray(registro.interacao) && registro.interacao.length && decisao !== 'legitimo' && decisao !== 'spam'
-      ? `\n⚠️ O usuário disse que ${esc(registro.interacao.join(', '))}: comece por trocar a senha / isolar a máquina.` : '';
+    // Mensagem do grupo: seções separadas por linha em branco (o Telegram não tem espaçamento de linha).
+    const feitos = new Set(tiposDeInteracao(registro));
+    const primeiro = [(feitos.has('clicou') || feitos.has('senha')) && 'trocar a senha do usuário, encerrar as sessões abertas e conferir o MFA',
+      feitos.has('anexo') && 'isolar a máquina da rede', feitos.has('pagou') && 'acionar o banco para bloquear ou contestar o pagamento'].filter(Boolean);
+    const interacao = feitos.size && decisao !== 'legitimo' && decisao !== 'spam'
+      ? `\n\n⚠️ <b>O usuário disse que ${esc(registro.interacao.join(', '))}.</b>\n` +
+        (primeiro.length ? `Comece por: ${primeiro.join('; ')}.` : 'Confirme com ele o que foi feito.') : '';
     const proximos = decisao === 'phishing'
-      ? '\n\n<b>Próximos passos</b>\n' + CHECKLIST_PHISHING.slice(0, 5).map((x, n) => `${n + 1}. ${esc(x)}`).join('\n') + `\nRegistre o que fizer com /nota ${id} texto`
+      ? '\n\n📋 <b>Próximos passos</b>\n\n' + CHECKLIST_PHISHING.slice(0, 5).map((x, n) => `${n + 1}. ${esc(x)}`).join('\n\n')
+      : '';
+    const comoAnotar = decisao === 'legitimo' || decisao === 'spam' ? '' :
+      `\n\n📝 <b>Registre no chamado o que você fizer</b>\n` +
+      `Envie aqui no grupo uma mensagem começando com <code>/nota ${id}</code> e, em seguida, o que foi feito. Exemplo:\n\n` +
+      `<code>/nota ${id} bloqueei o domínio no proxy e no filtro de e-mail</code>\n\n` +
+      `O texto entra no chamado #${id} do GLPI como nota interna, com o seu nome e a hora: só a equipe técnica vê, o usuário não. ` +
+      'Assim fica o histórico do que foi feito no incidente.';
+    // Phishing confirmado: mostra o que iria para o Wazuh e oferece o botão (o envio só acontece com o clique).
+    const paraWazuh = decisao === 'phishing' ? entradasDoWazuh(registro) : null;
+    const comBotao = Boolean(paraWazuh && totalEntradas(paraWazuh));
+    const textoWazuh = comBotao
+      ? '\n\n🛡️ <b>Bloquear no Wazuh</b>\nO botão abaixo manda estes IOCs para as listas do Wazuh por 90 dias ' +
+        '(se aparecerem no ambiente, o Wazuh alerta e abre chamado):\n\n' + previa(paraWazuh) +
+        '\n\nConfira antes de clicar: nenhum domínio legítimo deve estar na lista.'
       : '';
     sucesso = [
       tg('editMessageReplyMarkup', { chat_id: chat, message_id: a.mensagem_id,
         reply_markup: { inline_keyboard: [[{ text: `✔️ ${ROTULO[decisao]} · ${a.analista.nome}`.slice(0, 60), callback_data: `ph|${id}|x` }]] } }),
       tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, allow_sending_without_reply: true, parse_mode: 'HTML',
-        text: `${ICONE[decisao]} <b>Chamado #${id}: ${ROTULO[decisao]}</b> por ${esc(a.analista.nome)}\n` +
-          (decisao === 'escalar' ? 'Grupo SOC N2 incluído no chamado e usuário avisado.' : 'Usuário respondido e chamado solucionado no GLPI.') +
-          `\nIA sugeriu ${ROTULO[registro.sugestao] ?? esc(registro.sugestao)} (${Number(registro.confianca) || 0}%): ${concordou ? '👍 concordou' : '👎 discordou'}` +
-          interacao + proximos }),
+        text: `${ICONE[decisao]} <b>Chamado #${id}: ${ROTULO[decisao]}</b>\nDecidido por ${esc(a.analista.nome)}\n\n` +
+          (decisao === 'escalar' ? '✔️ Grupo SOC N2 incluído no chamado e usuário avisado.' : '✔️ Usuário respondido e chamado solucionado no GLPI.') +
+          `\n\n🤖 IA sugeriu ${ROTULO[registro.sugestao] ?? esc(registro.sugestao)} (${Number(registro.confianca) || 0}%): ${concordou ? '👍 o analista concordou' : '👎 o analista discordou'}` +
+          interacao + proximos + comoAnotar + textoWazuh,
+        ...(comBotao ? { reply_markup: { inline_keyboard: [[{ text: '🛡️ Bloquear IOCs no Wazuh', callback_data: `ph|${id}|b` }]] } } : {}) }),
       tg('answerCallbackQuery', { callback_query_id: a.callback_id, text: 'Decisão registrada no GLPI ✔' }),
     ];
   }
