@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Importa os dois fluxos no n8n do laboratório (Docker) e os publica.
-# Atenção: substitui a versão que estiver no n8n com os mesmos ids (phishAnalisa0001 e phishDecisao0001).
-# Se alterou os fluxos pela tela do n8n, exporte-os antes ou as mudanças serão perdidas.
+# Importa o fluxo único "analisador-phishing-glpi-ia" no n8n do laboratório (Docker) e o publica.
+# Atenção: substitui a versão que estiver no n8n com o mesmo id (phishGlpiIA00001).
+# Se alterou o fluxo pela tela do n8n, exporte-o antes ou as mudanças serão perdidas.
+# Os dois fluxos antigos (phishAnalisa0001 e phishDecisao0001), se existirem, são DESPUBLICADOS:
+# o Telegram só aceita um leitor do getUpdates e o mesmo chamado não pode ser analisado duas vezes.
+# Eles continuam no n8n (desligados) até você apagá-los pela tela.
 # Credenciais já existentes no n8n (GLPI, Redis, Gemini, VirusTotal, abuse.ch) são reaproveitadas.
 #
 # Uso:  bash scripts/importar-fluxo.sh [nome-do-container]   (padrão: ng-soc-automacao-n8n-1)
@@ -26,15 +29,21 @@ done
 docker exec "$n8n" sh -c 'umask 077; n8n export:credentials --all --output=/tmp/cred-lista.json >/dev/null 2>&1; cat /tmp/cred-lista.json; rm -f /tmp/cred-lista.json' \
     | python -c "import json,sys; print(json.dumps([{k: c[k] for k in ('id','name','type')} for c in json.load(sys.stdin)]))" > "$tmp/credenciais.json"
 
-for fluxo in phishing-analisa-relatos:phishAnalisa0001 phishing-decisoes-analista:phishDecisao0001; do
-    arquivo=${fluxo%%:*}; id=${fluxo##*:}
-    echo "Credenciais de $arquivo:"
-    python scripts/ajustar-credenciais.py "workflow/$arquivo.json" "$tmp/credenciais.json" > "$tmp/$arquivo.json"
-    docker cp "$tmp/$arquivo.json" "$n8n":/tmp/"$arquivo".json
-    docker exec "$n8n" n8n import:workflow --input=/tmp/"$arquivo".json
-    docker exec -u root "$n8n" rm -f /tmp/"$arquivo".json
-    docker exec "$n8n" n8n publish:workflow --id="$id"
+existentes=$(docker exec "$n8n" n8n list:workflow 2>/dev/null | cut -d'|' -f1)
+for antigo in phishAnalisa0001 phishDecisao0001; do
+    if grep -qx "$antigo" <<<"$existentes"; then
+        echo "Despublicando o fluxo antigo $antigo"
+        docker exec "$n8n" n8n unpublish:workflow --id="$antigo"
+    fi
 done
+
+arquivo=analisador-phishing-glpi-ia; id=phishGlpiIA00001
+echo "Credenciais de $arquivo:"
+python scripts/ajustar-credenciais.py "workflow/$arquivo.json" "$tmp/credenciais.json" > "$tmp/$arquivo.json"
+docker cp "$tmp/$arquivo.json" "$n8n":/tmp/"$arquivo".json
+docker exec "$n8n" n8n import:workflow --input=/tmp/"$arquivo".json
+docker exec -u root "$n8n" rm -f /tmp/"$arquivo".json
+docker exec "$n8n" n8n publish:workflow --id="$id"
 docker restart "$n8n" >/dev/null
-echo "n8n reiniciado. Os fluxos começam a rodar sozinhos (a cada 2 min e a cada 1 min)."
+echo "n8n reiniciado. O fluxo começa a rodar sozinho (análise a cada 2 min, decisões a cada 1 min)."
 echo "Dica: as primeiras execuções logo após o restart podem usar a versão anterior; espere 1-2 min antes de testar."
