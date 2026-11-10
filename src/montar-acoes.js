@@ -25,13 +25,42 @@ const responder = (a, texto, alerta = false) => (a.callback_id
   ? tg('answerCallbackQuery', { callback_query_id: a.callback_id, text: texto.slice(0, 190), show_alert: alerta })
   : tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, text: texto, allow_sending_without_reply: true }));
 
+// O que o usuário contou que fez (tipos fixos detectados por regra no relato, nunca texto da IA).
+// Registros antigos só têm os rótulos: deduz os tipos deles.
+function tiposDeInteracao(registro) {
+  if (Array.isArray(registro.interacao_tipos)) return registro.interacao_tipos;
+  const r = (Array.isArray(registro.interacao) ? registro.interacao : []).join(' ');
+  return [['clicou', /clicou/], ['senha', /senha|dados/], ['anexo', /anexo/], ['respondeu', /respondeu/], ['pagou', /pagamento|transfer/]]
+    .filter(([, re]) => re.test(r)).map(([t]) => t);
+}
+
+// Bloco URGENTE, no topo da resposta, quando o usuário disse que interagiu com a mensagem.
+function blocoUrgente(tipos) {
+  const t = new Set(tipos);
+  const fez = [t.has('clicou') && 'clicou no link', t.has('senha') && 'digitou sua senha ou seus dados', t.has('anexo') && 'abriu o anexo',
+    t.has('pagou') && 'fez um pagamento', t.has('respondeu') && 'respondeu ao remetente'].filter(Boolean);
+  if (!fez.length) return '';
+  const passos = [];
+  if (t.has('clicou') || t.has('senha')) {
+    passos.push('<strong>Troque a sua senha IMEDIATAMENTE</strong>, antes de qualquer outra coisa. Abra o site ou o portal digitando o endereço você mesmo (nunca pelo link do e-mail).');
+    passos.push('Se você usa a mesma senha em outros serviços (outro e-mail, banco, redes sociais), troque também em todos eles.');
+    passos.push('Se aparecer um pedido de aprovação de login (MFA) que você não fez, <strong>recuse</strong> e nos avise.');
+  }
+  if (t.has('anexo')) passos.push('<strong>Desconecte o computador da rede agora</strong> (tire o cabo ou desligue o Wi-Fi), mas não desligue a máquina: a equipe vai examiná-la.');
+  if (t.has('pagou')) passos.push('<strong>Ligue agora para o seu banco</strong> pelo telefone oficial (o do verso do cartão) e peça o bloqueio ou a contestação do pagamento.');
+  if (t.has('respondeu')) passos.push('Não envie mais nada ao remetente e desconfie de ligações ou mensagens de quem disser ser dessa empresa.');
+  passos.push('<strong>Responda este chamado</strong> confirmando o que já fez' + (t.has('clicou') || t.has('senha') ? ' (por exemplo: "troquei a senha"). Se não conseguir trocar a senha, responda agora: a equipe faz isso por você.' : '.'));
+  return `<p>⚠️ <strong>Você nos contou que ${fez.join(', ')}. Faça isto agora:</strong></p>` + li(passos);
+}
+
 const RESPOSTA_USUARIO = {
-  phishing: '<p>Olá! Obrigado por reportar: você ajudou a proteger todo mundo.</p>' +
+  phishing: (tipos) => '<p>Olá! Obrigado por reportar: você ajudou a proteger todo mundo.</p>' +
     '<p>Analisamos a mensagem e <strong>confirmamos que é PHISHING</strong> (uma tentativa de golpe).</p>' +
-    '<p><strong>O que fazer agora:</strong></p>' + li([
+    blocoUrgente(tipos) +
+    `<p><strong>${tipos.length ? 'Depois disso' : 'O que fazer agora'}:</strong></p>` + li([
       'Não clique nos links, não abra os anexos e não responda ao remetente.',
       'Apague a mensagem (e esvazie a lixeira).',
-      'Se você clicou, digitou sua senha, abriu o anexo ou fez algum pagamento, <strong>responda este chamado agora</strong> e troque sua senha. Quanto antes, melhor.',
+      ...(tipos.length ? [] : ['Se você clicou no link ou digitou sua senha, <strong>troque a sua senha imediatamente</strong> e responda este chamado. Se abriu o anexo ou fez algum pagamento, responda este chamado agora.']),
     ]) + '<p>A equipe de Segurança da Informação já está bloqueando o remetente e os links.</p>',
   legitimo: '<p>Olá! Obrigado por reportar.</p>' +
     '<p>Analisamos e <strong>o contato é legítimo</strong>: você pode seguir normalmente.</p>' +
@@ -39,7 +68,8 @@ const RESPOSTA_USUARIO = {
   spam: '<p>Olá! Obrigado por reportar.</p>' +
     '<p>Analisamos e a mensagem é <strong>spam</strong> (propaganda não solicitada), sem sinal de golpe.</p>' +
     '<p>Pode apagar ou marcar como lixo eletrônico. Evite clicar em "descadastrar" de remetentes que você não conhece.</p>',
-  escalar: '<p>Olá! Seu relato foi encaminhado para uma análise mais aprofundada da equipe de Segurança da Informação.</p>' +
+  escalar: (tipos) => '<p>Olá! Seu relato foi encaminhado para uma análise mais aprofundada da equipe de Segurança da Informação.</p>' +
+    blocoUrgente(tipos) +
     '<p>Enquanto isso, <strong>não interaja</strong> com a mensagem (não clique, não abra anexos, não responda). Avisaremos por aqui.</p>',
 };
 
@@ -103,11 +133,12 @@ acoes.forEach((a, k) => {
       const n2 = grupos.find((g) => String(g.name ?? '').trim() === cfg.grupoN2);
       if (!n2) { saida.push({ ...responder(a, `Não achei o grupo "${cfg.grupoN2}" no GLPI.`, true) }); saida[saida.length - 1].json.apagar_chave = liberar; return; }
       passos.push({ caminho: 'Group_Ticket', corpo: { input: { tickets_id: id, groups_id: Number(n2.id), type: 2 } } });
-      passos.push({ caminho: 'ITILFollowup', corpo: { input: { itemtype: 'Ticket', items_id: id, is_private: 0, content: RESPOSTA_USUARIO.escalar } } });
+      passos.push({ caminho: 'ITILFollowup', corpo: { input: { itemtype: 'Ticket', items_id: id, is_private: 0, content: RESPOSTA_USUARIO.escalar(tiposDeInteracao(registro)) } } });
     } else {
       const tipo = tipos.find((t) => String(t.name ?? '').trim() === TIPO_SOLUCAO[decisao]);
       if (!tipo) { saida.push({ ...responder(a, `Não achei o tipo de solução "${TIPO_SOLUCAO[decisao]}" no GLPI. Rode glpi/preparar-glpi.sh.`, true) }); saida[saida.length - 1].json.apagar_chave = liberar; return; }
-      passos.push({ caminho: 'ITILSolution', corpo: { input: { itemtype: 'Ticket', items_id: id, solutiontypes_id: Number(tipo.id), content: RESPOSTA_USUARIO[decisao] } } });
+      passos.push({ caminho: 'ITILSolution', corpo: { input: { itemtype: 'Ticket', items_id: id, solutiontypes_id: Number(tipo.id),
+        content: decisao === 'phishing' ? RESPOSTA_USUARIO.phishing(tiposDeInteracao(registro)) : RESPOSTA_USUARIO[decisao] } } });
     }
 
     const interacao = Array.isArray(registro.interacao) && registro.interacao.length && decisao !== 'legitimo' && decisao !== 'spam'

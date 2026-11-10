@@ -185,6 +185,8 @@ f.config([-2640, (Y_ANALISE + Y_DECISAO) // 2], [
     ("cotaDiaria", 20, "number"),
     ("maxVirusTotal", 4, "number"),
     ("maxAnexos", 4, "number"),
+    # Domínios da própria organização: nunca entram na lista de IOCs para bloqueio (separe por vírgula).
+    ("dominiosConfiaveis", "cybersecurity.local", "string"),
     # rotina de decisões
     ("tipoPhishing", "Phishing confirmado", "string"),
     ("tipoLegitimo", "Contato legítimo", "string"),

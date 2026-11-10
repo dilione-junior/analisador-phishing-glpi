@@ -204,6 +204,23 @@ teste('consultas de reputação com limite e prioridade', () => {
   assert.ok(EV.consultas.rdap.includes('itau-seguranca.example'));
   assert.ok(!EV.consultas.rdap.includes('gmail.com'));
 });
+teste('IOCs: só o que é do atacante; oficial, webmail e compartilhado ficam fora com o motivo', () => {
+  assert.ok(EV.iocs.dominios.includes('itau-seguranca.example'));
+  assert.ok(!EV.iocs.dominios.includes('gmail.com') && !EV.iocs.dominios.includes('itau.com.br'), EV.iocs.dominios.join(', '));
+  assert.ok(!EV.iocs.urls.some((u) => /itau\.com\.br/.test(u)), 'link verdadeiro do Itaú não é IOC');
+  assert.ok(EV.iocs.urls.includes('http://itau-seguranca.example/atualizar?id=9'));
+  assert.ok(EV.iocs.remetente.includes('suporte.cliente.itau@gmail.com'), 'endereço do golpista no Gmail continua IOC');
+  const motivo = (v) => (EV.iocs_fora.find((x) => x.valor === v) ?? {}).motivo ?? '';
+  assert.match(motivo('gmail.com'), /webmail/);
+  assert.match(motivo('itau.com.br'), /oficial de Itaú/);
+});
+teste('IOCs: domínio da organização (dominiosConfiaveis) nunca entra', () => {
+  const nos = nosDoChamado(amostra('phishing-banco.eml'));
+  nos['Configuração'] = { ...CFG, dominiosConfiaveis: 'itau-seguranca.example' };
+  const ev = extrair(nos);
+  assert.ok(!ev.iocs.dominios.includes('itau-seguranca.example') && !ev.iocs.remetente.includes('alerta@itau-seguranca.example'));
+  assert.ok(ev.iocs_fora.some((x) => /organização/.test(x.motivo)));
+});
 teste('e-mail legítimo: autenticação ok e poucos sinais', () => {
   const ev = extrair(nosDoChamado(amostra('legitimo-loja.eml'), 'email.eml', '&lt;p&gt;É legítimo? Não cliquei.&lt;/p&gt;'));
   assert.ok(ids(ev).includes('autenticado'));
@@ -347,6 +364,26 @@ teste('decisão "phishing": nota interna + solução com texto fixo', () => {
   assert.ok(!s[1].corpo.input.content.includes('Página falsa'), 'texto da IA não vai para o usuário');
   assert.strictEqual(s[0].chave_metrica, 'phishing:metricas:ia_phishing:analista_phishing');
   assert.deepStrictEqual(s[0].sucesso.map((m) => m.tg_metodo), ['editMessageReplyMarkup', 'sendMessage', 'answerCallbackQuery']);
+});
+teste('usuário clicou e digitou a senha: troca de senha IMEDIATA no topo da resposta', () => {
+  assert.deepStrictEqual(A.registro.interacao_tipos, ['clicou', 'senha']);
+  const t = montarAcoes([decidir('phishing')], [REGISTRO], [1])[1].corpo.input.content;
+  assert.ok(t.includes('Você nos contou que clicou no link, digitou sua senha ou seus dados'));
+  assert.ok(t.indexOf('Troque a sua senha IMEDIATAMENTE') < t.indexOf('Apague a mensagem'), 'a troca de senha vem antes do resto');
+  assert.ok(!t.includes('Desconecte o computador'), 'não abriu o anexo: sem o passo de isolar a máquina');
+});
+teste('sem interação: resposta mantém o aviso condicional de troca de senha', () => {
+  const r = JSON.stringify({ ...A.registro, interacao: [], interacao_tipos: [] });
+  const t = montarAcoes([decidir('phishing')], [r], [1])[1].corpo.input.content;
+  assert.ok(!t.includes('Você nos contou') && t.includes('troque a sua senha imediatamente'));
+});
+teste('registro antigo (só rótulos) e anexo aberto: deduz os tipos e manda isolar a máquina', () => {
+  const r = JSON.stringify({ ...A.registro, interacao: ['abriu ou baixou o anexo'], interacao_tipos: undefined });
+  const t = montarAcoes([decidir('phishing')], [r], [1])[1].corpo.input.content;
+  assert.ok(t.includes('Desconecte o computador da rede agora') && !t.includes('IMEDIATAMENTE'));
+});
+teste('escalar N2 com senha digitada: o usuário também é orientado a trocar já', () => {
+  assert.ok(montarAcoes([decidir('escalar')], [REGISTRO], [1])[2].corpo.input.content.includes('Troque a sua senha IMEDIATAMENTE'));
 });
 teste('decisão "legítimo" contra a IA conta como discordância', () => {
   const s = montarAcoes([decidir('legitimo')], [REGISTRO], [1]);

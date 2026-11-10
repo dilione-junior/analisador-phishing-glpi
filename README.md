@@ -37,16 +37,19 @@ A ficha que chega no Telegram responde às perguntas da triagem de phishing, nes
 4. **Evidências** e **sinais de legitimidade**, para o analista concordar ou discordar com base em fatos.
 5. **Reputação**: VirusTotal (link, domínio, hash do anexo), URLhaus e idade do domínio.
 6. **Ações recomendadas**: as de resposta a incidente vêm primeiro (trocar senha, isolar máquina, acionar o banco).
-7. **IOCs desarmados** (`hxxps://site[.]com`), prontos para copiar para o bloqueio sem virar link clicável.
+7. **IOCs desarmados** (`hxxps://site[.]com`), prontos para copiar para o bloqueio sem virar link clicável. Só entra o que é do
+   atacante: domínio oficial de marca (`itau.com.br`), webmail gratuito (`gmail.com`), serviço compartilhado (`drive.google.com`)
+   e os domínios da organização ficam numa lista à parte, **Fora do bloqueio**, com o motivo. O endereço do golpista no Gmail
+   continua IOC; o domínio `gmail.com`, não.
 
 O que acontece em cada decisão:
 
 | Botão | No GLPI | Para o usuário (texto fixo) |
 |---|---|---|
-| 🎣 É phishing | nota interna com checklist de resposta e IOCs; solução **Phishing confirmado** | "confirmamos que é phishing: não clique, apague; se clicou ou digitou a senha, responda agora" |
+| 🎣 É phishing | nota interna com checklist de resposta e IOCs; solução **Phishing confirmado** | "confirmamos que é phishing: não clique, apague". Se o relato diz que clicou ou digitou a senha, vem **no topo**: "troque a sua senha IMEDIATAMENTE" (e isolar a máquina se abriu o anexo, ligar para o banco se pagou) |
 | ✅ É legítimo | nota interna; solução **Contato legítimo** | "o contato é legítimo; na dúvida, confirme por canal oficial" |
 | 📨 Spam | nota interna; solução **Spam (não malicioso)** | "é propaganda, sem sinal de golpe; pode apagar" |
-| ⬆️ Escalar N2 | nota interna; grupo **SOC N2** incluído (chamado continua aberto) | "encaminhado para análise aprofundada; não interaja com a mensagem" |
+| ⬆️ Escalar N2 | nota interna; grupo **SOC N2** incluído (chamado continua aberto) | "encaminhado para análise aprofundada; não interaja com a mensagem" (com o mesmo aviso de troca imediata de senha, se houve interação) |
 
 Comandos no grupo: `/nota 123 texto` (nota interna, ex.: "bloqueei o domínio no proxy"), `/reanalisar 123`
 (analisa de novo, ex.: o usuário anexou o e-mail depois) e `/ajuda`.
@@ -171,6 +174,7 @@ No nó **Configuração** (um só, para as duas rotinas; o JSON é gerado por `s
 | `grupo` | `Segurança da Informação` | ... e atribuídos a este grupo |
 | `cotaDiaria` | 20 | máximo de análises por dia (cota gratuita do Gemini); o excedente fica para o dia seguinte |
 | `maxVirusTotal` | 4 | consultas por chamado (plano grátis: 4/min, 500/dia, compartilhado com o scanner) |
+| `dominiosConfiaveis` | `cybersecurity.local` | domínios da organização (separados por vírgula): nunca entram nos IOCs para bloqueio |
 | `tipoPhishing` / `tipoLegitimo` / `tipoSpam` / `grupoN2` | nomes do GLPI | usados na decisão |
 
 Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `analise:<id>` (ficha usada na decisão, 90 dias),
@@ -179,7 +183,7 @@ Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `
 ## Desenvolvimento
 
 ```bash
-node tests/testar-codigo.js      # 55 testes do código dos nós, sem n8n
+node tests/testar-codigo.js      # 61 testes do código dos nós, sem n8n
 python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
 
