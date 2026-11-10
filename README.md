@@ -54,6 +54,22 @@ O que acontece em cada decisão:
 Comandos no grupo: `/nota 123 texto` (nota interna, ex.: "bloqueei o domínio no proxy"), `/reanalisar 123`
 (analisa de novo, ex.: o usuário anexou o e-mail depois) e `/ajuda`.
 
+### Bloquear IOCs no Wazuh
+
+Depois de **🎣 É phishing**, a confirmação no grupo mostra o que iria para o Wazuh e o botão **🛡️ Bloquear IOCs no Wazuh**.
+Nada é enviado sem esse segundo clique (de um analista autorizado), e só uma vez por chamado.
+
+- **O que vai:** domínios e hosts dos links do atacante, IPs públicos que aparecem *dentro* dos links e os hashes dos anexos.
+  Não vão domínios oficiais, webmail gratuito, serviços compartilhados, os `dominiosConfiaveis`, nem o IP do servidor que
+  mandou o e-mail (num phishing pelo Gmail, ele é do Google). Cada item passa por uma validação estrita de formato: o e-mail
+  é do atacante e não pode "injetar" linhas na lista.
+- **Para onde:** listas CDB `ngsoc-phishing-dominios`, `ngsoc-phishing-ips` e `ngsoc-phishing-hashes` do Wazuh do
+  [ng-soc-lab](../ng-soc-lab), por **90 dias** (cada entrada leva o chamado e a data; as vencidas saem na gravação seguinte).
+  O fluxo lê a lista, junta, regrava e recarrega as regras, sem reiniciar o manager. Se a leitura falhar, nada é gravado.
+- **O que o Wazuh faz com elas:** regra 100170/100171 (o anexo apareceu num arquivo vigiado de um endpoint) e 100172
+  (uma máquina com Sysmon consultou o domínio no DNS). Alerta de nível 10 ou mais vira chamado no GLPI pelo NG-SOC.
+- **Registro:** nota interna no GLPI com quem pediu e o que foi (ou a falha, e aí o botão pode ser clicado de novo).
+
 O roteiro completo de atendimento está em [docs/playbook-phishing.md](docs/playbook-phishing.md).
 
 ## O que a análise olha
@@ -105,6 +121,10 @@ O e-mail analisado é **escrito pelo atacante**. Por isso:
 
 Pré-requisitos: o [ng-soc-lab](../ng-soc-lab) rodando (n8n, GLPI, Redis), a credencial `GLPI (n8n-api)` no n8n e as credenciais
 do scanner (`Gemini`, `VirusTotal (x-apikey)`, `abuse.ch (Auth-Key)`). Comandos no Git Bash, a partir desta pasta.
+
+Para o botão **Bloquear IOCs no Wazuh**: a credencial `Wazuh API (ngsoc-listas)` (a mesma da lista de botnets) e, no ng-soc-lab,
+`bash infra/wazuh/regras/criar-usuario-api-listas.sh` (libera as listas de phishing para esse usuário) e
+`bash infra/wazuh/regras/instalar-regras.sh` (cria as listas e as regras 100170-100172; reinicia o manager).
 
 **1. Estrutura no GLPI** (grupo, categoria visível para o usuário, tipos de solução, tipos de documento `.eml`/`.msg`
 para o GLPI aceitar o anexo, leitura de anexos para o `n8n-api`):
@@ -175,6 +195,8 @@ No nó **Configuração** (um só, para as duas rotinas; o JSON é gerado por `s
 | `cotaDiaria` | 20 | máximo de análises por dia (cota gratuita do Gemini); o excedente fica para o dia seguinte |
 | `maxVirusTotal` | 4 | consultas por chamado (plano grátis: 4/min, 500/dia, compartilhado com o scanner) |
 | `dominiosConfiaveis` | `cybersecurity.local` | domínios da organização (separados por vírgula): nunca entram nos IOCs para bloqueio |
+| `listaDominios` / `listaIps` / `listaHashes` | `ngsoc-phishing-*` | listas CDB do Wazuh do botão "Bloquear IOCs" |
+| `diasNaLista` | 90 | quantos dias cada IOC fica nas listas do Wazuh |
 | `tipoPhishing` / `tipoLegitimo` / `tipoSpam` / `grupoN2` | nomes do GLPI | usados na decisão |
 
 Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `analise:<id>` (ficha usada na decisão, 90 dias),
@@ -183,7 +205,7 @@ Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `
 ## Desenvolvimento
 
 ```bash
-node tests/testar-codigo.js      # 62 testes do código dos nós, sem n8n
+node tests/testar-codigo.js      # 70 testes do código dos nós, sem n8n
 python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
 
@@ -201,7 +223,7 @@ O CI roda os testes, confere se o JSON está atualizado e passa o gitleaks.
 
 ## Roteiro
 
-- [ ] Ação "bloquear IOCs": ao confirmar phishing, enviar os domínios para a lista CDB do Wazuh (com aprovação).
+- [x] Ação "bloquear IOCs": ao confirmar phishing, enviar os domínios, IPs de links e hashes para as listas CDB do Wazuh (com aprovação).
 - [ ] Busca de outras vítimas: quantos chamados/usuários relataram o mesmo remetente ou link (campanha).
 - [ ] `/painel` no Telegram: relatos do dia, tempo até a decisão e precisão da IA (métricas do Redis).
 - [ ] Ler o caixa de e-mail `phishing@` (botão "Reportar" do Outlook) e abrir o chamado sozinho.

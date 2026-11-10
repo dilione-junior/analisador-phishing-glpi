@@ -82,6 +82,25 @@ const CHECKLIST_PHISHING = [
   'Se houve interação: trocar a senha, encerrar as sessões, conferir o MFA e as regras da caixa de e-mail do usuário',
 ];
 
+// O que o botão "Bloquear IOCs no Wazuh" envia. Os IOCs vêm de um e-mail escrito pelo atacante: só passa
+// o que tem formato estrito de domínio, IPv4 ou hash (nada de ":" ou quebra de linha, que estragariam a lista CDB).
+const RE_DOMINIO = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
+const RE_IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const RE_HASH = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+function entradasDoWazuh(registro) {
+  const iocs = registro.iocs ?? {};
+  // Registros antigos não têm "bloqueio": usa os domínios já filtrados e os hashes da lista de IOCs.
+  const b = registro.bloqueio ?? { dominios: iocs.dominios ?? [], ips: [], hashes: (iocs.hashes ?? []).map((h) => String(h).split(' ')[0]) };
+  const limpa = (lista, re, max) => [...new Set((lista ?? []).map((x) => String(x).trim().toLowerCase()))].filter((x) => re.test(x)).slice(0, max);
+  return { dominios: limpa(b.dominios, RE_DOMINIO, 30), ips: limpa(b.ips, RE_IPV4, 20), hashes: limpa(b.hashes, RE_HASH, 20) };
+}
+const totalEntradas = (e) => e.dominios.length + e.ips.length + e.hashes.length;
+const previa = (e) => [
+  e.dominios.length && `Domínios (${e.dominios.length}): ` + e.dominios.map((d) => `<code>${esc(desarmar(d))}</code>`).join(', '),
+  e.ips.length && `IPs de links (${e.ips.length}): ` + e.ips.map((d) => `<code>${esc(desarmar(d))}</code>`).join(', '),
+  e.hashes.length && `Hashes de anexos (${e.hashes.length}): ` + e.hashes.map((h) => `<code>${h.slice(0, 12)}…</code>`).join(', '),
+].filter(Boolean).join('\n');
+
 const saida = [];
 acoes.forEach((a, k) => {
   const trava = travas[k];
@@ -92,9 +111,10 @@ acoes.forEach((a, k) => {
   if (trava > 1) {
     // Mesma mensagem do Telegram chegando de novo: ignora. Decisão repetida: avisa quem clicou.
     if (a.tipo === 'decidir') saida.push(responder(a, `O chamado #${a.chamado_id} já foi decidido antes.`));
+    if (a.tipo === 'bloquear') saida.push(responder(a, `Os IOCs do chamado #${a.chamado_id} já foram enviados ao Wazuh.`));
     return;
   }
-  const liberar = a.tipo === 'decidir' ? a.chave_trava : '';
+  const liberar = a.tipo === 'decidir' || a.tipo === 'bloquear' ? a.chave_trava : '';
   if (a.tipo === 'reanalisar') {
     saida.push(tg('sendMessage', { chat_id: chat, reply_to_message_id: a.mensagem_id, allow_sending_without_reply: true,
       text: `🔁 Chamado #${a.chamado_id} volta para a fila: será analisado de novo em até 2 minutos (se ainda estiver aberto e na categoria de phishing).` },
@@ -104,6 +124,19 @@ acoes.forEach((a, k) => {
   if (!registro) {
     saida.push({ ...responder(a, `O chamado #${a.chamado_id} não foi analisado por este fluxo (ou a análise expirou). Use /reanalisar ${a.chamado_id}.`, true) });
     if (liberar) saida[saida.length - 1].json.apagar_chave = liberar;
+    return;
+  }
+
+  if (a.tipo === 'bloquear') {
+    // Vai para o ramo do Wazuh ("Junta os IOCs para o Wazuh"); quem responde no Telegram é "Confere o Wazuh".
+    const entradas = entradasDoWazuh(registro);
+    if (!totalEntradas(entradas)) {
+      saida.push(responder(a, `O chamado #${a.chamado_id} não tem domínio, IP de link nem hash para bloquear.`, true));
+      saida[saida.length - 1].json.apagar_chave = liberar;
+      return;
+    }
+    saida.push({ json: { destino: 'wazuh', chamado_id: a.chamado_id, analista: a.analista, mensagem_id: a.mensagem_id,
+      callback_id: a.callback_id, chave_trava: a.chave_trava, entradas } });
     return;
   }
 
@@ -157,6 +190,14 @@ acoes.forEach((a, k) => {
       `<code>/nota ${id} bloqueei o domínio no proxy e no filtro de e-mail</code>\n\n` +
       `O texto entra no chamado #${id} do GLPI como nota interna, com o seu nome e a hora: só a equipe técnica vê, o usuário não. ` +
       'Assim fica o histórico do que foi feito no incidente.';
+    // Phishing confirmado: mostra o que iria para o Wazuh e oferece o botão (o envio só acontece com o clique).
+    const paraWazuh = decisao === 'phishing' ? entradasDoWazuh(registro) : null;
+    const comBotao = Boolean(paraWazuh && totalEntradas(paraWazuh));
+    const textoWazuh = comBotao
+      ? '\n\n🛡️ <b>Bloquear no Wazuh</b>\nO botão abaixo manda estes IOCs para as listas do Wazuh por 90 dias ' +
+        '(se aparecerem no ambiente, o Wazuh alerta e abre chamado):\n\n' + previa(paraWazuh) +
+        '\n\nConfira antes de clicar: nenhum domínio legítimo deve estar na lista.'
+      : '';
     sucesso = [
       tg('editMessageReplyMarkup', { chat_id: chat, message_id: a.mensagem_id,
         reply_markup: { inline_keyboard: [[{ text: `✔️ ${ROTULO[decisao]} · ${a.analista.nome}`.slice(0, 60), callback_data: `ph|${id}|x` }]] } }),
@@ -164,7 +205,8 @@ acoes.forEach((a, k) => {
         text: `${ICONE[decisao]} <b>Chamado #${id}: ${ROTULO[decisao]}</b>\nDecidido por ${esc(a.analista.nome)}\n\n` +
           (decisao === 'escalar' ? '✔️ Grupo SOC N2 incluído no chamado e usuário avisado.' : '✔️ Usuário respondido e chamado solucionado no GLPI.') +
           `\n\n🤖 IA sugeriu ${ROTULO[registro.sugestao] ?? esc(registro.sugestao)} (${Number(registro.confianca) || 0}%): ${concordou ? '👍 o analista concordou' : '👎 o analista discordou'}` +
-          interacao + proximos + comoAnotar }),
+          interacao + proximos + comoAnotar + textoWazuh,
+        ...(comBotao ? { reply_markup: { inline_keyboard: [[{ text: '🛡️ Bloquear IOCs no Wazuh', callback_data: `ph|${id}|b` }]] } } : {}) }),
       tg('answerCallbackQuery', { callback_query_id: a.callback_id, text: 'Decisão registrada no GLPI ✔' }),
     ];
   }

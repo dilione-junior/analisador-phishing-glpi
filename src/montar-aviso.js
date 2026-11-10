@@ -151,6 +151,7 @@ return [{ json: {
     // Tipos fixos (clicou, senha, anexo, respondeu, pagou), detectados por regra no relato: a resposta ao usuário usa estes.
     interacao_tipos: ['clicou', 'senha', 'anexo', 'respondeu', 'pagou'].filter((t) => ev.interacao[t]),
     iocs,
+    bloqueio: ev.bloqueio ?? null, // o que o botão "Bloquear IOCs no Wazuh" envia
     analisado_em: new Date().toISOString(),
   },
 } }];

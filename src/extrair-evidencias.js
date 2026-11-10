@@ -252,6 +252,16 @@ const iocs = {
   hashes: anexos.filter((a) => !a.print && (a.sha256 || a.sha1)).map((a) => `${a.sha256 || a.sha1} (${a.nome})`),
 };
 
+// O que pode ir para as listas do Wazuh (botão "Bloquear IOCs"): domínios e hosts dos links que não são
+// legítimos nem compartilhados, IPs que aparecem DENTRO dos links (públicos) e os hashes dos anexos.
+// O IP do servidor que enviou o e-mail fica de fora: num phishing mandado pelo Gmail, ele é do Google.
+const hostsLinks = unicos(urls.map((u) => u.host).filter(Boolean), 30);
+const bloqueio = {
+  dominios: unicos([...iocs.dominios, ...hostsLinks.filter((h) => !ehIPv4(h) && !motivoLegitimo(h))].map((d) => d.toLowerCase()), 30),
+  ips: hostsLinks.filter((h) => ehIPv4(h) && !ipBloqueado(h)),
+  hashes: unicos(anexos.filter((a) => !a.print).flatMap((a) => [a.sha256, a.sha1]).filter(Boolean).map((h) => String(h).toLowerCase()), 20),
+};
+
 return [{ json: {
   chamado: {
     id: chamadoId,
@@ -270,6 +280,7 @@ return [{ json: {
   interacao,
   iocs,
   iocs_fora: iocsFora.slice(0, 15),
+  bloqueio,
   tem_email: fonte !== 'nenhuma',
   consultas: { virustotal, urlhaus, rdap },
 } }];

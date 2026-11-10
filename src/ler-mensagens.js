@@ -15,6 +15,7 @@ const analistas = new Set(String($env.PHISHING_ANALISTAS ?? '').split(/[\s,;]+/)
 const DECISOES = { p: 'phishing', l: 'legitimo', s: 'spam', e: 'escalar' };
 const AJUDA = 'Comandos do grupo de relatos de phishing\n\n' +
   '👆 Botões da ficha: decidem o caso. Respondem ao usuário e encerram (ou escalam para o N2) o chamado no GLPI.\n\n' +
+  '🛡️ Depois de "É phishing", o botão "Bloquear IOCs no Wazuh" manda os domínios, IPs de links e hashes para as listas do Wazuh (por 90 dias). Confira a lista na mensagem antes de clicar.\n\n' +
   '📝 /nota NÚMERO TEXTO: registra no chamado o que você fez, como nota interna (só a equipe técnica vê, o usuário não).\n' +
   'Exemplo: /nota 123 bloqueei o domínio no proxy e no filtro de e-mail\n\n' +
   '🔁 /reanalisar NÚMERO: analisa o chamado de novo (ex.: o usuário anexou o e-mail depois).\n' +
@@ -34,11 +35,18 @@ for (const u of atualizacoes) {
   if (cb) {
     const analista = pessoa(cb.from);
     const resposta = (texto, alerta = false) => acoes.push({ ...base, tipo: 'responder', callback_id: String(cb.id), texto, alerta, analista });
-    const m = String(cb.data ?? '').match(/^ph\|(\d{1,9})\|([plsex])$/);
+    const m = String(cb.data ?? '').match(/^ph\|(\d{1,9})\|([plsexb])$/);
     if (!grupo || String(cb.message?.chat?.id ?? '') !== grupo || !m) { resposta('Botão inválido ou de outro grupo.'); continue; }
     if (m[2] === 'x') { resposta('Este relato já foi decidido.'); continue; }
     if (!analistas.has(analista.id)) { resposta(`Sem permissão para decidir. Peça para incluir o seu ID do Telegram (${analista.id}) em PHISHING_ANALISTAS.`, true); continue; }
     const chamado = Number(m[1]);
+    if (m[2] === 'b') {
+      // "Bloquear IOCs no Wazuh": só aparece depois de "É phishing"; a trava no Redis garante um envio por chamado.
+      if (decididosAgora.has('b' + chamado)) { resposta(`Os IOCs do chamado #${chamado} já estão sendo enviados.`); continue; }
+      decididosAgora.add('b' + chamado);
+      acoes.push({ ...base, tipo: 'bloquear', chamado_id: chamado, callback_id: String(cb.id), mensagem_id: Number(cb.message.message_id), analista });
+      continue;
+    }
     if (decididosAgora.has(chamado)) { resposta(`Chamado #${chamado} já está sendo decidido.`); continue; }
     decididosAgora.add(chamado);
     acoes.push({ ...base, tipo: 'decidir', chamado_id: chamado, decisao: DECISOES[m[2]], callback_id: String(cb.id), mensagem_id: Number(cb.message.message_id), analista });

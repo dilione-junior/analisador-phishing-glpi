@@ -23,6 +23,10 @@ CRED_REDIS = {"redis": {"id": "ngsocRedisLocal", "name": "Redis local"}}
 CRED_GEMINI = {"googlePalmApi": {"id": "scanGeminiApi001", "name": "Google Gemini (scanner)"}}
 CRED_VIRUSTOTAL = {"httpHeaderAuth": {"id": "scanVirusTotal01", "name": "VirusTotal (x-apikey)"}}
 CRED_ABUSECH = {"httpHeaderAuth": {"id": "scanAbusechKey01", "name": "abuse.ch (Auth-Key)"}}
+# Usuário restrito da API do Wazuh (ng-soc-lab: infra/wazuh/regras/criar-usuario-api-listas.sh): só lê e grava
+# as listas ngsoc-botnet-ips e ngsoc-phishing-* e recarrega as regras. O mesmo da lista de botnets.
+CRED_WAZUH = {"httpBasicAuth": {"id": "ngsocWazuhListas", "name": "Wazuh API (ngsoc-listas)"}}
+WAZUH_API = "https://wazuh.manager:55000"
 MODELO_GEMINI = "models/gemini-flash-lite-latest"
 
 GLPI_API = "http://glpi/apirest.php"
@@ -110,6 +114,24 @@ class Fluxo:
             "options": {"timeout": 60000, "response": {"response": {"fullResponse": True, "neverError": True}}},
         }, **({"executeOnce": True} if uma_vez else {}))
 
+    def wazuh(self, nome, posicao, metodo, caminho, corpo=None, login=False, texto=False, uma_vez=False):
+        # Certificado da API do Wazuh é autoassinado no laboratório (o mesmo do fluxo da lista de botnets).
+        # neverError: quem decide se deu certo é "Monta as listas novas" / "Confere o Wazuh" (a trava é liberada se falhar).
+        p = {"method": metodo, "url": "=" + WAZUH_API + caminho,
+             "options": {"allowUnauthorizedCerts": True, "timeout": 30000,
+                         "response": {"response": {"fullResponse": True, "neverError": True,
+                                                   **({"responseFormat": "text"} if texto else {})}}}}
+        extra = {}
+        if login:
+            p.update({"authentication": "genericCredentialType", "genericAuthType": "httpBasicAuth"})
+            extra["credentials"] = CRED_WAZUH
+        else:
+            p.update({"sendHeaders": True, "headerParameters": {"parameters": [
+                {"name": "Authorization", "value": "={{ 'Bearer ' + String($('Login no Wazuh (listas)').first().json.body ?? '').trim() }}"}]}})
+        if corpo:
+            p.update({"sendBody": True, "contentType": "raw", "rawContentType": "application/octet-stream", "body": corpo})
+        self.no(nome, "n8n-nodes-base.httpRequest", 4.2, posicao, p, **({"executeOnce": True} if uma_vez else {}), **extra)
+
     def redis(self, nome, posicao, parametros, **extra):
         # "set" com tipo automático falha se o valor for número ("Could not identify the type to set"): sempre texto.
         assert parametros.get("operation") != "set" or parametros.get("keyType") == "string", nome
@@ -192,6 +214,11 @@ f.config([-2640, (Y_ANALISE + Y_DECISAO) // 2], [
     ("tipoLegitimo", "Contato legítimo", "string"),
     ("tipoSpam", "Spam (não malicioso)", "string"),
     ("grupoN2", "SOC N2", "string"),
+    # botão "Bloquear IOCs no Wazuh" (listas CDB do ng-soc-lab, regras 100170-100172)
+    ("listaDominios", "ngsoc-phishing-dominios", "string"),
+    ("listaIps", "ngsoc-phishing-ips", "string"),
+    ("listaHashes", "ngsoc-phishing-hashes", "string"),
+    ("diasNaLista", 90, "number"),
 ])
 f.se("Qual rotina?", [-2420, (Y_ANALISE + Y_DECISAO) // 2], "={{ $('A cada minuto').isExecuted }}")
 f.liga("A cada 2 minutos", "Configuração")
@@ -388,6 +415,31 @@ b.no("Conta a métrica?", "n8n-nodes-base.if", 2.2, [1980, Y - 200], {
     }, "looseTypeValidation": True, "options": {}})
 b.redis("Conta acerto da IA", [2200, Y - 200], {"operation": "incr", "key": "={{ $json.chave_metrica }}"})
 
+# Botão "Bloquear IOCs no Wazuh": lê as 3 listas CDB, junta os IOCs novos, regrava e recarrega as regras.
+# Tem a sua sessão no GLPI: a do ramo do GLPI pode já ter sido fechada quando este ramo roda.
+YW = Y + 520
+b.no("Vai ao Wazuh?", "n8n-nodes-base.if", 2.2, [1320, Y + 220], {
+    "conditions": {
+        "options": {"caseSensitive": True, "leftValue": "", "typeValidation": "loose", "version": 2},
+        "conditions": [{"id": b.id_no("vai-wazuh"), "leftValue": "={{ $json.destino }}", "rightValue": "wazuh",
+                        "operator": {"type": "string", "operation": "equals"}}],
+        "combinator": "and",
+    }, "looseTypeValidation": True, "options": {}})
+b.sessao = "Abre a sessão no GLPI (bloqueio)"
+b.abre_sessao([1540, YW])
+b.wazuh("Login no Wazuh (listas)", [1760, YW], "POST", "/security/user/authenticate?raw=true", login=True, texto=True, uma_vez=True)
+b.codigo("Junta os IOCs para o Wazuh", [1980, YW], "juntar-iocs-wazuh.js")
+b.wazuh("Lê a lista do Wazuh", [2200, YW], "GET", "/lists/files/{{ $json.lista }}?raw=true", texto=True)
+b.codigo("Monta as listas novas", [2420, YW], "montar-listas-wazuh.js")
+b.se("Listas prontas?", [2640, YW], "={{ $json.enviar === true }}")
+b.wazuh("Envia a lista ao Wazuh (phishing)", [2860, YW - 200], "PUT", "/lists/files/{{ $json.lista }}?overwrite=true",
+        corpo="={{ $json.conteudo }}")
+b.wazuh("Recarrega as regras (phishing)", [3080, YW - 200], "PUT", "/manager/analysisd/reload", uma_vez=True)
+b.codigo("Confere o Wazuh", [3300, YW], "conferir-wazuh.js", "texto.js")
+b.glpi("Registra o bloqueio no GLPI", [3520, YW], "POST", "/ITILFollowup", corpo="={{ JSON.stringify($json.nota) }}")
+b.codigo("Mensagens do bloqueio", [3740, YW], "mensagens-bloqueio.js")
+b.glpi("Fecha a sessão no GLPI (bloqueio)", [3960, YW + 200], "GET", "/killSession", uma_vez=True)
+
 b.liga("Lê o ponto de leitura", "Busca as mensagens")
 b.liga("Busca as mensagens", "Lê as mensagens")
 b.liga("Lê as mensagens", "Guarda o ponto de leitura")
@@ -401,7 +453,21 @@ b.liga("Lê a análise", "Trava a ação")
 b.liga("Trava a ação", "Monta as ações")
 b.liga("Monta as ações", "Vai ao GLPI?")
 b.liga("Vai ao GLPI?", "Grava no GLPI", 0)
-b.liga("Vai ao GLPI?", ["Fala no Telegram", "Apaga alguma chave?"], 1)
+b.liga("Vai ao GLPI?", "Vai ao Wazuh?", 1)
+b.liga("Vai ao Wazuh?", "Abre a sessão no GLPI (bloqueio)", 0)
+b.liga("Vai ao Wazuh?", ["Fala no Telegram", "Apaga alguma chave?"], 1)
+b.liga("Abre a sessão no GLPI (bloqueio)", "Login no Wazuh (listas)")
+b.liga("Login no Wazuh (listas)", "Junta os IOCs para o Wazuh")
+b.liga("Junta os IOCs para o Wazuh", "Lê a lista do Wazuh")
+b.liga("Lê a lista do Wazuh", "Monta as listas novas")
+b.liga("Monta as listas novas", "Listas prontas?")
+b.liga("Listas prontas?", "Envia a lista ao Wazuh (phishing)", 0)
+b.liga("Listas prontas?", "Confere o Wazuh", 1)
+b.liga("Envia a lista ao Wazuh (phishing)", "Recarrega as regras (phishing)")
+b.liga("Recarrega as regras (phishing)", "Confere o Wazuh")
+b.liga("Confere o Wazuh", "Registra o bloqueio no GLPI")
+b.liga("Registra o bloqueio no GLPI", "Mensagens do bloqueio")
+b.liga("Mensagens do bloqueio", ["Fala no Telegram", "Apaga alguma chave?", "Fecha a sessão no GLPI (bloqueio)"])
 b.liga("Grava no GLPI", "Confere o GLPI")
 b.liga("Confere o GLPI", ["Fala no Telegram", "Apaga alguma chave?", "Conta a métrica?", "Fecha a sessão no GLPI (decisões)"])
 b.liga("Apaga alguma chave?", "Apaga a chave", 0)
@@ -413,6 +479,7 @@ A cada minuto lê o grupo **Relatos de Phishing** (espera até 45 s por novidade
 - **Botões** do relato: 🎣 phishing · ✅ legítimo · 📨 spam · ⬆️ escalar N2.
   Grava a decisão como nota interna (com checklist e IOCs), responde ao usuário com **texto fixo** e soluciona o chamado (ou inclui o grupo SOC N2).
 - **/nota 123 texto**: nota interna no chamado. **/reanalisar 123**: analisa de novo. **/ajuda**.
+- **🛡️ Bloquear IOCs no Wazuh** (aparece depois de "É phishing"): lê as listas CDB `ngsoc-phishing-*`, junta os domínios, IPs de links e hashes, regrava (90 dias) e recarrega as regras. Fica registrado no GLPI. Usuário da API: `ngsoc-listas`.
 
 Segurança: só o grupo `PHISHING_TELEGRAM_CHAT_ID` e só os IDs em `PHISHING_ANALISTAS` decidem. Uma decisão por chamado (trava no Redis). Nada escrito pela IA vai para o usuário.
 Métrica: `phishing:metricas:ia_<sugestão>:analista_<decisão>` (quanto a IA acerta).""")
