@@ -1,0 +1,74 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Mon, 23 Nov
+	2026 10:05:00 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Mon,
+	23 Nov 2026 10:05:00 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.200)
+	smtp.mailfrom=graficapaulista.example; dkim=pass (signature was verified)
+	header.d=graficapaulista.example;dmarc=pass action=none
+	header.from=graficapaulista.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of graficapaulista.example
+	designates 198.51.100.200 as permitted sender)
+	receiver=protection.outlook.com; client-ip=198.51.100.200;
+	helo=graficapaulista.example;
+Received: from mail.graficapaulista.example (198.51.100.200) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Mon, 23 Nov 2026 10:05:00 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=graficapaulista.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: =?utf-8?q?Gr=C3=A1fica_Paulista_-_Faturamento?=
+	<nfe@graficapaulista.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: =?utf-8?q?NF-e_4513_-_Gr=C3=A1fica_Paulista?=
+Date: Mon, 23 Nov 2026 10:05:00 +0000
+Message-ID: <nfe4513.1763892300@graficapaulista.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed; boundary="----=_Part_NFe_4513_1763892300"
+MIME-Version: 1.0
+
+------=_Part_NFe_4513_1763892300
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezado cliente,
+
+Segue em anexo (compactado) o DANFE e o XML da NF-e n=C2=BA 4513 referente =
+ao pedido 4480.
+
+Gr=C3=A1fica Paulista Ltda
+Este =C3=A9 um e-mail autom=C3=A1tico do sistema de faturamento.
+
+------=_Part_NFe_4513_1763892300
+Content-Transfer-Encoding: base64
+Content-Type: application/zip; name="NFe_4513.zip"
+Content-Disposition: attachment; filename="NFe_4513.zip"
+
+UEsDBBQAAAAIACBFaV2LJ7G2XAEAAHwCAAAbAAAATkZlXzQ1MTMvREFORkVfTkZlXzQ1MTMucGRm
+bZLfToMwFMbv+xTfzaJeTCi0OJNliXMjJv6N4854UcfZxGzU0GLUl/TCN9AXsYXpliAhBH7nO+f7
+Stu7maR9fihY7+v745NxhNAPT2w4RJC9PROCU2XVSi8R3KglGUROcIvRiFGZe2HUaWh1wXmRG9zF
+Xn7vpui6tOA7jfG/jf5ZkZO2PsEl5YUa61fchQ7IY4mBiJp5pXUyA9Hqbsnoupo7Yz8vddX2hUNu
+Arf3r7vYcb+gcmkfMUh83diK1JqNs6aZc2QLyBBHgxBZDi6QXWB/cnKVTtHHVdonCMnjA+w5quf1
+2oXSyAmWjCXkGnNdPdfGC6aZd98YbHLIzl9osgez+sE2nx5yBGNlqK2c0eqFbDFXO6t5rWjBQiQs
+/LuQSBlLLPDHuPNqKuWWJaLDeMQ7LBJHHRYP4i2zlSpWVDXLmBXvhMRtidZ+xzfHxVhV2SankDHr
+9abXKfsBUEsDBBQAAAAIACBFaV3saGtELAAAAC0AAAA9AAAATkZlXzQ1MTMvMzUyNjExMDAwMDAw
+MDAwMDAxOTE1NTAwMTAwMDAwNDUxMzEwMDAwNDUxMzAtbmZlLnhtbLOxr8jNUShLLSrOzM+zVTLU
+M1Cyt7PJS0sNKMpPBosn5tsqmegZGCjp2wEAUEsBAhQAFAAAAAgAIEVpXYsnsbZcAQAAfAIAABsA
+AAAAAAAAAAAAAKQBAAAAAE5GZV80NTEzL0RBTkZFX05GZV80NTEzLnBkZlBLAQIUABQAAAAIACBF
+aV3saGtELAAAAC0AAAA9AAAAAAAAAAAAAACkAZUBAABORmVfNDUxMy8zNTI2MTEwMDAwMDAwMDAw
+MDE5MTU1MDAxMDAwMDA0NTEzMTAwMDA0NTEzMC1uZmUueG1sUEsFBgAAAAACAAIAtAAAABwCAAAA
+AA==
+
+------=_Part_NFe_4513_1763892300--

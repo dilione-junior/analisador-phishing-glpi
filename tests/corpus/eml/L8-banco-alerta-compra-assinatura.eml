@@ -1,0 +1,71 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Mon, 23 Nov
+	2026 21:14:00 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Mon,
+	23 Nov 2026 21:14:00 +0000
+Authentication-Results: spf=pass (sender IP is 192.0.2.44)
+	smtp.mailfrom=comunicacao.itau.com.br; dkim=pass (signature was verified)
+	header.d=comunicacao.itau.com.br;dmarc=pass action=none
+	header.from=comunicacao.itau.com.br;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of comunicacao.itau.com.br
+	designates 192.0.2.44 as permitted sender) receiver=protection.outlook.com;
+	client-ip=192.0.2.44; helo=comunicacao.itau.com.br;
+Received: from mta-out03.comunicacao.itau.com.br (192.0.2.44) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Mon, 23 Nov 2026 21:14:00 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=comunicacao.itau.com.br; s=itau1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: =?utf-8?b?SXRhw7ogQ2FydMO1ZXM=?= <alertas@comunicacao.itau.com.br>
+To: lucas.ferreira@cybersecurity.local
+Subject: =?utf-8?q?Compra_aprovada_no_seu_cart=C3=A3o_final_4410?=
+Date: Mon, 23 Nov 2026 21:14:00 +0000
+Message-ID: <alerta4410.20261123211400@comunicacao.itau.com.br>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="----=_Part_itau_alerta_4410"
+MIME-Version: 1.0
+
+------=_Part_itau_alerta_4410
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Ol=C3=A1, Lucas,
+
+Compra aprovada no cart=C3=A3o final 4410: Assinatura mensal STREAMFLIX, R$=
+ 55,90, em 23/11 =C3=A0s 21:13.
+
+Se voc=C3=AA n=C3=A3o reconhece esta compra, bloqueie o cart=C3=A3o pelo ap=
+p Ita=C3=BA ou ligue para a Central de Atendimento: 4004-0000 (capitais) ou=
+ 0800 000 0000 (demais localidades).
+
+O Ita=C3=BA nunca pede senha, token ou c=C3=B3digo por e-mail, SMS ou telef=
+one.
+
+------=_Part_itau_alerta_4410
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Arial;font-size:14px">
+<div style=3D"background:#ec7000;color:#fff;padding:14px"><b>Ita=C3=BA</b><=
+/div>
+<div style=3D"padding:18px"><p>Ol=C3=A1, Lucas,</p>
+<p>Compra aprovada no cart=C3=A3o final 4410: <b>Assinatura mensal STREAMFL=
+IX</b>, R$ 55,90, em 23/11 =C3=A0s 21:13.</p>
+<p>Se voc=C3=AA n=C3=A3o reconhece esta compra, bloqueie o cart=C3=A3o pelo=
+ app Ita=C3=BA ou ligue para a Central de Atendimento: 4004-0000
+(capitais) ou 0800 000 0000 (demais localidades).</p>
+<p>O Ita=C3=BA nunca pede senha, token ou c=C3=B3digo por e-mail, SMS ou te=
+lefone.</p></div></body></html>
+------=_Part_itau_alerta_4410--

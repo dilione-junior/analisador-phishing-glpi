@@ -1,0 +1,66 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Thu, 19 Nov
+	2026 15:22:08 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Thu,
+	19 Nov 2026 15:22:08 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.77)
+	smtp.mailfrom=faturamento-digital.example; dkim=none (message not signed)
+	header.d=none;dmarc=none action=none
+	header.from=faturamento-digital.example;compauth=softpass reason=201
+Received-SPF: Pass (protection.outlook.com: domain of
+	faturamento-digital.example designates 203.0.113.77 as permitted sender)
+	receiver=protection.outlook.com; client-ip=203.0.113.77;
+	helo=faturamento-digital.example;
+Received: from mail.faturamento-digital.example (203.0.113.77) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Thu, 19 Nov 2026 15:22:08 +0000
+From: Faturamento Digital <nfe@faturamento-digital.example>
+To: lucas.ferreira@cybersecurity.local
+Subject: =?utf-8?q?Fatura_20261119-0832_dispon=C3=ADvel?=
+Date: Thu, 19 Nov 2026 15:22:08 +0000
+Message-ID: <88231.1763565728@faturamento-digital.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed; boundary="----=_Part_88231_1763565728"
+MIME-Version: 1.0
+
+------=_Part_88231_1763565728
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezado(a),
+
+Segue a fatura n=C2=BA 20261119-0832 em anexo. O documento =C3=A9 protegido=
+: abra o arquivo e confirme a sua conta para visualizar.
+
+Faturamento Digital
+
+------=_Part_88231_1763565728
+Content-Transfer-Encoding: base64
+Content-Type: text/html; name="Fatura_20261119-0832.html"
+Content-Disposition: attachment; filename="Fatura_20261119-0832.html"
+
+PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9InB0LWJyIj48aGVhZD48bWV0YSBjaGFyc2V0PSJ1
+dGYtOCI+PHRpdGxlPlZpc3VhbGl6YXIgZG9jdW1lbnRvPC90aXRsZT4KPHN0eWxlPmJvZHl7Zm9u
+dC1mYW1pbHk6U2Vnb2UgVUksQXJpYWw7YmFja2dyb3VuZDojZjJmMmYyfS5je3dpZHRoOjM2MHB4
+O21hcmdpbjo4MHB4IGF1dG87YmFja2dyb3VuZDojZmZmO3BhZGRpbmc6MjhweH08L3N0eWxlPjwv
+aGVhZD4KPGJvZHk+PGRpdiBjbGFzcz0iYyI+PGgzPkRvY3VtZW50byBwcm90ZWdpZG88L2gzPjxw
+PlBhcmEgdmlzdWFsaXphciBhIGZhdHVyYSwgY29uZmlybWUgYSBzdWEgY29udGEgY29ycG9yYXRp
+dmEuPC9wPgo8Zm9ybSBtZXRob2Q9IlBPU1QiIGFjdGlvbj0iaHR0cHM6Ly9jb2xldGEtYWNlc3Nv
+LmV4YW1wbGUvZG9jL3JlY2ViZS5waHAiPgo8aW5wdXQgdHlwZT0iZW1haWwiIG5hbWU9InUiIHZh
+bHVlPSJsdWNhcy5mZXJyZWlyYUBjeWJlcnNlY3VyaXR5LmxvY2FsIiByZWFkb25seT48YnI+Cjxp
+bnB1dCB0eXBlPSJwYXNzd29yZCIgbmFtZT0icCIgcGxhY2Vob2xkZXI9IlNlbmhhIj48YnI+Cjxi
+dXR0b24gdHlwZT0ic3VibWl0Ij5WaXN1YWxpemFyPC9idXR0b24+PC9mb3JtPgo8cCBzdHlsZT0i
+Zm9udC1zaXplOjExcHg7Y29sb3I6Izg4OCI+RG9jdW1lbnRvIGRlIHRlc3RlIGRvIGNvcnB1cyBk
+byBhbmFsaXNhZG9yLXBoaXNoaW5nLWdscGkuPC9wPjwvZGl2PjwvYm9keT48L2h0bWw+
+
+------=_Part_88231_1763565728--

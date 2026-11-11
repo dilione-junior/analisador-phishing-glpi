@@ -1,0 +1,81 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Fri, 20 Nov
+	2026 09:12:44 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Fri,
+	20 Nov 2026 09:12:44 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.141)
+	smtp.mailfrom=assinatura-eletronica-docs.example; dkim=none (message not
+	signed) header.d=none;dmarc=none action=none
+	header.from=assinatura-eletronica-docs.example;compauth=softpass reason=201
+Received-SPF: Pass (protection.outlook.com: domain of
+	assinatura-eletronica-docs.example designates 203.0.113.141 as permitted
+	sender) receiver=protection.outlook.com; client-ip=203.0.113.141;
+	helo=assinatura-eletronica-docs.example;
+Received: from mail.assinatura-eletronica-docs.example (203.0.113.141) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Fri, 20 Nov 2026 09:12:44 +0000
+From: =?utf-8?q?Assinatura_Eletr=C3=B4nica_Docs?=
+	<documentos@assinatura-eletronica-docs.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: Documento aguardando sua assinatura
+Date: Fri, 20 Nov 2026 09:12:44 +0000
+Message-ID: <8841.1763629964@assinatura-eletronica-docs.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed; boundary="----=_Part_8841_1763629964"
+MIME-Version: 1.0
+
+------=_Part_8841_1763629964
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezado(a),
+
+Voc=C3=AA tem um documento aguardando assinatura: Contrato de Presta=C3=A7=
+=C3=A3o de Servi=C3=A7os 2027.
+
+Por seguran=C3=A7a, o link de assinatura s=C3=B3 abre no celular: abra o PD=
+F anexo e escaneie o QR Code com a c=C3=A2mera.
+O documento expira em 24 horas.
+
+Assinatura Eletr=C3=B4nica Docs
+
+------=_Part_8841_1763629964
+Content-Transfer-Encoding: base64
+Content-Type: application/pdf; name="Contrato_Prestacao_Servicos_2027.pdf"
+Content-Disposition: attachment;
+ filename="Contrato_Prestacao_Servicos_2027.pdf"
+
+JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4K
+ZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4K
+ZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAg
+MCA1OTUgODQyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAw
+IFIgPj4gL1hPYmplY3QgPDwgL0ltMSA2IDAgUiA+PiA+PiA+PgplbmRvYmoKNCAwIG9iago8PCAv
+TGVuZ3RoIDIyNyA+PgpzdHJlYW0KQlQgL0YxIDExIFRmIDUwIDc4MCBUZCAxNCBUTCAoQ29udHJh
+dG8gZGUgUHJlc3RhY2FvIGRlIFNlcnZpY29zIDIwMjcpICcgKEVzY2FuZWllIG8gUVIgQ29kZSBh
+YmFpeG8gY29tIG8gY2VsdWxhciBwYXJhIGFzc2luYXIuKSAnIChEb2N1bWVudG8gZGUgdGVzdGUg
+ZG8gY29ycHVzIGRvIGFuYWxpc2Fkb3ItcGhpc2hpbmctZ2xwaSkgJyBFVCBxIDE3MCAwIDAgMTcw
+IDUwIDUyMCBjbSAvSW0xIERvIFEKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9G
+b250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSA+PgplbmRvYmoKNiAwIG9i
+ago8PCAvVHlwZSAvWE9iamVjdCAvU3VidHlwZSAvSW1hZ2UgL1dpZHRoIDQxIC9IZWlnaHQgNDEg
+L0NvbG9yU3BhY2UgL0RldmljZUdyYXkgL0JpdHNQZXJDb21wb25lbnQgOCAvRmlsdGVyIC9GbGF0
+ZURlY29kZSAvTGVuZ3RoIDI1MiA+PgpzdHJlYW0KeNrVVIsRQyEIy/5L07NKPmgHqH1nPQUMIVL1
+HwN79HLNa5kndbbW/N1bX/HfzttkR9jn+4OfhCGOCU50/DRscPCdMCyCZ9heBEbwovnLrM3Bcd4G
+ZKbEDPEZxIOpmpq26ApEQGZIlumWEJAY26bcUwzXFQLoKUF2ACURqRg+jXZMgOadVsQ7mK4OW1aX
+jEjK4FITKBVGWjSGZmkk/I5OuCkzXewanmwbCVAVO/isn6pi8PQqrrrA+CnRGYTrxegFvOVdWUF7
+aa9O0ZlYKxgCdwEwJthjrgaAZMscZgMgOaanZ++REljRdzdjfVBx/cgaMGH4o/2T8QGRMlXjCmVu
+ZHN0cmVhbQplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAw
+MDAwIG4gCjAwMDAwMDAwNjQgMDAwMDAgbiAKMDAwMDAwMDEyMSAwMDAwMCBuIAowMDAwMDAwMjcz
+IDAwMDAwIG4gCjAwMDAwMDA1NTEgMDAwMDAgbiAKMDAwMDAwMDYyMSAwMDAwMCBuIAp0cmFpbGVy
+Cjw8IC9TaXplIDcgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjEwNDEKJSVFT0YK
+
+------=_Part_8841_1763629964--

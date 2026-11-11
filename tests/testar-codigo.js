@@ -124,6 +124,142 @@ teste('cabeçalhos colados no chamado e encaminhamento do Outlook', () => {
   assert.deepStrictEqual([e.de, e.assunto], ['Banco <x@golpe.example>', 'Bloqueio']);
 });
 
+// ---------------------------------------------------------------- Catálogo de técnicas (src/lib/tecnicas.js)
+// Casos difíceis que não estão no conjunto de referência (tests/corpus): zip com senha, código de dispositivo,
+// SVG sem script, domínio curto da organização, hospedagem por subdomínio.
+console.log('Catálogo de técnicas');
+const T = new Function(['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'tecnicas.js'].map((b) => ler(`lib/${b}`)).join('\n')
+  + '\nreturn { lerZip, inspecionarAnexo, analisarOAuth, destinosOAuth, detectarTecnicas, subdominioDeCliente, analisarMime };')();
+const zipDoCorpus = () => {
+  const m = T.analisarMime(fs.readFileSync(path.join(__dirname, 'corpus', 'eml', '15-malware-zip-lnk.eml'), 'utf8'));
+  return m.anexos.find((a) => a.nome.endsWith('.zip')).bytes;
+};
+const ctxBase = (extra = {}) => ({
+  de: { nome: '', email: 'x@remetente.example', dominio: 'remetente.example' }, responder: { nome: '', email: '', dominio: '' },
+  assunto: '', texto: '', relato: '', urls: [], inspecoes: [], emailsTexto: [], confiaveis: ['cybersecurity.local'], nomesInternos: [], sinaisIds: [],
+  autenticado: false, ...extra,
+});
+const idsDe = (lista) => lista.map((t) => t.id);
+teste('zip: lê os nomes pelo índice e percebe criptografia', () => {
+  const b = zipDoCorpus();
+  assert.deepStrictEqual(T.lerZip(b), { nomes: ['Comprovante_PIX_17-11-2026.pdf.lnk', 'LEIA-ME.txt'], protegido: false });
+  const comSenha = b.slice();
+  for (let i = 0; i + 4 < comSenha.length; i++) {
+    if (comSenha[i] === 0x50 && comSenha[i + 1] === 0x4b && comSenha[i + 2] === 1 && comSenha[i + 3] === 2) comSenha[i + 8] |= 1;
+  }
+  const r = T.inspecionarAnexo('docs.zip', 'application/zip', comSenha);
+  assert.ok(r.protegido);
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ inspecoes: [r] }))).sort(), ['zip-com-senha', 'zip-conteudo-perigoso']);
+  assert.deepStrictEqual(T.lerZip([1, 2, 3]).nomes, [], 'lixo não quebra');
+});
+teste('zip só com .html dentro: técnica de peso menor e não forte', () => {
+  const [t] = T.detectarTecnicas(ctxBase({ inspecoes: [{ nome: 'x.zip', achados: [], urls: [], emails: [], internos: ['fatura.html'], cargas: [], protegido: false }] }));
+  assert.deepStrictEqual([t.id, t.forte, t.peso], ['zip-conteudo-perigoso', false, 25]);
+});
+teste('HTML que redireciona: acha o destino; SVG sem script não é técnica; xmlns do SVG não vira IOC', () => {
+  const bytes = (s) => Array.from(Buffer.from(s, 'utf8'));
+  const html = T.inspecionarAnexo('doc.htm', 'text/html', bytes('<html><script>window.location.href="https://golpe.example/x?id=1";</script></html>'));
+  assert.deepStrictEqual([html.achados.map((a) => a.id), html.urls], [['html-redireciona'], ['https://golpe.example/x?id=1']]);
+  const svg = T.inspecionarAnexo('logo.svg', 'image/svg+xml', bytes('<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>'));
+  assert.deepStrictEqual([svg.achados, svg.urls], [[], []]);
+  const pdf = T.inspecionarAnexo('a.pdf', 'application/pdf', bytes('%PDF-1.4 window.location="https://x.example"'));
+  assert.deepStrictEqual(pdf.achados, [], 'só HTML/SVG são lidos como página');
+  const fonte = Buffer.from(Array.from({ length: 300 }, (_, k) => (k * 37) % 256)).toString('base64');
+  const recibo = T.inspecionarAnexo('recibo.html', 'text/html', bytes(`<html><style>@font-face{src:url("data:font/woff2;base64,${fonte}")}</style><p>Recibo</p><script>var f="${fonte}";</script></html>`));
+  assert.deepStrictEqual([recibo.achados, recibo.cargas.length], [[], 0], 'base64 de fonte/imagem não é carga escondida (não vira hash para bloqueio)');
+  const login = T.inspecionarAnexo('l.html', 'text/html', bytes('<a href="https://www.microsoft.com/ajuda">ajuda</a><form action="https://coleta.golpe.example/p"><input type="password"></form>'));
+  assert.ok(login.achados[0].detalhe.includes('coleta.golpe[.]example'), 'o destino da senha é o action do formulário, não o 1º link');
+});
+teste('OAuth: escopo de e-mail com destino de fora é técnica; login só com perfil básico não é', () => {
+  const ruim = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=abc&redirect_uri=https%3A%2F%2Fapp.golpe.example%2Fcb&scope=Mail.Read%20offline_access';
+  const bom = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=abc&redirect_uri=https%3A%2F%2Fintranet.cybersecurity.local%2Fcb&scope=openid%20profile%20User.Read%20offline_access';
+  assert.deepStrictEqual(T.destinosOAuth([ruim, bom], ['cybersecurity.local']), ['https://app.golpe.example/cb']);
+  const url = (u) => ({ url: u, host: 'login.microsoftonline.com' });
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ urls: [url(ruim)] }))), ['oauth-consentimento']);
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ urls: [url(bom)] }))), []);
+  assert.strictEqual(T.analisarOAuth('https://login.microsoftonline.com/common/oauth2/v2.0/token', []), null);
+});
+teste('código de dispositivo: página oficial + código no e-mail', () => {
+  const u = [{ url: 'https://microsoft.com/devicelogin', host: 'microsoft.com' }];
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ urls: u, texto: 'Para entrar na reunião, digite o código KX7-P2Q em' }))), ['device-code']);
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ urls: u, texto: 'Manual do Teams' }))), []);
+});
+teste('golpe por telefone: PayPal autenticado conta; banco autenticado não; remetente qualquer conta', () => {
+  const texto = 'Sua assinatura anual do Norton foi renovada. Para cancelar ligue 0800 000 1234 agora.';
+  const de = (dominio) => ({ nome: '', email: `x@${dominio}`, dominio });
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ texto, de: de('paypal.com'), autenticado: true }))), ['callback-telefone']);
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ texto, de: de('itau.com.br'), autenticado: true }))), []);
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ texto, de: de('itau.com.br'), autenticado: false }))), ['callback-telefone'], 'banco SEM autenticação pode ser forjado');
+  const [t] = T.detectarTecnicas(ctxBase({ texto, de: de('suporte.example') }));
+  assert.strictEqual(t.telefone, '0800 000 1234');
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ texto: 'Ligue 0800 000 1234 se precisar de ajuda com o pedido.' }))), [], 'telefone sem isca de assinatura');
+});
+teste('imitação da organização: precisa de nome com 5+ letras; o domínio da casa nunca conta', () => {
+  const de = (dominio) => ({ nome: '', email: `x@${dominio}`, dominio });
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ de: de('cybersecurlty.example') }))), ['imita-organizacao'], 'troca de letra');
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ de: de('mail.cybersecurity.local') }))), []);
+  assert.deepStrictEqual(idsDe(T.detectarTecnicas(ctxBase({ de: de('abc-ti.example'), confiaveis: ['abc.com.br'] }))), [], 'nome curto daria falso positivo');
+});
+teste('e-mail da vítima escondido no link (base64 ou #fragmento), só fora de domínio oficial', () => {
+  const b64 = Buffer.from('ana@cybersecurity.local').toString('base64');
+  const achou = (url) => idsDe(T.detectarTecnicas(ctxBase({ urls: [{ url, host: url.split('/')[2] }] })));
+  assert.deepStrictEqual(achou(`https://doc.golpe.example/?e=${b64}`), ['aitm-isca']);
+  assert.deepStrictEqual(achou('https://doc.golpe.example/#ana@cybersecurity.local'), ['aitm-isca']);
+  assert.deepStrictEqual(achou('https://loja.example/descadastro?email=ana@cybersecurity.local'), [], 'e-mail aberto na query (descadastro) não conta');
+  assert.deepStrictEqual(achou(`https://login.microsoftonline.com/?e=${b64}`), []);
+});
+teste('relato: página de login em endereço estranho conta; relato vago não', () => {
+  const r = (relato) => idsDe(T.detectarTecnicas(ctxBase({ relato })));
+  assert.deepStrictEqual(r('Cliquei e apareceu a tela de login, mas o endereço era diferente.'), ['relato-pagina-falsa']);
+  assert.deepStrictEqual(r('Não sei se é golpe, não cliquei.'), []);
+});
+// ---------------------------------------------------------------- QR Code (src/lib/qr.js + nós do leitor-qr)
+const Q = new Function(['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'qr.js'].map((b) => ler(`lib/${b}`)).join('\n')
+  + '\nreturn { matrizesDeTabelas, matrizesDeBlocos, matrizParaPgm, bytesParaBase64, lerPix, analisarMime, celulaEscura };')();
+const emlTabela = fs.readFileSync(path.join(__dirname, 'corpus', 'eml', '20-quishing-qr-tabela-html.eml'), 'utf8');
+const htmlTabela = Q.analisarMime(emlTabela).textos.find((t) => t.tipo === 'text/html').conteudo;
+const [MATRIZ] = Q.matrizesDeTabelas(htmlTabela);
+const semMargem = (m) => {
+  let x = m.filter((l) => l.some(Boolean));
+  const ini = Math.min(...x.map((l) => l.indexOf(true)));
+  const fim = Math.max(...x.map((l) => l.lastIndexOf(true)));
+  x = x.map((l) => l.slice(ini, fim + 1));
+  return x;
+};
+teste('QR desenhado com tabela HTML vira matriz quadrada; tabela comum não', () => {
+  assert.ok(MATRIZ && MATRIZ.length >= 29 && MATRIZ.every((l) => l.length === MATRIZ.length), String(MATRIZ?.length));
+  assert.deepStrictEqual(Q.matrizesDeTabelas('<table><tr><td>Nome</td><td>Valor</td></tr><tr><td>A</td><td>1</td></tr></table>'), []);
+  assert.deepStrictEqual(['bgcolor="#000"', 'style="background: rgb(10,10,10)"', 'style="background-color:black"', 'bgcolor="#ffffff"', 'style="color:#000"'].map(Q.celulaEscura), [true, true, true, false, false]);
+});
+teste('QR desenhado com caracteres (█ e ▀▄) volta para a mesma matriz', () => {
+  const m = semMargem(MATRIZ);
+  const cheio = m.map((l) => l.map((x) => (x ? '██' : '  ')).join('')).join('\n');
+  assert.deepStrictEqual(Q.matrizesDeBlocos(`Escaneie:\n\n${cheio}\n\nObrigado`)[0], m);
+  const meio = [];
+  for (let y = 0; y < m.length; y += 2) meio.push(m[y].map((cima, x) => { const baixo = m[y + 1]?.[x]; return cima && baixo ? '█' : cima ? '▀' : baixo ? '▄' : ' '; }).join(''));
+  const lido = Q.matrizesDeBlocos(meio.join('\n'))[0];
+  assert.deepStrictEqual(lido.slice(0, m.length), m);
+  assert.deepStrictEqual(Q.matrizesDeBlocos('██████████ título decorado\n█ █ █'), []);
+});
+teste('PGM e base64 do QR desenhado', () => {
+  const pgm = Q.matrizParaPgm([[true, false], [false, true]], 2, 1);
+  assert.strictEqual(String.fromCharCode(...pgm.slice(0, 11)), 'P5\n8 8\n255\n');
+  assert.strictEqual(pgm.length, 11 + 64);
+  for (const n of [0, 1, 2, 3, 100]) {
+    const b = Array.from({ length: n }, (_, k) => (k * 53) % 256);
+    assert.strictEqual(Q.bytesParaBase64(b), Buffer.from(b).toString('base64'));
+  }
+});
+teste('PIX: lê recebedor, chave, valor e txid; texto qualquer não é PIX', () => {
+  const casos = JSON.parse(fs.readFileSync(path.join(__dirname, 'corpus', 'casos.json'), 'utf8')).casos;
+  const [pix] = casos.find((c) => c.id.startsWith('L11')).qr['Boleto_Pedido_4480.pdf'];
+  assert.deepStrictEqual(Q.lerPix(pix), { recebedor: 'GRAFICA PAULISTA LTDA', cidade: 'SAO PAULO', valor: '12450.00', chave: '00000000000191', url: '', txid: 'PED4480' });
+  assert.strictEqual(Q.lerPix('https://000201.example'), null);
+});
+teste('hospedagem por subdomínio: o subdomínio do cliente pode ser bloqueado, o serviço não', () => {
+  assert.deepStrictEqual(['golpe.pages.dev', 'pages.dev', 'www.wixsite.com', 'x.y.netlify.app', 'drive.google.com'].map(T.subdominioDeCliente), [true, false, false, true, false]);
+});
+
 // ---------------------------------------------------------------- Fluxo 1
 console.log('Fluxo 1 - analisa relatos');
 teste('monta a busca com categoria, grupo e status aberto', () => {
@@ -172,9 +308,31 @@ function nosDoChamado(conteudoEml, nomeArquivo = 'email.eml', relato = RELATO) {
     }),
   };
 }
-const extrair = (nos) => executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js'], {}, nos)[0];
+const extrair = (nos) => executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'tecnicas.js', 'qr.js'], {}, nos)[0];
 const EV = extrair(nosDoChamado(amostra('phishing-banco.eml')));
 const ids = (ev) => ev.sinais.map((s) => s.id);
+const qrNos = (respostas, pedidos = [{ nome: 'a.pdf', desenhado: false }]) => ({
+  ...nosDoChamado(amostra('phishing-banco.eml')), 'Lista imagens e PDFs (QR)': pedidos, 'Lê os QR Codes': respostas,
+});
+teste('leitor de QR fora do ar: a análise segue e o parecer avisa', () => {
+  const ev = extrair(qrNos([{ error: { message: 'connect ECONNREFUSED' } }]));
+  assert.deepStrictEqual([ev.qr.falhou, ev.qr.lidos.length], [true, 0]);
+  const parecer = executar('parecer-final.js', ['texto.js'], { output: '' }, { 'Monta o dossiê': { sugestao_automatica: 'phishing', pontuacao: 70, fortes: [], sinais: [] }, 'Extrai as evidências': ev })[0].parecer;
+  assert.ok(parecer.avisos.some((a) => a.includes('leitor de QR Code')), parecer.avisos.join(' | '));
+});
+teste('QR lido: link de fora vira URL/IOC com a técnica; PDF com senha é técnica; PIX não soma', () => {
+  const ev = extrair(qrNos([
+    { statusCode: 200, body: { codigos: [{ texto: 'https://qr.golpe.example/x', pagina: 2 }], protegido: false } },
+    { statusCode: 200, body: { codigos: [], protegido: true, erro: 'PDF protegido por senha' } },
+  ], [{ nome: 'a.pdf' }, { nome: 'b.pdf' }]));
+  assert.ok(ev.urls.some((u) => u.url === 'https://qr.golpe.example/x' && u.sinais.some((s) => s.includes('QR Code'))));
+  assert.ok(ev.bloqueio.dominios.includes('qr.golpe.example'));
+  assert.ok(ids(ev).includes('qrcode-decodificado') && ids(ev).includes('pdf-com-senha'), ids(ev).join(', '));
+  const pix = '00020126360014br.gov.bcb.pix0114000000000001915204000053039865406100.005802BR5906LOJA X6009SAO PAULO62070503***6304ABCD';
+  const ev2 = extrair(qrNos([{ statusCode: 200, body: { codigos: [{ texto: pix }] } }]));
+  assert.ok(!ids(ev2).includes('qrcode-decodificado'));
+  assert.deepStrictEqual(ev2.iocs.pix, ['recebedor LOJA X · chave 00000000000191 · R$ 100.00']);
+});
 teste('evidências do e-mail de phishing', () => {
   assert.strictEqual(EV.email.de.email, 'alerta@itau-seguranca.example');
   assert.strictEqual(EV.email.responder.email, 'suporte.cliente.itau@gmail.com');

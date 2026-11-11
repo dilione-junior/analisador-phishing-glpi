@@ -89,11 +89,13 @@ O roteiro completo de atendimento está em [docs/playbook-phishing.md](docs/play
 | Fraude do "chefe" (BEC) | +15 | "estou em reunião, compre cartões-presente" |
 | Urgência, pedido de senha, pagamento, QR Code | +10 cada | "sua conta será bloqueada em 24 horas" |
 | Webmail gratuito falando em nome de empresa | +10 | "Financeiro" usando Gmail |
-| SPF + DKIM + DMARC passando | −15 | o e-mail saiu mesmo do domínio (não quer dizer que o domínio é confiável) |
+| SPF + DKIM + DMARC passando | −15 | o e-mail saiu mesmo do domínio (não quer dizer que o domínio é confiável); vale 0 em webmail gratuito, domínio novo ou abuso de serviço |
+| QR Code com link para fora / QR desenhado | +20 / +30 | link lido pelo leitor-qr dentro de imagem, PDF ou tabela HTML ([catálogo](docs/catalogo-tecnicas.md#qr-code-quishing)) |
+| **Catálogo de técnicas** | +15 a +40 | HTML/SVG smuggling, `.lnk` dentro do `.zip`, consentimento OAuth, golpe por telefone, domínio sósia da conversa ou da organização, conta salário... ([catálogo](docs/catalogo-tecnicas.md)) |
 
 A soma vira a **nota automática** (0 a 100). A IA lê o dossiê completo e dá o parecer, mas com travas:
 
-- evidência forte (VirusTotal 3+ ou URLhaus) **nunca** vira "legítimo" ou "spam";
+- evidência forte (VirusTotal 3+, URLhaus ou técnica forte do catálogo) **nunca** vira "legítimo" ou "spam";
 - nota automática 50+ não vira "legítimo": no máximo "inconclusivo";
 - a gravidade sobe pelo que o usuário fez (digitou senha / abriu anexo / pagou = **crítica**);
 - IA fora do ar ou resposta fora do formato = vale o parecer automático (o relato não fica parado).
@@ -125,6 +127,11 @@ do scanner (`Gemini`, `VirusTotal (x-apikey)`, `abuse.ch (Auth-Key)`). Comandos 
 Para o botão **Bloquear IOCs no Wazuh**: a credencial `Wazuh API (ngsoc-listas)` (a mesma da lista de botnets) e, no ng-soc-lab,
 `bash infra/wazuh/regras/criar-usuario-api-listas.sh` (libera as listas de phishing para esse usuário) e
 `bash infra/wazuh/regras/instalar-regras.sh` (cria as listas e as regras 100170-100172; reinicia o manager).
+
+Para ler **QR Codes**: o serviço `leitor-qr` do ng-soc-lab (`infra/leitor-qr`), ligado pelo compose do n8n
+(`docker compose up -d leitor-qr n8n` em `infra/n8n`). Sem ele, a análise funciona igual, só sem ler QR, e a ficha avisa.
+Conferir o leitor contra o conjunto de referência:
+`docker run --rm --network ng-soc-automacao_automacao_qr -v "$PWD:/repo:ro" --entrypoint node n8nio/n8n:2.46.4 /repo/tests/conferir-leitor-qr.js`.
 
 **1. Estrutura no GLPI** (grupo, categoria visível para o usuário, tipos de solução, tipos de documento `.eml`/`.msg`
 para o GLPI aceitar o anexo, leitura de anexos para o `n8n-api`):
@@ -195,6 +202,8 @@ No nó **Configuração** (um só, para as duas rotinas; o JSON é gerado por `s
 | `cotaDiaria` | 20 | máximo de análises por dia (cota gratuita do Gemini); o excedente fica para o dia seguinte |
 | `maxVirusTotal` | 4 | consultas por chamado (plano grátis: 4/min, 500/dia, compartilhado com o scanner) |
 | `dominiosConfiaveis` | `cybersecurity.local` | domínios da organização (separados por vírgula): nunca entram nos IOCs para bloqueio |
+| `nomesInternos` | vazio | pessoas-chave (diretoria, financeiro, RH), nome e sobrenome separados por vírgula: e-mail de fora com um destes nomes vira sinal de fraude (BEC) |
+| `leitorQr` / `maxArquivosQr` | `http://leitor-qr:8080/ler` / 4 | serviço que lê QR Codes e quantas imagens/PDFs do e-mail mandar para ele |
 | `listaDominios` / `listaIps` / `listaHashes` | `ngsoc-phishing-*` | listas CDB do Wazuh do botão "Bloquear IOCs" |
 | `diasNaLista` | 90 | quantos dias cada IOC fica nas listas do Wazuh |
 | `tipoPhishing` / `tipoLegitimo` / `tipoSpam` / `grupoN2` | nomes do GLPI | usados na decisão |
@@ -205,13 +214,13 @@ Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `
 ## Desenvolvimento
 
 ```bash
-node tests/testar-codigo.js      # 72 testes do código dos nós, sem n8n
-node tests/avaliar-corpus.js     # conjunto de referência: 25 e-mails realistas com gabarito de analista N3
+node tests/testar-codigo.js      # 88 testes do código dos nós, sem n8n
+node tests/avaliar-corpus.js     # conjunto de referência: 33 e-mails realistas com gabarito de analista N3
 python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
 
-O [conjunto de referência](tests/corpus/README.md) tem 17 phishings atuais (AiTM, quishing, HTML/SVG smuggling,
-consent phishing OAuth, abuso de SharePoint, BEC, callback...), 6 legítimos parecidos com golpe e 2 spams. Ele mede
+O [conjunto de referência](tests/corpus/README.md) tem 20 phishings atuais (AiTM, quishing em imagem, PDF e tabela HTML,
+HTML/SVG smuggling, consent phishing OAuth, abuso de SharePoint, BEC, callback...), 11 legítimos parecidos com golpe e 2 spams. Ele mede
 o que as regras pegam sozinhas, sem a IA, e registra cada técnica que o analisador ainda não reconhece (`lacuna`).
 Toda melhoria tem que melhorar esse placar sem criar falso positivo.
 
@@ -231,8 +240,9 @@ O CI roda os testes e o conjunto de referência, confere se o JSON está atualiz
 
 - [x] Ação "bloquear IOCs": ao confirmar phishing, enviar os domínios, IPs de links e hashes para as listas CDB do Wazuh (com aprovação).
 - [x] Conjunto de referência (25 e-mails com gabarito) e avaliação no CI: base para a fase de Phishing Intelligence.
-- [ ] Phishing Intelligence (versão reduzida): feeds de IOC, catálogo de técnicas (os `sinais_futuros` do conjunto),
-  radar semanal com aprovação humana, taxonomia na saída da IA, aprender com as decisões dos analistas.
+- [x] Catálogo de técnicas (Phishing Intelligence, etapa 2): [docs/catalogo-tecnicas.md](docs/catalogo-tecnicas.md).
+- [x] Leitura de QR Code (imagem, PDF e QR desenhado) pelo serviço leitor-qr do laboratório.
+- [ ] Phishing Intelligence (versão reduzida), resto: feeds de IOC, radar semanal com aprovação humana, taxonomia na saída da IA, aprender com as decisões dos analistas.
   Plano e ponto de parada: [docs/plano-phishing-intelligence.md](docs/plano-phishing-intelligence.md).
 - [ ] Busca de outras vítimas: quantos chamados/usuários relataram o mesmo remetente ou link (campanha).
 - [ ] `/painel` no Telegram: relatos do dia, tempo até a decisão e precisão da IA (métricas do Redis).
