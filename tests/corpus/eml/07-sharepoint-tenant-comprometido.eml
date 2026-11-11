@@ -1,0 +1,84 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Wed, 11 Nov
+	2026 14:05:39 +0000
+Received: from CP2PEPF0000012B.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Wed,
+	11 Nov 2026 14:05:39 +0000
+Authentication-Results: spf=pass (sender IP is 40.107.215.98)
+	smtp.mailfrom=sharepointonline.com; dkim=pass (signature was verified)
+	header.d=sharepointonline.com;dmarc=pass action=none
+	header.from=sharepointonline.com;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of sharepointonline.com
+	designates 40.107.215.98 as permitted sender)
+	receiver=protection.outlook.com; client-ip=40.107.215.98;
+	helo=sharepointonline.com;
+Received: from SEYPR02CU001.outbound.protection.outlook.com (40.107.215.98) by
+	CP2PEPF0000012B.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Wed, 11 Nov 2026 14:05:39 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sharepointonline.com;
+	s=selector1-sharepointonline-com;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Roberto Nogueira (via SharePoint Online) <no-reply@sharepointonline.com>
+Reply-To: roberto@construtoranogueira.example
+To: maria.souza@cybersecurity.local
+Subject: =?utf-8?q?Roberto_Nogueira_compartilhou_=22Comprovante=5FPagamento=5FMedicao?=
+	=?utf-8?q?=5FOut-2026=2Epdf=22_com_voc=C3=AA?=
+Date: Wed, 11 Nov 2026 14:05:39 +0000
+Message-ID: <5f0c2a17-9be4-4d71-8c3e-1a2b3c4d5e6f@SEYPR02MB6211.apcprd02.prod.outlook.com>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_SEYPR02MB6211E0F7_"
+MIME-Version: 1.0
+
+--_000_SEYPR02MB6211E0F7_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Roberto Nogueira compartilhou um arquivo com voc=C3=AA
+
+Segue o comprovante de pagamento da medi=C3=A7=C3=A3o de outubro. Confirme =
+o recebimento, por favor.
+
+Comprovante_Pagamento_Medicao_Out-2026.pdf
+
+Abrir: https://construtoranogueira-my.sharepoint.com/:b:/g/personal/roberto=
+_construtoranogueira_onmicrosoft_com/EaR7x2lQm1hBn4kP0sV9t3cB8wYj2KqX5u7Zr1=
+Df6gHnLw?e=3DQm3kVz
+
+Este link s=C3=B3 funciona para os destinat=C3=A1rios diretos desta mensage=
+m.
+
+--_000_SEYPR02MB6211E0F7_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Segoe UI,Arial;font-size:14px">
+<table width=3D"520" cellpadding=3D"0" cellspacing=3D"0"><tr><td style=3D"p=
+adding:20px">
+<p style=3D"font-size:21px">Roberto Nogueira compartilhou um arquivo com vo=
+c=C3=AA</p>
+<p style=3D"color:#605e5c">Segue o comprovante de pagamento da medi=C3=A7=
+=C3=A3o de outubro. Confirme o recebimento, por favor.</p>
+<table style=3D"border:1px solid #edebe9;padding:12px;width:100%"><tr><td>
+<b>Comprovante_Pagamento_Medicao_Out-2026.pdf</b></td></tr></table><br>
+<a href=3D"https://construtoranogueira-my.sharepoint.com/:b:/g/personal/rob=
+erto_construtoranogueira_onmicrosoft_com/EaR7x2lQm1hBn4kP0sV9t3cB8wYj2KqX5u=
+7Zr1Df6gHnLw?e=3DQm3kVz" style=3D"background:#0078d4;color:#fff;padding:8px=
+ 20px;text-decoration:none">Abrir</a>
+<p style=3D"font-size:12px;color:#605e5c;padding-top:20px">Este link s=C3=
+=B3 funciona para os destinat=C3=A1rios diretos desta mensagem.</p>
+<p style=3D"font-size:11px;color:#a19f9d">Microsoft respeita a sua privacid=
+ade. Para saber mais, leia nossa Pol=C3=ADtica de Privacidade.<br>
+Microsoft Corporation, One Microsoft Way, Redmond, WA 98052</p></td></tr></=
+table></body></html>
+--_000_SEYPR02MB6211E0F7_--

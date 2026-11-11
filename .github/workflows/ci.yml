@@ -21,6 +21,8 @@ jobs:
           python-version: '3.13'
       - name: Testes do código dos nós
         run: node tests/testar-codigo.js
+      - name: Conjunto de referência (sem regressão)
+        run: node tests/avaliar-corpus.js --ci
       - name: JSON do fluxo está atualizado com src/
         run: |
           python scripts/gerar-fluxo.py

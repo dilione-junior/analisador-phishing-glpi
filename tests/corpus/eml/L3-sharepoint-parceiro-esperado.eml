@@ -1,0 +1,72 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Fri, 20 Nov
+	2026 11:30:44 +0000
+Received: from CP2PEPF0000012B.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Fri,
+	20 Nov 2026 11:30:44 +0000
+Authentication-Results: spf=pass (sender IP is 40.107.215.71)
+	smtp.mailfrom=sharepointonline.com; dkim=pass (signature was verified)
+	header.d=sharepointonline.com;dmarc=pass action=none
+	header.from=sharepointonline.com;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of sharepointonline.com
+	designates 40.107.215.71 as permitted sender)
+	receiver=protection.outlook.com; client-ip=40.107.215.71;
+	helo=sharepointonline.com;
+Received: from SEYPR02CU002.outbound.protection.outlook.com (40.107.215.71) by
+	CP2PEPF0000012B.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Fri, 20 Nov 2026 11:30:44 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sharepointonline.com;
+	s=selector1-sharepointonline-com;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Paulo Martins (via SharePoint Online) <no-reply@sharepointonline.com>
+Reply-To: paulo@contabilmartins.example
+To: maria.souza@cybersecurity.local
+Subject: =?utf-8?q?Paulo_Martins_compartilhou_=22Balancete=5FOutubro=5F2026=2Exlsx=22?=
+	=?utf-8?q?_com_voc=C3=AA?=
+Date: Fri, 20 Nov 2026 11:30:44 +0000
+Message-ID: <9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d@SEYPR02MB7311.apcprd02.prod.outlook.com>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_SEYPR02MB7311A1B2_"
+MIME-Version: 1.0
+
+--_000_SEYPR02MB7311A1B2_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Paulo Martins compartilhou um arquivo com voc=C3=AA
+
+Segue o balancete de outubro, como pedido.
+
+Balancete_Outubro_2026.xlsx
+Abrir: https://contabilmartins-my.sharepoint.com/:x:/g/personal/paulo_conta=
+bilmartins_onmicrosoft_com/EcT9q1rWm2jAo5lQ1tU0v4dC9xZk3LrY6v8As2Eg7hIoMx?e=
+=3DXw7pRt
+
+--_000_SEYPR02MB7311A1B2_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Segoe UI,Arial;font-size:14px">
+<p style=3D"font-size:21px">Paulo Martins compartilhou um arquivo com voc=
+=C3=AA</p>
+<p style=3D"color:#605e5c">Segue o balancete de outubro, como pedido.</p>
+<table style=3D"border:1px solid #edebe9;padding:12px;width:480px"><tr><td>=
+<b>Balancete_Outubro_2026.xlsx</b></td></tr></table><br>
+<a href=3D"https://contabilmartins-my.sharepoint.com/:x:/g/personal/paulo_c=
+ontabilmartins_onmicrosoft_com/EcT9q1rWm2jAo5lQ1tU0v4dC9xZk3LrY6v8As2Eg7hIo=
+Mx?e=3DXw7pRt" style=3D"background:#0078d4;color:#fff;padding:8px 20px;text=
+-decoration:none">Abrir</a>
+<p style=3D"font-size:11px;color:#a19f9d">Microsoft Corporation, One Micros=
+oft Way, Redmond, WA 98052</p></body></html>
+--_000_SEYPR02MB7311A1B2_--

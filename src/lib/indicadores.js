@@ -24,7 +24,7 @@ const MARCAS = [
   { nome: 'Nubank', chaves: ['nubank'], oficiais: ['nubank.com.br', 'nu.com.br'] },
   { nome: 'Banco Inter', chaves: ['bancointer', 'banco inter'], oficiais: ['bancointer.com.br', 'inter.co'] },
   { nome: 'Mercado Livre / Mercado Pago', chaves: ['mercadolivre', 'mercado livre', 'mercadopago', 'mercado pago'], oficiais: ['mercadolivre.com.br', 'mercadopago.com.br', 'mercadolibre.com'] },
-  { nome: 'Microsoft', chaves: ['microsoft', 'office365', 'office 365', 'outlook', 'onedrive', 'sharepoint'], oficiais: ['microsoft.com', 'office.com', 'outlook.com', 'live.com', 'microsoftonline.com', 'office365.com', 'sharepoint.com', 'onmicrosoft.com', 'microsoft365.com'] },
+  { nome: 'Microsoft', chaves: ['microsoft', 'office365', 'office 365', 'outlook', 'onedrive', 'sharepoint'], oficiais: ['microsoft.com', 'office.com', 'outlook.com', 'live.com', 'microsoftonline.com', 'office365.com', 'sharepoint.com', 'sharepointonline.com', 'onmicrosoft.com', 'microsoft365.com'] },
   { nome: 'Google', chaves: ['google', 'gmail'], oficiais: ['google.com', 'gmail.com', 'google.com.br', 'googlemail.com', 'googleusercontent.com', 'withgoogle.com'] },
   { nome: 'Apple', chaves: ['apple', 'icloud'], oficiais: ['apple.com', 'icloud.com'] },
   { nome: 'PayPal', chaves: ['paypal'], oficiais: ['paypal.com', 'paypal.com.br'] },

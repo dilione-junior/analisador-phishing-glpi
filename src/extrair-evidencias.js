@@ -228,6 +228,7 @@ function motivoLegitimo(host) {
   if (noDominio(h, confiaveis)) return { tipo: 'casa', motivo: 'domínio da própria organização' };
   if (WEBMAIL_GRATUITO.has(h) || WEBMAIL_GRATUITO.has(dominioRegistravel(h))) return { tipo: 'webmail', motivo: 'webmail gratuito: bloqueie só o endereço, não o domínio' };
   if (noDominio(h, HOSPEDAGEM_ABUSADA)) return { tipo: 'compartilhado', motivo: 'serviço compartilhado: bloqueie só a URL, não o domínio' };
+  if (ENCURTADORES.has(h) || ENCURTADORES.has(dominioRegistravel(h))) return { tipo: 'compartilhado', motivo: 'encurtador de links: bloqueie só a URL, não o domínio' };
   const marca = MARCAS.find((m) => noDominio(h, m.oficiais));
   if (marca) return { tipo: 'oficial', motivo: `domínio oficial de ${marca.nome}` };
   return null;

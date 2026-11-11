@@ -205,14 +205,20 @@ Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `
 ## Desenvolvimento
 
 ```bash
-node tests/testar-codigo.js      # 70 testes do código dos nós, sem n8n
+node tests/testar-codigo.js      # 72 testes do código dos nós, sem n8n
+node tests/avaliar-corpus.js     # conjunto de referência: 25 e-mails realistas com gabarito de analista N3
 python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
+
+O [conjunto de referência](tests/corpus/README.md) tem 17 phishings atuais (AiTM, quishing, HTML/SVG smuggling,
+consent phishing OAuth, abuso de SharePoint, BEC, callback...), 6 legítimos parecidos com golpe e 2 spams. Ele mede
+o que as regras pegam sozinhas, sem a IA, e registra cada técnica que o analisador ainda não reconhece (`lacuna`).
+Toda melhoria tem que melhorar esse placar sem criar falso positivo.
 
 Execuções que deram certo não são guardadas no n8n (a rotina de decisões roda a cada minuto); as com erro, sim.
 O resultado de cada análise fica no GLPI, no Telegram e no Redis.
 
-O CI roda os testes, confere se o JSON está atualizado e passa o gitleaks.
+O CI roda os testes e o conjunto de referência, confere se o JSON está atualizado e passa o gitleaks.
 
 ## Limites conhecidos
 
@@ -224,6 +230,9 @@ O CI roda os testes, confere se o JSON está atualizado e passa o gitleaks.
 ## Roteiro
 
 - [x] Ação "bloquear IOCs": ao confirmar phishing, enviar os domínios, IPs de links e hashes para as listas CDB do Wazuh (com aprovação).
+- [x] Conjunto de referência (25 e-mails com gabarito) e avaliação no CI: base para a fase de Phishing Intelligence.
+- [ ] Phishing Intelligence (versão reduzida): feeds de IOC, catálogo de técnicas (os `sinais_futuros` do conjunto),
+  radar semanal com aprovação humana, taxonomia na saída da IA, aprender com as decisões dos analistas.
 - [ ] Busca de outras vítimas: quantos chamados/usuários relataram o mesmo remetente ou link (campanha).
 - [ ] `/painel` no Telegram: relatos do dia, tempo até a decisão e precisão da IA (métricas do Redis).
 - [ ] Ler o caixa de e-mail `phishing@` (botão "Reportar" do Outlook) e abrir o chamado sozinho.

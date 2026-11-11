@@ -1,0 +1,93 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Thu, 12 Nov
+	2026 16:22:40 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Thu,
+	12 Nov 2026 16:22:40 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.201)
+	smtp.mailfrom=graficapaullsta.example; dkim=pass (signature was verified)
+	header.d=graficapaullsta.example;dmarc=pass action=none
+	header.from=graficapaullsta.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of graficapaullsta.example
+	designates 203.0.113.201 as permitted sender)
+	receiver=protection.outlook.com; client-ip=203.0.113.201;
+	helo=graficapaullsta.example;
+Received: from mail.graficapaullsta.example (203.0.113.201) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Thu, 12 Nov 2026 16:22:40 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=graficapaullsta.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Juliana Prado <juliana.prado@graficapaullsta.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: RE: Pedido 4471 - Faturamento
+In-Reply-To: <GV1P195MB18129A2B@GV1P195MB1812.EURP195.PROD.OUTLOOK.COM>
+References: <GV1P195MB18129A2B@GV1P195MB1812.EURP195.PROD.OUTLOOK.COM>
+Date: Thu, 12 Nov 2026 16:22:40 +0000
+Message-ID: <GV1P195MB1812D0A9F3@graficapaullsta.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed; boundary="_004_GV1P195MB1812D0A9_"
+MIME-Version: 1.0
+
+--_004_GV1P195MB1812D0A9_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Bom dia, Ana,
+
+Conforme alinhado, segue em anexo a carta com os novos dados banc=C3=A1rios=
+ da Gr=C3=A1fica Paulista. Por uma mudan=C3=A7a de conta banc=C3=A1ria da e=
+mpresa (migra=C3=A7=C3=A3o de banco), pedimos que o pagamento do pedido 447=
+1 (R$ 38.250,00, vencimento 16/11) seja feito j=C3=A1 na conta nova.
+
+A conta antiga ser=C3=A1 encerrada nesta semana, por isso pedimos a gentile=
+za de atualizar o cadastro com urg=C3=AAncia.
+
+Atenciosamente,
+Juliana Prado
+Financeiro | Gr=C3=A1fica Paulista
+(11) 0093-4400
+
+De: Ana Ribeiro <ana.ribeiro@cybersecurity.local>
+Enviado: segunda-feira, 9 de novembro de 2026 14:10
+Para: Juliana Prado <juliana.prado@graficapaulista.example>
+Assunto: RE: Pedido 4471 - Faturamento
+
+Juliana, recebemos a NF do pedido 4471. O pagamento est=C3=A1 programado pa=
+ra o dia 16/11.
+
+Ana
+
+--_004_GV1P195MB1812D0A9_
+Content-Transfer-Encoding: base64
+Content-Type: application/pdf; name="Carta_Alteracao_Dados_Bancarios.pdf"
+Content-Disposition: attachment;
+ filename="Carta_Alteracao_Dados_Bancarios.pdf"
+
+JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4K
+ZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4K
+ZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAg
+MCA1OTUgODQyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAw
+IFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAyNDYgPj4Kc3RyZWFtCkJUIC9G
+MSAxMSBUZiA1MCA3ODAgVGQgMTQgVEwgKEdSQUZJQ0EgUEFVTElTVEEgTFREQSkgJyAoQ2FydGEg
+ZGUgYWx0ZXJhY2FvIGRlIGRhZG9zIGJhbmNhcmlvcykgJyAoQmFuY286IDAwMCAgQWdlbmNpYTog
+MDAwMCAgQ29udGE6IDAwMDAwMDAtMCkgJyAoRmF2b3JlY2lkbzogR3JhZmljYSBQYXVsaXN0YSBM
+dGRhKSAnIChEb2N1bWVudG8gZGUgdGVzdGUgZG8gY29ycHVzIGRvIGFuYWxpc2Fkb3ItcGhpc2hp
+bmctZ2xwaSkgJyBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1
+YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAw
+MDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA2NCAwMDAwMCBuIAow
+MDAwMDAwMTIxIDAwMDAwIG4gCjAwMDAwMDAyNDcgMDAwMDAgbiAKMDAwMDAwMDU0NCAwMDAwMCBu
+IAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjYxNAolJUVPRgo=
+
+--_004_GV1P195MB1812D0A9_--

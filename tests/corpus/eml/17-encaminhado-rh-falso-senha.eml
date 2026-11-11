@@ -1,0 +1,98 @@
+Received: from CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com with HTTPS; Wed, 18 Nov 2026
+	09:02:40 +0000
+From: =?utf-8?q?Jo=C3=A3o_Lima?= <joao.lima@cybersecurity.local>
+To: seguranca@cybersecurity.local
+Subject: ENC: Reajuste salarial 2027 e PLR - consulta individual
+Date: Wed, 18 Nov 2026 09:02:40 +0000
+Message-ID: <CP8PR80MB4932FWD0902@CP8PR80MB4932.lamprd80.prod.outlook.com>
+X-MS-Exchange-Organization-AuthAs: Internal
+Content-Type: multipart/mixed; boundary="_002_CP8PR80MB4932FWD_"
+MIME-Version: 1.0
+
+--_002_CP8PR80MB4932FWD_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Recebi isso, parece do RH mas o endere=C3=A7o =C3=A9 diferente.
+
+Jo=C3=A3o
+
+--_002_CP8PR80MB4932FWD_
+Content-Type: message/rfc822
+Content-Disposition: attachment; filename="Reajuste salarial 2027 e PLR.eml"
+
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Wed, 18 Nov
+	2026 08:30:12 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Wed,
+	18 Nov 2026 08:30:12 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.230)
+	smtp.mailfrom=rh-cybersecurity.example; dkim=none (message not signed)
+	header.d=none;dmarc=none action=none
+	header.from=rh-cybersecurity.example;compauth=softpass reason=201
+Received-SPF: Pass (protection.outlook.com: domain of rh-cybersecurity.example
+	designates 203.0.113.230 as permitted sender)
+	receiver=protection.outlook.com; client-ip=203.0.113.230;
+	helo=rh-cybersecurity.example;
+Received: from mail.rh-cybersecurity.example (203.0.113.230) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Wed, 18 Nov 2026 08:30:12 +0000
+From: RH - Cybersecurity <comunicados@rh-cybersecurity.example>
+To: joao.lima@cybersecurity.local
+Subject: Reajuste salarial 2027 e PLR - consulta individual
+Date: Wed, 18 Nov 2026 08:30:12 +0000
+Message-ID: <rh2027.0830@rh-cybersecurity.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: 
+ CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: 
+ CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: 
+ CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_RH2027_"
+MIME-Version: 1.0
+
+--_000_RH2027_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezados colaboradores,
+
+Informamos que a tabela de reajuste salarial 2027 e a nova pol=C3=ADtica de=
+ PLR j=C3=A1 est=C3=A3o dispon=C3=ADveis para consulta individual no Portal=
+ do Colaborador.
+
+Acesse com o seu usu=C3=A1rio e senha da rede: https://portal.rh-cybersecur=
+ity.example/colaborador/login?next=3D/reajuste-2027
+
+A consulta fica dispon=C3=ADvel at=C3=A9 sexta-feira.
+
+Atenciosamente,
+Recursos Humanos
+
+--_000_RH2027_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Calibri,Arial;font-size:11pt">
+<p>Prezados colaboradores,</p>
+<p>Informamos que a tabela de <b>reajuste salarial 2027</b> e a nova pol=C3=
+=ADtica de PLR j=C3=A1 est=C3=A3o dispon=C3=ADveis para consulta
+individual no Portal do Colaborador.</p>
+<p>Acesse com o seu usu=C3=A1rio e senha da rede: <a href=3D"https://portal=
+.rh-cybersecurity.example/colaborador/login?next=3D/reajuste-2027">Portal d=
+o Colaborador - Reajuste 2027</a></p>
+<p>A consulta fica dispon=C3=ADvel at=C3=A9 sexta-feira.</p>
+<p>Atenciosamente,<br>Recursos Humanos<br>Cybersecurity Ltda</p></body></ht=
+ml>
+--_000_RH2027_--
+
+--_002_CP8PR80MB4932FWD_--

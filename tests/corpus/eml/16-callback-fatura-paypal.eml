@@ -1,0 +1,80 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Tue, 17 Nov
+	2026 14:18:30 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Tue,
+	17 Nov 2026 14:18:30 +0000
+Authentication-Results: spf=pass (sender IP is 173.0.84.226)
+	smtp.mailfrom=paypal.com; dkim=pass (signature was verified)
+	header.d=paypal.com;dmarc=pass action=none
+	header.from=paypal.com;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of paypal.com designates
+	173.0.84.226 as permitted sender) receiver=protection.outlook.com;
+	client-ip=173.0.84.226; helo=paypal.com;
+Received: from mx0.slc.paypal.com (173.0.84.226) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Tue, 17 Nov 2026 14:18:30 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=paypal.com;
+	s=pp-dkim1; h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: "service@paypal.com" <service@paypal.com>
+To: lucas.ferreira@cybersecurity.local
+Subject: Fatura de Prime Software Solutions (INV2-7K4D-QW2N-88RT-2LZM)
+Date: Tue, 17 Nov 2026 14:18:30 +0000
+Message-ID: <1a2b3c4d5e6f.invoice@paypal.com>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="----=_Part_paypal_inv_7K4D"
+MIME-Version: 1.0
+
+------=_Part_paypal_inv_7K4D
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+PayPal
+
+Prime Software Solutions enviou uma fatura no valor de R$ 1.899,00
+
+Fatura n=C2=BA: INV2-7K4D-QW2N-88RT-2LZM
+
+Observa=C3=A7=C3=A3o do vendedor:
+Sua assinatura anual do Norton 360 Total Protection foi renovada automatica=
+mente. Se voc=C3=AA n=C3=A3o reconhece esta cobran=C3=A7a, ligue IMEDIATAME=
+NTE para o nosso suporte de cancelamento: 0800 000 4417 (24h). O valor ser=
+=C3=A1 debitado em 24 horas.
+
+Ver e pagar a fatura: https://www.paypal.com/invoice/p/#INV2-7K4D-QW2N-88RT=
+-2LZM
+
+------=_Part_paypal_inv_7K4D
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Helvetica,Arial;font-size:14px;color:#2c2e=
+2f">
+<p><b>PayPal</b></p>
+<p>Prime Software Solutions enviou uma fatura no valor de <b>R$ 1.899,00</b=
+></p>
+<table style=3D"border:1px solid #ddd;padding:12px"><tr><td>Fatura n=C2=BA:=
+ INV2-7K4D-QW2N-88RT-2LZM<br>
+Vencimento: na data do recebimento</td></tr>
+<tr><td style=3D"padding-top:10px"><b>Observa=C3=A7=C3=A3o do vendedor:</b>=
+<br>
+Sua assinatura anual do Norton 360 Total Protection foi renovada automatica=
+mente. Se voc=C3=AA n=C3=A3o reconhece esta
+cobran=C3=A7a, ligue IMEDIATAMENTE para o nosso suporte de cancelamento: <b=
+>0800 000 4417</b> (24h). O valor ser=C3=A1 debitado em 24 horas.</td></tr>=
+</table>
+<p><a href=3D"https://www.paypal.com/invoice/p/#INV2-7K4D-QW2N-88RT-2LZM">V=
+er e pagar a fatura</a></p>
+<p style=3D"font-size:11px">PayPal Pte. Ltd.</p></body></html>
+------=_Part_paypal_inv_7K4D--

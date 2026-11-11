@@ -1,0 +1,82 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Thu, 19 Nov
+	2026 10:21:05 +0000
+Received: from CP2PEPF0000012D.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Thu,
+	19 Nov 2026 10:21:05 +0000
+Authentication-Results: spf=pass (sender IP is 40.107.236.84)
+	smtp.mailfrom=accountprotection.microsoft.com; dkim=pass (signature was
+	verified) header.d=accountprotection.microsoft.com;dmarc=pass action=none
+	header.from=accountprotection.microsoft.com;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	accountprotection.microsoft.com designates 40.107.236.84 as permitted sender)
+	receiver=protection.outlook.com; client-ip=40.107.236.84;
+	helo=accountprotection.microsoft.com;
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (40.107.236.84)
+	by CP2PEPF0000012D.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Thu, 19 Nov 2026 10:21:05 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=accountprotection.microsoft.com; s=selector1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Equipe de contas da Microsoft
+	<account-security-noreply@accountprotection.microsoft.com>
+To: pedro.alves@cybersecurity.local
+Subject: Atividade de entrada incomum na conta Microsoft
+Date: Thu, 19 Nov 2026 10:21:05 +0000
+Message-ID: <RQZ7XKD1F2U4.441207@CY4PEPF0000E2E1.namprd05.prod.outlook.com>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="----=_Part_MSA_441207"
+MIME-Version: 1.0
+
+------=_Part_MSA_441207
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Conta Microsoft
+Atividade de entrada incomum
+
+Detectamos uma atividade de entrada incomum na conta Microsoft pe*****@cybe=
+rsecurity.local.
+
+Pa=C3=ADs/regi=C3=A3o: Portugal
+
+Se foi voc=C3=AA, pode ignorar este email com seguran=C3=A7a.
+Se n=C3=A3o foi voc=C3=AA, sua conta pode ter sido comprometida.
+
+Revisar atividade recente: https://account.live.com/Activity
+
+------=_Part_MSA_441207
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Segoe UI,Arial;font-size:14px;color:#2a2a2=
+a">
+<p style=3D"font-size:20px;color:#2672ec">Conta Microsoft</p>
+<p style=3D"font-size:30px;color:#2672ec">Atividade de entrada incomum</p>
+<p>Detectamos uma atividade de entrada incomum na conta Microsoft pe*****@c=
+ybersecurity.local.</p>
+<p>Detalhes de entrada<br>Pa=C3=ADs/regi=C3=A3o: Portugal<br>Endere=C3=A7o =
+IP: 2.xx.xx.140<br>Data: 19/11/2026 07:14 (GMT)<br>
+Plataforma: Windows<br>Navegador: Edge</p>
+<p>Se foi voc=C3=AA, pode ignorar este email com seguran=C3=A7a.</p>
+<p>Se n=C3=A3o foi voc=C3=AA, sua conta pode ter sido comprometida. Siga as=
+ pr=C3=B3ximas etapas:</p>
+<p><a href=3D"https://account.live.com/Activity">Revisar atividade recente<=
+/a></p>
+<p>Para cancelar a assinatura ou alterar para onde voc=C3=AA recebe notific=
+a=C3=A7=C3=B5es de seguran=C3=A7a,
+<a href=3D"https://account.live.com/SecurityNotifications/Update">clique aq=
+ui</a>.</p>
+<p>Obrigado,<br>Equipe de contas da Microsoft</p></body></html>
+------=_Part_MSA_441207--

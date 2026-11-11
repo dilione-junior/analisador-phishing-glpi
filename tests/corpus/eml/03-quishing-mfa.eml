@@ -1,0 +1,96 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Tue, 10 Nov
+	2026 10:15:33 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Tue,
+	10 Nov 2026 10:15:33 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.88)
+	smtp.mailfrom=cybersecurity-ti.example; dkim=none (message not signed)
+	header.d=none;dmarc=none action=none
+	header.from=cybersecurity-ti.example;compauth=softpass reason=201
+Received-SPF: Pass (protection.outlook.com: domain of cybersecurity-ti.example
+	designates 203.0.113.88 as permitted sender) receiver=protection.outlook.com;
+	client-ip=203.0.113.88; helo=cybersecurity-ti.example;
+Received: from smtp.cybersecurity-ti.example (203.0.113.88) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Tue, 10 Nov 2026 10:15:33 +0000
+From: =?utf-8?q?Central_de_Servi=C3=A7os_de_TI?=
+	<servicedesk@cybersecurity-ti.example>
+To: pedro.alves@cybersecurity.local
+Subject: =?utf-8?b?W09icmlnYXTDs3Jpb10gUmVjb25maWd1cmHDp8OjbyBkbyBNRkEgYXTDqSAxMy8x?=
+	=?utf-8?b?MQ==?=
+Date: Tue, 10 Nov 2026 10:15:33 +0000
+Message-ID: <a81f3c20b9e44d5e9f1c@cybersecurity-ti.example>
+X-Mailer: Microsoft Outlook 16.0
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/related;
+ boundary="----=_NextPart_001_0042_01DB3A1C.5E2F7A40"
+MIME-Version: 1.0
+
+------=_NextPart_001_0042_01DB3A1C.5E2F7A40
+Content-Type: multipart/alternative;
+ boundary="----=_NextPart_002_0043_01DB3A1C.5E2F7A40"
+
+------=_NextPart_002_0043_01DB3A1C.5E2F7A40
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Central de Servi=C3=A7os de TI
+
+Prezado(a) colaborador(a),
+
+Por exig=C3=AAncia da nova pol=C3=ADtica de seguran=C3=A7a, a autentica=C3=
+=A7=C3=A3o multifator (MFA) da sua conta precisa ser reconfigurada at=C3=A9=
+ 13/11/2026. Escaneie o QR Code abaixo com a c=C3=A2mera do seu celular e s=
+iga as instru=C3=A7=C3=B5es.
+
+[imagem]
+
+Contas n=C3=A3o reconfiguradas no prazo ser=C3=A3o desativadas.
+
+Central de Servi=C3=A7os de TI
+Cybersecurity Ltda
+
+------=_NextPart_002_0043_01DB3A1C.5E2F7A40
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Arial,sans-serif;font-size:13px">
+<p><b>Central de Servi=C3=A7os de TI</b></p>
+<p>Prezado(a) colaborador(a),</p>
+<p>Por exig=C3=AAncia da nova pol=C3=ADtica de seguran=C3=A7a, a autentica=
+=C3=A7=C3=A3o multifator (MFA) da sua conta precisa ser reconfigurada
+at=C3=A9 <b>13/11/2026</b>. Escaneie o QR Code abaixo com a c=C3=A2mera do =
+seu celular e siga as instru=C3=A7=C3=B5es.</p>
+<p><img src=3D"cid:qr-mfa-2026" width=3D"220" height=3D"220" alt=3D"QR"></p>
+<p>Contas n=C3=A3o reconfiguradas no prazo ser=C3=A3o desativadas.</p>
+<p>Central de Servi=C3=A7os de TI<br>Cybersecurity Ltda</p></body></html>
+------=_NextPart_002_0043_01DB3A1C.5E2F7A40--
+
+------=_NextPart_001_0042_01DB3A1C.5E2F7A40
+Content-Transfer-Encoding: base64
+Content-Type: image/png; name="image001.png"
+Content-Disposition: inline; filename="image001.png"
+Content-ID: <qr-mfa-2026>
+
+iVBORw0KGgoAAAANSUhEUgAAAQ4AAAEOAQAAAABQysQIAAAB4UlEQVR42u1ZwY3kMAwT1gW4JLee
+klyAAZ1I2gbmNcC+josEfkwyeoSQSFFK5LdrxRvyhrwh30MC18gZqz91Mutkm3jaKuQnvl7/UwgQ
+1WvnvIiyTv3GE/5liWhGmwMZmaPls2KcJ8McEeBEVzFWyv4IoiIRag9pckZEHiFBEYsoAM2ZR9I6
+kOjjGGudroJw6aMEbYH35BFQnEqTkud+aJqjp6orqrcSSJFIYo5bUx51yl29/FW5DhlvROrLo4Kg
+vNAIoSWt7qp1eHOVGQScdkgyPl21bgW5w/ZKxWbt0a/aKgNAsb1G1R7r7aEjcuVRkDjxYX6e3Flz
+1Tp2H6ap8vJhxX37EXrQOoWX+I1bVx4RS5N5gIaDR7HZZOqCZH5CEK5baM4zLDLClnrNqty4r1OV
+VkMfqAzbLfRMX/We2ypQH4YarnE/OhsGlNncgiAT7jtNaJ0l6RYc9aO0ncqbjBCUQZs6sMl9hhVx
+0I80Lmn0s+1HQiGDKiNEw/DY5oibHyZoCVrsRZD9LoiTeHCf3+Rgnfd1Se7ALexMGc+w2qkeUEOp
+sc6RBiK11ztWsB9FM0e0bWrXEnJEeCO6C7rdks5m0pdHd/+jepP99v42waScfZ0+tXjvVN8v7m/I
+G/LbkH/XeyUrByihmwAAAABJRU5ErkJggg==
+
+------=_NextPart_001_0042_01DB3A1C.5E2F7A40--
