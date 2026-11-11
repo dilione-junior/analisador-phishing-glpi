@@ -1,0 +1,47 @@
+Received: from CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com with HTTPS; Tue, 24 Nov 2026
+	09:00:00 +0000
+Authentication-Results: dkim=none (message not signed)
+	header.d=none;dmarc=none action=none header.from=cybersecurity.local;
+From: =?utf-8?q?Central_de_Servi=C3=A7os_de_TI?=
+	<servicedesk@cybersecurity.local>
+To: todos@cybersecurity.local
+Subject: Novo sistema de ponto liberado
+Date: Tue, 24 Nov 2026 09:00:00 +0000
+Message-ID: <CP8PR80MB4932PONTO0900@CP8PR80MB4932.lamprd80.prod.outlook.com>
+X-MS-Exchange-Organization-AuthAs: Internal
+X-MS-Exchange-Organization-AuthSource: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_CP8PR80MB4932PONTO_"
+MIME-Version: 1.0
+
+--_000_CP8PR80MB4932PONTO_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Ol=C3=A1, equipe,
+
+O novo sistema de ponto j=C3=A1 est=C3=A1 liberado. Entre com a sua conta c=
+orporativa (o mesmo login do Outlook): https://login.microsoftonline.com/0f=
+6a1d2c-3b4e-4f5a-8c9d-1e2f3a4b5c6d/oauth2/v2.0/authorize?client_id=3D5c1d2e=
+3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f&response_type=3Dcode&redirect_uri=3Dhttps%3A=
+%2F%2Fponto.cybersecurity.local%2Fsignin-oidc&scope=3Dopenid%20profile%20Us=
+er.Read&response_mode=3Dform_post
+
+D=C3=BAvidas: Central de Servi=C3=A7os de TI - ramal 4000.
+
+--_000_CP8PR80MB4932PONTO_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Calibri,Arial;font-size:11pt">
+<p>Ol=C3=A1, equipe,</p>
+<p>O novo sistema de ponto j=C3=A1 est=C3=A1 liberado. Entre com a sua cont=
+a corporativa (o mesmo login do Outlook):
+<a href=3D"https://login.microsoftonline.com/0f6a1d2c-3b4e-4f5a-8c9d-1e2f3a=
+4b5c6d/oauth2/v2.0/authorize?client_id=3D5c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e=
+4f&response_type=3Dcode&redirect_uri=3Dhttps%3A%2F%2Fponto.cybersecurity.lo=
+cal%2Fsignin-oidc&scope=3Dopenid%20profile%20User.Read&response_mode=3Dform=
+_post">Acessar o sistema de ponto</a>.</p>
+<p>D=C3=BAvidas: Central de Servi=C3=A7os de TI - ramal 4000.</p></body></h=
+tml>
+--_000_CP8PR80MB4932PONTO_--

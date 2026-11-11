@@ -47,12 +47,14 @@ if ((classe === 'legitimo' || classe === 'spam') && d.pontuacao >= 50) {
   avisos.push(`A IA sugeriu "${classe}", mas a nota automática é ${d.pontuacao}/100: rebaixado para inconclusivo.`);
   classe = 'inconclusivo';
 }
+if (ev.qr?.falhou) avisos.push(`O leitor de QR Code (leitor-qr) não respondeu: ${ev.qr.arquivos} imagem(ns)/PDF(s) do e-mail não foram lidos. Confira o contêiner e use /reanalisar.`);
 if (!ev.tem_email && !ev.urls.length) {
   confianca = Math.min(confianca, 50);
   avisos.push('O chamado não traz o e-mail (nem cabeçalhos, nem links): peça ao usuário para anexar o e-mail como arquivo (.eml/.msg).');
 }
 
 const i = ev.interacao;
+const tecnicas = ev.tecnicas ?? [];
 let gravidade = GRAVIDADES.includes(sem(p.gravidade)) ? sem(p.gravidade) : classe === 'phishing' ? 'media' : 'baixa';
 const minimo = (g) => { if (GRAVIDADES.indexOf(gravidade) < GRAVIDADES.indexOf(g)) gravidade = g; };
 if (classe === 'phishing' || classe === 'inconclusivo') {
@@ -70,13 +72,16 @@ if (classe !== 'legitimo' && classe !== 'spam') {
   if (i.pagou) obrigatorias.push('Acionar o financeiro e o banco imediatamente para tentar bloquear/estornar o pagamento (no PIX: pedir o MED)');
   if (i.clicou && !i.senha) obrigatorias.push('Confirmar com o usuário se ele digitou algum dado na página e procurar o acesso ao domínio nos logs de proxy/DNS');
   if (i.respondeu) obrigatorias.push('Ver o que o usuário respondeu: se enviou dados, tratar como vazamento');
+  // Catálogo de técnicas: a resposta muda com a técnica (ex.: OAuth não se resolve trocando a senha).
+  for (const t of tecnicas) if (t.orientacao) obrigatorias.push(t.orientacao);
 }
-const acoes = [...obrigatorias, ...lista(p.acoes_soc, 6)].filter((a, k, todas) => todas.findIndex((b) => sem(b) === sem(a)) === k).slice(0, 8);
+const acoes = [...obrigatorias, ...lista(p.acoes_soc, 6)].filter((a, k, todas) => todas.findIndex((b) => sem(b) === sem(a)) === k).slice(0, 9);
 if (!acoes.length && classe === 'phishing') {
   acoes.push('Bloquear o remetente e o domínio no filtro de e-mail', 'Procurar e apagar cópias do mesmo e-mail nas outras caixas', 'Bloquear os links/domínios no proxy ou DNS');
 }
 
 const mitre = [...new Set(lista(p.mitre, 5, 20).map((t) => t.toUpperCase()).filter((t) => /^T\d{4}(\.\d{3})?$/.test(t)))];
+if (classe === 'phishing') for (const t of tecnicas.flatMap((x) => x.mitre)) if (!mitre.includes(t) && mitre.length < 6) mitre.push(t);
 if (classe === 'phishing' && !mitre.length) {
   if (ev.anexos.some((a) => a.perigosa || a.dupla_extensao)) mitre.push('T1566.001');
   if (ev.urls.length) mitre.push('T1566.002');
@@ -88,7 +93,8 @@ return [{ json: {
     classificacao: classe,
     confianca,
     gravidade,
-    tipo_ataque: linha(p.tipo_ataque, 80) || (classe === 'phishing' ? 'phishing' : ''),
+    tipo_ataque: linha(p.tipo_ataque, 80) || (classe === 'phishing' ? linha(tecnicas[0]?.nome ?? 'phishing', 80) : ''),
+    tecnicas: tecnicas.map((t) => t.nome),
     mitre,
     resumo: curto(p.resumo, 700) || `Sugestão automática pela nota ${d.pontuacao}/100 (${d.sinais.filter((s) => s.peso > 0).length} sinais de risco).`,
     evidencias: lista(p.evidencias, 6).length ? lista(p.evidencias, 6) : d.sinais.filter((s) => s.peso > 0).sort((a, b) => b.peso - a.peso).slice(0, 6).map((s) => s.descricao),

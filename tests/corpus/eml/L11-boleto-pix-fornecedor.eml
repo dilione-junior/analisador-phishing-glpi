@@ -1,0 +1,87 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Wed, 25 Nov
+	2026 08:30:00 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Wed,
+	25 Nov 2026 08:30:00 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.200)
+	smtp.mailfrom=graficapaulista.example; dkim=pass (signature was verified)
+	header.d=graficapaulista.example;dmarc=pass action=none
+	header.from=graficapaulista.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of graficapaulista.example
+	designates 198.51.100.200 as permitted sender)
+	receiver=protection.outlook.com; client-ip=198.51.100.200;
+	helo=graficapaulista.example;
+Received: from mail.graficapaulista.example (198.51.100.200) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Wed, 25 Nov 2026 08:30:00 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=graficapaulista.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: =?utf-8?q?Gr=C3=A1fica_Paulista_-_Faturamento?=
+	<nfe@graficapaulista.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: =?utf-8?q?Boleto_do_pedido_4480_-_Gr=C3=A1fica_Paulista?=
+Date: Wed, 25 Nov 2026 08:30:00 +0000
+Message-ID: <boleto4480.1763980200@graficapaulista.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed; boundary="----=_Part_Boleto_4480_1763980200"
+MIME-Version: 1.0
+
+------=_Part_Boleto_4480_1763980200
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezado cliente,
+
+Segue o boleto do pedido 4480 (vencimento 05/12/2026, R$ 12.450,00). O paga=
+mento tamb=C3=A9m pode ser feito por PIX pelo QR Code impresso no boleto.
+
+Gr=C3=A1fica Paulista Ltda
+Este =C3=A9 um e-mail autom=C3=A1tico do sistema de faturamento.
+
+------=_Part_Boleto_4480_1763980200
+Content-Transfer-Encoding: base64
+Content-Type: application/pdf; name="Boleto_Pedido_4480.pdf"
+Content-Disposition: attachment; filename="Boleto_Pedido_4480.pdf"
+
+JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4K
+ZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4K
+ZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAg
+MCA1OTUgODQyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAw
+IFIgPj4gL1hPYmplY3QgPDwgL0ltMSA2IDAgUiA+PiA+PiA+PgplbmRvYmoKNCAwIG9iago8PCAv
+TGVuZ3RoIDI0NyA+PgpzdHJlYW0KQlQgL0YxIDExIFRmIDUwIDc4MCBUZCAxNCBUTCAoQm9sZXRv
+IC0gUGVkaWRvIDQ0ODAgLSBHUkFGSUNBIFBBVUxJU1RBIExUREEpICcgKFZlbmNpbWVudG8gMDUv
+MTIvMjAyNiAtIFIkIDEyLjQ1MCwwMCkgJyAoUGFndWUgY29tIFBJWCBwZWxvIFFSIENvZGUpICcg
+KERvY3VtZW50byBkZSB0ZXN0ZSBkbyBjb3JwdXMgZG8gYW5hbGlzYWRvci1waGlzaGluZy1nbHBp
+KSAnIEVUIHEgMTcwIDAgMCAxNzAgNTAgNTIwIGNtIC9JbTEgRG8gUQplbmRzdHJlYW0KZW5kb2Jq
+CjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0
+aWNhID4+CmVuZG9iago2IDAgb2JqCjw8IC9UeXBlIC9YT2JqZWN0IC9TdWJ0eXBlIC9JbWFnZSAv
+V2lkdGggNTcgL0hlaWdodCA1NyAvQ29sb3JTcGFjZSAvRGV2aWNlR3JheSAvQml0c1BlckNvbXBv
+bmVudCA4IC9GaWx0ZXIgL0ZsYXRlRGVjb2RlIC9MZW5ndGggNDk4ID4+CnN0cmVhbQp42uWW0XbD
+MAhD9f8/rbVLgCucnr5v2VnrOgYDloTt//Hoel7f17gnX5/18j3ZP9rw/vx90SZjMUNhfXm6/b2X
+1bAXd0C1chne3q4FFbjd//5kWMm5t2MEewvkWLZ3IXyU6sixU//6l1U1tkZtbfci+dN6oXJ0fk2V
+s+Vh4tS4ibNFqI6dq4wua3cR6brqwWDFQnaOHTeLyFARrhMj0hrtqrZFL3XjroJ0w5LIud/PETfs
+PEBFsk6o1PmNUb+95zbkwv9Qs+pcI8d5yAN/LeAi2xkvkGsOH0xk8D5yLF9G6QdJs12XN2MNG6Tg
+xsNMDXUjEdHPJl0i7nimqFPfEUOCvESD+eBUHBkvXo2opdiFRpw5hsKhPEO8OuBHLYciUoWnUGkJ
+FNS+nTnExd4AGOFc/MCZCjgxlMWoS+rcsHdn6FQcAZiC6Hnv+AysQOao5FLy4ICGxSGtIPYW8dAb
+6pAVbSd1lcIc6qKU9kNzDOZKuyWzRy7ktCuJkB6CUM4OzYnLgoIBc6FYCjCHbHYR/lryCLwNW1N+
+wGutc0TzU94BVt/41JAJJCu0lIK/2Cih1xmMZ2N4uFmxXZn4iX79fM/J25TISdzpTkP0DDSPuCw9
+XsmmxTSFpCSMVgdAFSmyC9w6ryusKkDO3njm+NefH1NOh9sKZW5kc3RyZWFtCmVuZG9iagp4cmVm
+CjAgNwowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA2NCAw
+MDAwMCBuIAowMDAwMDAwMTIxIDAwMDAwIG4gCjAwMDAwMDAyNzMgMDAwMDAgbiAKMDAwMDAwMDU3
+MSAwMDAwMCBuIAowMDAwMDAwNjQxIDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNyAvUm9vdCAx
+IDAgUiA+PgpzdGFydHhyZWYKMTMwNwolJUVPRgo=
+
+------=_Part_Boleto_4480_1763980200--

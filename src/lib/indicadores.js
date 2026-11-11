@@ -48,7 +48,17 @@ const HOSPEDAGEM_ABUSADA = ['drive.google.com', 'docs.google.com', 'forms.gle', 
   '000webhostapp.com', 'blogspot.com', 'dropbox.com', '1drv.ms', 'onedrive.live.com', 'notion.site', 'ipfs.io', 'ngrok-free.app',
   'ngrok.io', 'trycloudflare.com', 'typeform.com', 'jotform.com', 'canva.site', 'webflow.io', 'framer.app'];
 
-const WEBMAIL_GRATUITO = new Set(['gmail.com', 'outlook.com', 'hotmail.com', 'live.com', 'yahoo.com', 'yahoo.com.br', 'bol.com.br',
+// Hospedagens em que cada SUBDOMÍNIO é de um único cliente (golpe.pages.dev é só do atacante): o subdomínio pode ir
+// para o bloqueio; o domínio do serviço (pages.dev) nunca.
+const HOSPEDAGEM_POR_SUBDOMINIO = ['firebaseapp.com', 'web.app', 'pages.dev', 'workers.dev', 'r2.dev', 'github.io', 'netlify.app',
+  'vercel.app', 'glitch.me', 'weebly.com', 'wixsite.com', '000webhostapp.com', 'blogspot.com', 'notion.site', 'ngrok-free.app',
+  'ngrok.io', 'trycloudflare.com', 'canva.site', 'webflow.io', 'framer.app'];
+function subdominioDeCliente(host) {
+  const h = String(host ?? '').toLowerCase();
+  return !h.startsWith('www.') && HOSPEDAGEM_POR_SUBDOMINIO.some((d) => h.endsWith('.' + d));
+}
+
+const WEBMAIL_GRATUITO =new Set(['gmail.com', 'outlook.com', 'hotmail.com', 'live.com', 'yahoo.com', 'yahoo.com.br', 'bol.com.br',
   'uol.com.br', 'terra.com.br', 'icloud.com', 'proton.me', 'protonmail.com', 'gmx.com', 'aol.com', 'zoho.com', 'mail.com', 'yandex.com']);
 
 const EXTENSOES_PERIGOSAS = new Set(['exe', 'scr', 'com', 'pif', 'js', 'jse', 'vbs', 'vbe', 'wsf', 'wsh', 'hta', 'bat', 'cmd', 'ps1',
@@ -58,9 +68,9 @@ const EXTENSOES_COMPACTADAS = new Set(['zip', 'rar', '7z', 'gz', 'tgz', 'cab', '
 
 const SINAIS_TEXTO = [
   { id: 'urgencia', peso: 10, rotulo: 'linguagem de urgência ou ameaça', re: /(conta|acesso|cart[aã]o|cpf|cadastro)\s+(ser[aá]|foi|est[aá]|ser[aã]o)\s+(bloquead|suspens|cancelad|encerrad|desativad)|\b(urgente|imediatamente|[uú]ltimas?\s+horas|em\s+(24|48|72)\s*h(oras)?|prazo\s+final|evite\s+o\s+bloqueio)\b|\b(urgent|immediately|account (will be )?(suspended|locked|closed))\b/i },
-  { id: 'credenciais', peso: 10, rotulo: 'pede para confirmar senha, dados ou identidade', re: /\b(confirm|atualiz|valid|verifiqu|recadastr|regulariz)\w*\s+(a\s+|o\s+|sua\s+|seu\s+|seus\s+|suas\s+)?(senha|dados|cadastro|identidade|conta|credenciais|token|chave)|\bsenha\s+(expir|vence|ir[aá]\s+expirar)|\b(verify your (account|identity)|password (expires|expired)|unusual sign.?in|confirm your (password|account))\b/i },
+  { id: 'credenciais', peso: 10, rotulo: 'pede para confirmar senha, dados ou identidade', re: /\b(confirm|atualiz|valid|verifiqu|recadastr|regulariz)\w*\s+(a\s+|o\s+|sua\s+|seu\s+|seus\s+|suas\s+)?(senha|dados|cadastro|identidade|conta|credenciais|token|chave)|\bsenha\s+(expir|vence|ir[aá]\s+expirar)|\b(acesse|entre|logue|fa[cç]a\s+(o\s+)?login)\s+(com\s+)?(o\s+|a\s+)?(seu|sua)\s+(usu[aá]rio|login|e-?mail|matr[ií]cula)\s+e\s+senha|\b(verify your (account|identity)|password (expires|expired)|unusual sign.?in|confirm your (password|account))\b/i },
   { id: 'pagamento', peso: 10, rotulo: 'fala de pagamento, boleto, PIX, multa ou prêmio', re: /\b(boleto|fatura em aberto|pagamento pendente|d[eé]bito pendente|pix|multa|intima[cç][aã]o|restitui[cç][aã]o|pr[eê]mio|voc[eê] ganhou|sorteio|reembolso|invoice|payment (due|overdue)|wire transfer)\b/i },
-  { id: 'bec', peso: 15, rotulo: 'padrão de fraude do "chefe" (BEC): pedido de transferência, troca de conta ou cartão-presente', re: /\b(novos dados banc[aá]rios|mudan[cç]a (de|da) conta banc[aá]ria|alterar (a )?conta (para|de) pagamento|preciso de um favor|estou em (uma )?reuni[aã]o|cart(ão|oes|ões)[- ]presente|gift ?cards?|transfer[eê]ncia urgente|n[aã]o comente com ningu[eé]m)\b/i },
+  { id: 'bec', peso: 15, rotulo: 'padrão de fraude do "chefe" (BEC): pedido de transferência, troca de conta ou cartão-presente', re: /\b(novos dados banc[aá]rios|mudan[cç]a (de|da) conta banc[aá]ria|alterar (a )?conta (para|de) pagamento|preciso de um favor|cart(ão|oes|ões)[- ]presente|gift ?cards?|transfer[eê]ncia urgente|n[aã]o comente com ningu[eé]m)\b/i },
   { id: 'qrcode', peso: 10, rotulo: 'pede para ler QR Code (quishing)', re: /\b(qr ?code|c[oó]digo qr)\b/i },
 ];
 

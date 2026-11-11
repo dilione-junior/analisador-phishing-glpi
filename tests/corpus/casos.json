@@ -44,6 +44,7 @@
     }
    },
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },
@@ -70,12 +71,13 @@
     ]
    },
    "sinais_obrigatorios": [
-    "hospedagem"
+    "hospedagem",
+    "aitm-isca",
+    "compartilhamento-falso",
+    "relato-pagina-falsa"
    ],
    "sinais_proibidos": [],
-   "sinais_futuros": [
-    "aitm-isca"
-   ],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "proposta-moreira-adv.pages.dev"
@@ -90,7 +92,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "Remetente legítimo (autenticação passa, domínio antigo): o analisador ainda não reconhece o padrão AiTM (e-mail da vítima em base64 na URL, \"documento compartilhado\" fora do SharePoint/OneDrive, página em pages.dev/workers.dev). Sem o relato, a nota fica baixa.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -115,12 +118,13 @@
     ]
    },
    "sinais_obrigatorios": [
-    "qrcode"
+    "qrcode",
+    "imita-organizacao",
+    "qrcode-decodificado",
+    "aitm-isca"
    ],
    "sinais_proibidos": [],
-   "sinais_futuros": [
-    "qrcode-decodificado"
-   ],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "cybersecurity-ti.example"
@@ -135,7 +139,12 @@
     }
    },
    "ioc_escondido": "mfa-cybersecurity.example",
-   "lacuna": "O link está só dentro do QR Code (imagem): o analisador ainda não lê QR Codes, então o domínio mfa-cybersecurity.example não aparece nos IOCs. Também não reconhece imitação do domínio da PRÓPRIA empresa.",
+   "qr": {
+    "image001.png": [
+     "https://mfa-cybersecurity.example/r/?u=cGVkcm8uYWx2ZXNAY3liZXJzZWN1cml0eS5sb2NhbA=="
+    ]
+   },
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -163,12 +172,11 @@
     "anexo-perigoso",
     "spf",
     "dmarc",
-    "pagamento"
-   ],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
+    "pagamento",
     "html-smuggling"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "nfe-eletronica-sefaz.example"
@@ -183,7 +191,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "O analisador vê \"anexo .html\", mas não reconhece o HTML smuggling (atob + Blob + download automático).",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -207,12 +216,11 @@
     ]
    },
    "sinais_obrigatorios": [
-    "anexo-perigoso"
-   ],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
+    "anexo-perigoso",
     "svg-script"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "voip-cloudpbx.example"
@@ -227,7 +235,8 @@
     }
    },
    "ioc_escondido": "voicemail-player.example",
-   "lacuna": "O analisador marca o .svg como perigoso, mas não lê o <script> nem decodifica o atob(): o domínio voicemail-player.example (destino real) não aparece nos IOCs.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -251,11 +260,11 @@
      "T1528"
     ]
    },
-   "sinais_obrigatorios": [],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
+   "sinais_obrigatorios": [
     "oauth-consentimento"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "assinafacil-app.example"
@@ -271,7 +280,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "O link é do domínio oficial da Microsoft, então hoje ele vai para \"fora do bloqueio\" e não gera sinal. Falta reconhecer URL de consentimento OAuth (oauth2/authorize + prompt=consent + escopos de e-mail/arquivos + redirect_uri externo) e orientar a revogar o app no Entra ID (trocar senha não basta).",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -294,13 +304,13 @@
      "T1199"
     ]
    },
-   "sinais_obrigatorios": [],
+   "sinais_obrigatorios": [
+    "relato-pagina-falsa"
+   ],
    "sinais_proibidos": [
     "marca"
    ],
-   "sinais_futuros": [
-    "relato-pagina-falsa"
-   ],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [],
     "nao_pode_ter": [
@@ -311,7 +321,8 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
-   "lacuna": "Pelo e-mail, nada denuncia: a evidência está no relato (\"pediu a senha numa página de outro endereço\"). O analisador ainda não pesa o relato do usuário como evidência, só como interação. Atenção: o domínio do cliente invadido (Reply-To) entra nos IOCs; o analista não deve bloqueá-lo (cortaria um cliente).",
+   "qr": {},
+   "lacuna": "Pelo e-mail, nada denuncia (SharePoint verdadeiro de um cliente invadido): só o relato (\"pediu a senha numa página de outro endereço\") levanta a suspeita, e sozinho ele leva a INCONCLUSIVO (vai ao analista), não a phishing. A página falsa está atrás do PDF, que o analisador não abre. Atenção: o domínio do cliente invadido (Reply-To) entra nos IOCs; o analista não deve bloqueá-lo (cortaria um cliente).",
    "nota": ""
   },
   {
@@ -335,12 +346,12 @@
     ]
    },
    "sinais_obrigatorios": [
-    "bec"
+    "bec",
+    "bec-nome-interno",
+    "bec-executivo-webmail"
    ],
    "sinais_proibidos": [],
-   "sinais_futuros": [
-    "bec-nome-interno"
-   ],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [],
     "nao_pode_ter": [
@@ -350,7 +361,8 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
-   "lacuna": "Não liga o NOME do remetente a uma pessoa da organização (Carla Mendes é diretora) nem pega \"Diretora\" no feminino; sem isso a nota fica baixa e o caso depende da IA.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -376,12 +388,11 @@
    },
    "sinais_obrigatorios": [
     "bec",
-    "dominio-novo"
-   ],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
+    "dominio-novo",
     "dominio-sosia-conversa"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "graficapaullsta.example"
@@ -397,7 +408,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "Não compara o domínio do remetente com os domínios que JÁ aparecem na conversa citada (graficapaullsta x graficapaulista): é o sinal mais forte desse golpe.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -420,11 +432,12 @@
      "T1656"
     ]
    },
-   "sinais_obrigatorios": [],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
-    "bec-conta-salario"
+   "sinais_obrigatorios": [
+    "bec-conta-salario",
+    "bec-pretexto"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [],
     "nao_pode_ter": [
@@ -434,7 +447,8 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
-   "lacuna": "Nenhuma regra pega \"troca de conta salário\" nem nome de funcionário vindo de webmail. Hoje sai como legítimo/inconclusivo: depende inteiramente da IA e do analista.",
+   "qr": {},
+   "lacuna": "As regras pegam a troca de conta salário e a desculpa do e-mail pessoal, mas sem saber que João Lima é funcionário a nota fica em INCONCLUSIVO (vai ao analista). Resolve quando a lista de pessoas da organização vier do AD/GLPI (hoje \"nomesInternos\" tem só as pessoas-chave).",
    "nota": ""
   },
   {
@@ -460,7 +474,8 @@
    "sinais_obrigatorios": [
     "marca",
     "encurtador",
-    "urgencia"
+    "urgencia",
+    "imitacao-dominio-novo"
    ],
    "sinais_proibidos": [],
    "sinais_futuros": [],
@@ -479,7 +494,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "Calibração: marca imitada + domínio com menos de 30 dias ainda soma 55 (abaixo de 60) e fica inconclusivo sem a IA. Para um N3 é phishing.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -527,6 +543,7 @@
     }
    },
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },
@@ -551,7 +568,9 @@
    },
    "sinais_obrigatorios": [
     "marca",
-    "hospedagem"
+    "hospedagem",
+    "imitacao-dominio-novo",
+    "compartilhamento-falso"
    ],
    "sinais_proibidos": [],
    "sinais_futuros": [],
@@ -571,7 +590,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "Calibração: marca imitada + domínio com menos de 30 dias ainda soma 53 (abaixo de 60) e fica inconclusivo sem a IA. Para um N3 é phishing.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -597,7 +617,8 @@
    "sinais_obrigatorios": [
     "punycode-remetente",
     "url-punycode",
-    "marca"
+    "marca",
+    "imitacao-dominio-novo"
    ],
    "sinais_proibidos": [],
    "sinais_futuros": [],
@@ -616,7 +637,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "Calibração: marca imitada + domínio com menos de 30 dias ainda soma 55 (abaixo de 60) e fica inconclusivo sem a IA. Para um N3 é phishing.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -642,12 +664,11 @@
    },
    "sinais_obrigatorios": [
     "anexo-compactado",
-    "pagamento"
-   ],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
+    "pagamento",
     "zip-conteudo-perigoso"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "transferencias-pix.example"
@@ -662,7 +683,8 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "O analisador vê só \"anexo .zip\": não lista os nomes dos arquivos de dentro (o .pdf.lnk é a prova).",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -687,12 +709,11 @@
    },
    "sinais_obrigatorios": [
     "pagamento",
-    "urgencia"
-   ],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
+    "urgencia",
     "callback-telefone"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [],
     "nao_pode_ter": [
@@ -702,7 +723,8 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
-   "lacuna": "Tudo é legítimo (PayPal, autenticação, link): o golpe está no TELEFONE da observação. Falta reconhecer \"ligue para cancelar\" + cobrança inesperada de assinatura, e extrair o telefone como IOC.",
+   "qr": {},
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -725,11 +747,13 @@
      "T1656"
     ]
    },
-   "sinais_obrigatorios": [],
-   "sinais_proibidos": [],
-   "sinais_futuros": [
-    "imita-organizacao"
+   "sinais_obrigatorios": [
+    "imita-organizacao",
+    "credenciais",
+    "relato-pagina-falsa"
    ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
    "bloqueio": {
     "deve_ter": [
      "rh-cybersecurity.example"
@@ -744,7 +768,155 @@
     }
    },
    "ioc_escondido": "",
-   "lacuna": "Não reconhece imitação do domínio da própria empresa (rh-cybersecurity.example x cybersecurity.local) nem o pedido \"acesse com o seu usuário e senha da rede\" (o sinal \"credenciais\" não pega essa frase).",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "18-html-login-local",
+   "arquivo": "eml/18-html-login-local.eml",
+   "titulo": "Credenciais: anexo .html com tela de login que envia a senha para o atacante",
+   "tecnica": "Página de login dentro do próprio anexo (não há link no corpo): o formulário já vem com o e-mail da vítima e manda a senha por POST para o servidor do atacante. Escapa de filtros que só olham links.",
+   "relato": "Abri o anexo da fatura e ele pediu a minha senha, mas eu não digitei. Não conheço essa empresa.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "alta",
+    "mitre": [
+     "T1566.001",
+     "T1056.003"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "anexo-perigoso",
+    "html-login-local"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "faturamento-digital.example",
+     "coleta-acesso.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "faturamento-digital.example": 12
+    }
+   },
+   "ioc_escondido": "coleta-acesso.example",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "19-quishing-qr-no-pdf",
+   "arquivo": "eml/19-quishing-qr-no-pdf.eml",
+   "titulo": "Quishing: QR Code dentro de um PDF anexo (\"assine pelo celular\")",
+   "tecnica": "O link fica só dentro de um QR Code desenhado num PDF anexo: o corpo não tem link e o filtro de anexos vê um PDF comum. \"Só abre no celular\" tira o acesso do computador protegido (proxy, EDR).",
+   "relato": "Chegou um contrato para assinar com QR Code no PDF. Não escaneei, não esperava contrato nenhum.",
+   "requerente": "ana.ribeiro (Financeiro)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "QR",
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.001",
+     "T1566.002"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "qrcode",
+    "qrcode-decodificado"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "assinatura-eletronica-docs.example",
+     "assina-docs-seguro.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "assinatura-eletronica-docs.example": 6,
+     "assina-docs-seguro.example": 3
+    }
+   },
+   "ioc_escondido": "assina-docs-seguro.example",
+   "qr": {
+    "Contrato_Prestacao_Servicos_2027.pdf": [
+     "https://assina-docs-seguro.example/s/?d=8841"
+    ]
+   },
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "20-quishing-qr-tabela-html",
+   "arquivo": "eml/20-quishing-qr-tabela-html.eml",
+   "titulo": "Quishing: QR Code \"desenhado\" com tabela HTML (sem imagem)",
+   "tecnica": "O QR Code é montado com centenas de células de tabela pretas e brancas: não há imagem para o filtro ler. Técnica vista em kits de 2024-2025 para fugir de leitores de QR em imagem.",
+   "relato": "Recebi pedido de verificação de segurança com um código para escanear. Não escaneei.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "QR",
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002",
+     "T1027"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "qrcode-desenhado",
+    "qrcode-decodificado"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "conta-seguranca-online.example",
+     "verifica-acesso-m365.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "conta-seguranca-online.example": 9,
+     "verifica-acesso-m365.example": 2
+    }
+   },
+   "ioc_escondido": "verifica-acesso-m365.example",
+   "qr": {
+    "qr-desenhado-1.pgm": [
+     "https://verifica-acesso-m365.example/v/?id=55120"
+    ]
+   },
+   "lacuna": "",
    "nota": ""
   },
   {
@@ -784,6 +956,7 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },
@@ -821,6 +994,7 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": "O Reply-To para o domínio do cliente (grupo-alvorada.example) é normal no DocuSign e gera o sinal \"reply-to\" (+15); o caso confere se isso sozinho não derruba a classificação."
   },
@@ -858,6 +1032,7 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },
@@ -893,6 +1068,7 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },
@@ -933,6 +1109,7 @@
     }
    },
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },
@@ -971,6 +1148,202 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L7-zip-notas-fornecedor",
+   "arquivo": "eml/L7-zip-notas-fornecedor.eml",
+   "titulo": "LEGÍTIMO: .zip verdadeiro do fornecedor conhecido com PDF e XML da nota",
+   "tecnica": "Controle de falso positivo do detector de .zip: compactado, mas só com documentos (PDF/XML), de domínio antigo e autenticado.",
+   "relato": "A gráfica mandou as notas num zip. Posso abrir?",
+   "requerente": "ana.ribeiro (Financeiro)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado",
+    "anexo-compactado"
+   ],
+   "sinais_proibidos": [
+    "zip-conteudo-perigoso",
+    "zip-com-senha",
+    "html-smuggling",
+    "dupla-extensao"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "graficapaulista.example": 5120
+    }
+   },
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L8-banco-alerta-compra-assinatura",
+   "arquivo": "eml/L8-banco-alerta-compra-assinatura.eml",
+   "titulo": "LEGÍTIMO: alerta verdadeiro do banco de compra de assinatura, com telefone da central",
+   "tecnica": "Controle de falso positivo do detector de golpe por telefone: fala de assinatura mensal e manda ligar se não reconhecer, mas vem do domínio oficial do banco, autenticado, e o banco não repassa texto de terceiros.",
+   "relato": "Chegou alerta de compra do Itaú no e-mail do trabalho. Fui eu que assinei, mas quero saber se o e-mail é verdadeiro.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "callback-telefone",
+    "marca",
+    "marca-link"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "itau.com.br",
+     "comunicacao.itau.com.br"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L9-ti-interna-login-microsoft",
+   "arquivo": "eml/L9-ti-interna-login-microsoft.eml",
+   "titulo": "LEGÍTIMO: TI interna pede login no sistema novo pela página da Microsoft (só perfil básico)",
+   "tecnica": "Controle de falso positivo do detector de consentimento OAuth: link oauth2/authorize verdadeiro, mas só pede openid/profile/User.Read e devolve para um endereço da própria organização.",
+   "relato": "A TI mandou link para o sistema de ponto que abre a tela da Microsoft. É seguro entrar?",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [],
+   "sinais_proibidos": [
+    "oauth-consentimento",
+    "device-code",
+    "compartilhamento-falso",
+    "marca"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "login.microsoftonline.com",
+     "microsoftonline.com",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L10-rh-interno-regra-conta-salario",
+   "arquivo": "eml/L10-rh-interno-regra-conta-salario.eml",
+   "titulo": "LEGÍTIMO: comunicado interno do RH sobre a regra de troca de conta salário",
+   "tecnica": "Controle de falso positivo dos detectores de fraude de conta salário e de desculpa (e-mail pessoal): o texto fala dos dois, mas vem da própria organização.",
+   "relato": "Recebi esse lembrete do RH sobre conta salário. É do RH mesmo?",
+   "requerente": "joao.lima (RH)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "HR",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [],
+   "sinais_proibidos": [
+    "bec-conta-salario",
+    "bec-pretexto",
+    "bec",
+    "imita-organizacao"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L11-boleto-pix-fornecedor",
+   "arquivo": "eml/L11-boleto-pix-fornecedor.eml",
+   "titulo": "LEGÍTIMO: boleto verdadeiro do fornecedor com QR Code PIX no PDF",
+   "tecnica": "Controle de falso positivo do leitor de QR: QR Code em PDF é normal em boleto. O QR traz um código PIX (não um link), o recebedor é o próprio fornecedor e o e-mail é autenticado de domínio antigo.",
+   "relato": "Chegou o boleto da gráfica com QR Code de PIX. Pode pagar?",
+   "requerente": "ana.ribeiro (Financeiro)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "qrcode-decodificado",
+    "qrcode-desenhado",
+    "pdf-com-senha"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "graficapaulista.example": 5120
+    }
+   },
+   "ioc_escondido": "",
+   "qr": {
+    "Boleto_Pedido_4480.pdf": [
+     "00020126360014br.gov.bcb.pix011400000000000191520400005303986540812450.005802BR5921GRAFICA PAULISTA LTDA6009SAO PAULO62110507PED44806304956E"
+    ]
+   },
    "lacuna": "",
    "nota": ""
   },
@@ -1010,6 +1383,7 @@
     }
    },
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },
@@ -1046,6 +1420,7 @@
    },
    "reputacao": {},
    "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   }

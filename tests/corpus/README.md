@@ -1,6 +1,6 @@
 # Conjunto de referência (corpus) do analisador
 
-São 25 e-mails `.eml` feitos para parecer exatamente com o que chega numa caixa do Microsoft 365, cada um com o
+São 33 e-mails `.eml` feitos para parecer exatamente com o que chega numa caixa do Microsoft 365, cada um com o
 **gabarito de um analista N3**: classificação certa, tipo de ataque, alvo, gravidade, MITRE, o que deve e o que não
 pode ir para o bloqueio. Serve para provar, com números, que uma mudança deixou o analisador **mais inteligente**
 e não só **diferente**.
@@ -11,6 +11,9 @@ node tests/avaliar-corpus.js --caso 06  # detalhe de um caso: sinais, IOCs, fora
 node tests/avaliar-corpus.js --ci       # o mesmo, mas sai com erro se houver regressão (roda no CI)
 node tests/avaliar-corpus.js --json antes.json   # guarda o resultado para comparar com a próxima versão
 ```
+
+O leitor de QR Code é **simulado** pelo campo `qr` do gabarito (o que há em cada imagem/PDF). Para provar que o leitor
+de verdade lê a mesma coisa, rode `tests/conferir-leitor-qr.js` dentro da rede do laboratório (comando no README principal).
 
 ## Como os e-mails foram feitos
 
@@ -68,36 +71,43 @@ distinguem spam de legítimo (quem faz isso é a IA); só não pode virar phishi
 
 ## Os casos
 
-| # | Caso | Técnica | Esperado | Sinal futuro (lacuna) |
+| # | Caso | Técnica | Esperado | Sinal do catálogo / lacuna |
 |---|---|---|---|---|
 | 01 | Microsoft 365 "senha expira hoje" | domínio sósia `rn`→`m`, link disfarçado, autenticação passando | phishing | — |
-| 02 | Escritório parceiro invadido | **AiTM** (Tycoon/EvilProxy): pages.dev + e-mail da vítima em base64; usuário aprovou o MFA | phishing, crítica | `aitm-isca` |
-| 03 | "Reconfigure o MFA" | **quishing**: link só dentro do QR Code; imita a TI da casa | phishing | `qrcode-decodificado` |
+| 02 | Escritório parceiro invadido | **AiTM** (Tycoon/EvilProxy): pages.dev + e-mail da vítima em base64; usuário aprovou o MFA | phishing, crítica | `aitm-isca`, `relato-pagina-falsa` |
+| 03 | "Reconfigure o MFA" | **quishing**: link só dentro do QR Code; imita a TI da casa | phishing | `qrcode-decodificado`, `aitm-isca`, `imita-organizacao` |
 | 04 | NF-e com anexo .html | **HTML smuggling** (`atob` + `Blob` + download) | phishing | `html-smuggling` |
 | 05 | "Mensagem de voz" .svg | **SVG smuggling** (`<script>` + `atob` + redirecionamento) | phishing | `svg-script` |
 | 06 | "Assine o aditivo" | **consent phishing OAuth**: link verdadeiro da Microsoft, escopos de e-mail e `redirect_uri` externo | phishing, crítica | `oauth-consentimento` |
-| 07 | SharePoint de cliente invadido | **abuso de SharePoint** em 2 etapas: e-mail 100% legítimo, evidência só no relato | phishing | `relato-pagina-falsa` |
+| 07 | SharePoint de cliente invadido | **abuso de SharePoint** em 2 etapas: e-mail 100% legítimo, evidência só no relato | phishing (sai inconclusivo) | `relato-pagina-falsa`; **lacuna**: só o relato denuncia |
 | 08 | Diretora pede cartões-presente | **BEC** por Gmail com nome de diretora real | phishing | `bec-nome-interno` |
 | 09 | Fornecedor troca a conta | **BEC de fornecedor**: sósia `i`→`l` entra numa conversa real com PDF | phishing | `dominio-sosia-conversa` |
-| 10 | "Troque minha conta salário" | **desvio de salário** (BEC contra o RH) por Outlook.com | phishing | `bec-conta-salario` |
-| 11 | Receita Federal / CPF | encurtador, prazo de 48 h, DARF | phishing | calibração |
+| 10 | "Troque minha conta salário" | **desvio de salário** (BEC contra o RH) por Outlook.com | phishing (sai inconclusivo) | `bec-conta-salario`, `bec-pretexto`; **lacuna**: falta a lista de funcionários |
+| 11 | Receita Federal / CPF | encurtador, prazo de 48 h, DARF | phishing | `imitacao-dominio-novo` |
 | 12 | Correios / PIX (usuária pagou) | taxa falsa; URLhaus conhece o host | phishing, crítica | — |
-| 13 | DocuSign falso | página no **IPFS** com o e-mail no `#` | phishing | calibração |
-| 14 | Alerta de login "Microsoft" | **homógrafo IDN** (`і` cirílico) | phishing | calibração |
+| 13 | DocuSign falso | página no **IPFS** com o e-mail no `#` | phishing | `imitacao-dominio-novo`, `aitm-isca` |
+| 14 | Alerta de login "Microsoft" | **homógrafo IDN** (`і` cirílico) | phishing | `imitacao-dominio-novo` |
 | 15 | Comprovante de PIX .zip | **zip com `.pdf.lnk`** (trojan bancário) | phishing, crítica | `zip-conteudo-perigoso` |
 | 16 | Fatura do PayPal | **callback phishing (TOAD)**: fatura real com 0800 falso | phishing | `callback-telefone` |
 | 17 | "RH" com reajuste 2027 | **encaminhado como anexo**; imita o RH; usuário digitou a senha | phishing, crítica | `imita-organizacao` |
+| 18 | Fatura em anexo .html | **tela de login dentro do anexo**: o formulário manda a senha para o atacante | phishing | `html-login-local` |
+| 19 | Contrato "assine pelo celular" | **quishing em PDF**: o link só existe no QR desenhado dentro do PDF anexo | phishing | `qrcode-decodificado` |
+| 20 | "Verificação de segurança" | **QR desenhado com tabela HTML** (sem imagem) | phishing | `qrcode-desenhado` |
 | L1 | Alerta verdadeiro da Microsoft | texto de phishing, origem oficial | legítimo | — |
 | L2 | DocuSign verdadeiro | contrato esperado; Reply-To para o cliente | legítimo | — |
 | L3 | SharePoint verdadeiro do contador | par do caso 07, arquivo esperado | legítimo | — |
 | L4 | TI interna: senha expira | fala de senha e prazo, mas é interno e não pede senha | legítimo | — |
 | L5 | NF-e do fornecedor verdadeiro | par do caso 09: boleto, PDF e XML | legítimo | — |
 | L6 | Comunicado do Itaú | subdomínio oficial, descadastro | legítimo | — |
+| L7 | .zip de notas do fornecedor | par do 15: zip, mas só PDF e XML | legítimo | — |
+| L8 | Alerta de compra do Itaú | par do 16: "assinatura mensal" + telefone da central, de banco autenticado | legítimo | — |
+| L9 | TI interna: login no sistema de ponto | par do 06: `oauth2/authorize` verdadeiro, só perfil básico, volta para a casa | legítimo | — |
+| L10 | RH lembra a regra da conta salário | par do 10: fala de conta salário e e-mail pessoal, mas é interno | legítimo | — |
+| L11 | Boleto da gráfica com PIX | par do 19: QR em PDF, mas é código PIX do próprio fornecedor | legítimo | — |
 | S1 | Newsletter "Black November" | marketing autenticado | spam | — |
 | S2 | Prospecção de SEO | Gmail, sem link | spam | — |
 
-"Calibração" = o analisador já vê os sinais certos (marca imitada + domínio de poucos dias), mas a soma fica entre
-53 e 55, abaixo do 60 que vira phishing.
+Os casos L7 a L10 são "pares legítimos": cada um imita um golpe do catálogo e prova que o detector não dá falso positivo. O L8 pegou um falso positivo real do detector de golpe por telefone, corrigido antes de entrar.
 
 ## Para acrescentar um caso
 

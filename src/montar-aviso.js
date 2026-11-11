@@ -38,7 +38,12 @@ const linhasIocs = [
   ...iocs.dominios.map((x) => 'domínio: ' + desarmar(x)),
   ...iocs.ips.map((x) => 'ip: ' + desarmar(x)),
   ...iocs.hashes.map((x) => 'hash: ' + x),
+  ...(iocs.telefones ?? []).map((x) => 'telefone do golpe: ' + x),
+  ...(iocs.pix ?? []).map((x) => 'PIX lido do QR (para o banco; não vai ao Wazuh): ' + x),
 ];
+// Catálogo de técnicas (achados determinísticos lidos no .eml): curto, vai sempre no aviso.
+const tecnicas = ev.tecnicas ?? [];
+const linhasTecnicas = tecnicas.map((t) => `${t.forte ? '🔴 ' : ''}${t.nome}`);
 const linhasFora = (ev.iocs_fora ?? []).map((x) => `${desarmar(linha(x.valor, 100))}: ${x.motivo}`);
 
 // ---------------- Telegram (HTML do Telegram: b, i, a, code, blockquote) ----------------
@@ -64,6 +69,7 @@ if (ev.tem_email) {
 } else {
   blocos.push('📧 <b>E-mail não anexado</b>: só o relato do usuário foi analisado.');
 }
+if (linhasTecnicas.length) blocos.push(`🧪 <b>Técnicas detectadas</b> <i>(🔴 = não aparece em e-mail legítimo)</i>\n${linhasTecnicas.slice(0, 5).map((x) => '• ' + esc(x)).join('\n')}`);
 blocos.push(`🧠 <b>Análise</b>\n${esc(p.resumo)}`);
 // O Telegram não tem espaçamento de linha: frases longas ganham uma linha em branco entre si; IOCs ficam juntos (para copiar).
 const itens = (titulo, lista, expandir = true, espacado = true) => (lista.length
@@ -122,6 +128,7 @@ const html = [
     e.ips_origem.length && 'IPs de origem: ' + e.ips_origem.map(desarmar).join(', '),
   ].filter(Boolean)),
   `<p><strong>Análise</strong></p><p>${esc(p.resumo)}</p>`,
+  tecnicas.length ? '<p><strong>Técnicas detectadas (catálogo)</strong></p>' + li(tecnicas.map((t) => `${t.forte ? '[forte] ' : ''}${t.nome}: ${t.descricao}`)) : '',
   '<p><strong>Evidências</strong></p>' + li(p.evidencias),
   p.contra_evidencias.length ? '<p><strong>Sinais de legitimidade</strong></p>' + li(p.contra_evidencias) : '',
   '<p><strong>Reputação</strong></p>' + li(reputacao),

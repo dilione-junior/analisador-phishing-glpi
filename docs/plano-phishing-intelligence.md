@@ -15,7 +15,7 @@ Elastic) e mudança automática de prompts ou regras.
 |---|---|---|
 | 0 | Conjunto de referência: 25 `.eml` realistas com gabarito, avaliador no CI | **feito** em 11/11 (PR #4), instalado no n8n |
 | 1 | Feeds de IOC (OpenPhish, ThreatFox, URLhaus em lote) no Redis, conferidos na análise como evidência forte | a fazer |
-| 2 | Catálogo de técnicas versionado (detectores no `.eml` + resumo no prompt): os `sinais_futuros` do conjunto | a fazer |
+| 2 | Catálogo de técnicas versionado (detectores no `.eml` + resumo no prompt): os `sinais_futuros` do conjunto | **feito** em 11/11 ([catálogo](catalogo-tecnicas.md)) |
 | 3 | Taxonomia da proposta (tipo, canal, alvo, gravidade, confiança) na saída da IA | a fazer |
 | 4 | Aprender com as decisões dos analistas (precedentes), junto com a ideia 1 (campanhas) | a fazer |
 | 5 | Radar semanal: poucas fontes por RSS; a IA propõe técnica nova no Telegram; o analista aprova; vira PR | a fazer |
@@ -27,6 +27,14 @@ Elastic) e mudança automática de prompts ou regras.
   negativos**; legítimos e spam **8 de 8** certos, **0 falsos positivos**.
 - O conjunto achou dois defeitos de bloqueio, já corrigidos e instalados: `sharepointonline.com` não era oficial da
   Microsoft, e encurtadores (`bit.ly`) entravam inteiros nas listas do Wazuh.
+- **Depois da etapa 2** (catálogo de técnicas, 11/11): phishing **16 de 18** detectados, 2 inconclusivos, **0 falsos
+  negativos**; legítimos e spam **12 de 12** certos, **0 falsos positivos**. Entraram 5 casos novos: o anexo HTML com
+  tela de login e 4 legítimos difíceis (zip de notas, alerta de banco com telefone, login Microsoft da TI interna,
+  comunicado do RH sobre conta salário). O alerta de banco pegou um falso positivo do detector de telefone, que foi
+  corrigido antes de terminar. Sobram 3 lacunas: QR Code (03), SharePoint de cliente invadido (07, só o relato
+  denuncia) e conta salário sem a lista de funcionários (10).
+- Defeito antigo achado na etapa 2: subdomínio de hospedagem gratuita (`golpe.pages.dev`) não ia para o bloqueio;
+  agora vai (o domínio do serviço, `pages.dev`, continua fora).
 
 ## Próximo passo: etapa 1 (feeds de IOC)
 
@@ -42,22 +50,11 @@ A decidir antes de começar:
 Como medir: acrescentar ao conjunto casos em que o link está no feed, mas o VirusTotal não conhece (o cenário de
 campanha nova).
 
-## Depois: etapa 2 (catálogo de técnicas)
+## Etapa 2 (catálogo de técnicas): feita
 
-Começar pelas lacunas que dá para detectar só olhando o `.eml`, sem abrir nada:
+Os detectores, pesos, ações obrigatórias e cuidados com falso positivo estão em
+[catalogo-tecnicas.md](catalogo-tecnicas.md). Ficaram para depois: listar `.rar`/`.7z`/`.iso` e a lista completa de funcionários (AD/GLPI) para `bec-nome-interno`.
 
-| Sinal futuro | Caso | O que detectar |
-|---|---|---|
-| `html-smuggling` | 04 | anexo `.html` com `atob(` + `Blob` + `download`/`msSaveOrOpenBlob` |
-| `svg-script` | 05 | `.svg` com `<script>` ou `onload`; decodificar o `atob()` para achar a URL (IOC escondido) |
-| `oauth-consentimento` | 06 | `oauth2/.../authorize` com `prompt=consent`, escopos `Mail.*`/`Files.*`/`offline_access` e `redirect_uri` externo; orientar a revogar o app no Entra ID |
-| `zip-conteudo-perigoso` | 15 | listar os nomes dentro do `.zip` (`.lnk`, `.js`, `.pdf.lnk`) |
-| `qrcode-decodificado` | 03 | ler o QR Code das imagens (precisa de um decodificador que rode no n8n) |
-| `imita-organizacao` | 03, 17 | domínio parecido com o da casa (`dominiosConfiaveis`) |
-| `callback-telefone` | 16 | "ligue para cancelar" + telefone + cobrança de assinatura; telefone vira IOC |
-| `bec-conta-salario` | 10 | troca de conta salário ou de dados bancários vinda de webmail |
-| `bec-nome-interno` | 08 | nome de pessoa da organização com e-mail de fora (precisa da lista de nomes: GLPI ou AD) |
-| `dominio-sosia-conversa` | 09 | domínio do remetente quase igual a um que já aparece na conversa citada |
-| `aitm-isca` | 02 | e-mail da vítima em base64 na URL + "documento compartilhado" fora do SharePoint/OneDrive |
-| `relato-pagina-falsa` | 07 | o relato diz que a página pediu senha em outro endereço |
-| calibração | 11, 13, 14 | marca imitada + domínio com menos de 30 dias deve bastar para phishing (hoje dá 53 a 55) |
+**QR Code (11/11, depois da etapa 2):** serviço `leitor-qr` no ng-soc-lab (zxing-cpp + PDFium, rede interna sem internet)
++ QR desenhado em tabela HTML/caracteres convertido no nó. Placar: phishing **18 de 20**, legítimos **13 de 13**, 0 falsos
+positivos; lacunas: só 07 e 10. Falta ler QR em print anexado direto no chamado (o fluxo não baixa imagens do GLPI).

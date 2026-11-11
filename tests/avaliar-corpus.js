@@ -1,6 +1,7 @@
 // Avalia o analisador contra o CONJUNTO DE REFERÊNCIA (tests/corpus): cada .eml passa pelo mesmo código dos nós
 // do n8n (Extrai as evidências -> Monta o dossiê -> Parecer final), sem n8n, sem GLPI e sem internet.
-// A reputação (VirusTotal, URLhaus, RDAP) vem simulada do gabarito; a IA fica DESLIGADA: mede-se a parte
+// A reputação (VirusTotal, URLhaus, RDAP) e a resposta do leitor de QR Code vêm simuladas do gabarito (a leitura
+// de verdade é conferida por tests/conferir-leitor-qr.js contra o contêiner); a IA fica DESLIGADA: mede-se a parte
 // determinística (regras + travas), que é a rede de segurança quando a IA falha ou é enganada.
 //
 // Uso:  node tests/avaliar-corpus.js            relatório na tela
@@ -45,6 +46,9 @@ const CFG = {
   prefixoRedis: 'phishing:', glpiTela: 'http://127.0.0.1:8080/front/ticket.form.php?id=',
   categoria: 'Segurança > Phishing e e-mail suspeito', grupo: 'Segurança da Informação',
   cotaDiaria: 20, maxVirusTotal: 4, maxAnexos: 4, dominiosConfiaveis: 'cybersecurity.local',
+  leitorQr: 'http://leitor-qr:8080/ler', maxArquivosQr: 4,
+  // Pessoas-chave da organização fictícia do conjunto (diretoria e financeiro), como o lab configuraria.
+  nomesInternos: 'Carla Mendes, Ana Ribeiro, Maria Souza',
 };
 // O GLPI guarda o conteúdo do chamado com as tags escapadas.
 const comoGlpi = (texto) => `<p>${texto}</p>`.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -60,7 +64,14 @@ function analisar(c, numero) {
     'Escolhe o que baixar': [{ documento_id: 1, nome: path.basename(c.arquivo), mime: 'message/rfc822', sha1: '', baixar: true }],
     'Baixa os anexos': [{ statusCode: 200, body: eml }],
   };
-  const ev = executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js'], {}, nos)[0];
+  // QR Code: o nó que separa imagens/PDFs roda de verdade; o leitor-qr responde o que o gabarito diz que há no arquivo.
+  const pedidos = executar('listar-arquivos-qr.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'qr.js'], {}, nos);
+  nos['Lista imagens e PDFs (QR)'] = pedidos;
+  if (!pedidos[0].nenhum) {
+    nos['Lê os QR Codes'] = pedidos.map((p) => ({ statusCode: 200, body: {
+      codigos: (c.qr?.[p.nome] ?? []).map((texto) => ({ texto, formato: 'QRCode', pagina: 1 })), protegido: false, erro: '' } }));
+  }
+  const ev = executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'tecnicas.js', 'qr.js'], {}, nos)[0];
   const rep = c.reputacao ?? {};
   const vt = ev.consultas.virustotal.map((q) => (rep.virustotal?.[q.valor] ? { tipo: q.tipo, valor: q.valor, encontrado: true, ...rep.virustotal[q.valor] } : { tipo: q.tipo, valor: q.valor, encontrado: false }));
   const urlhaus = ev.consultas.urlhaus.map((h) => (rep.urlhaus?.[h] ? { host: h, listado: true, urls: 3, online: 2, ameacas: ['phishing'], tags: ['phishing'] } : { host: h, listado: false }));

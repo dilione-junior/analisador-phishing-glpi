@@ -182,6 +182,10 @@ Como avaliar (pense como analista):
 - Links: o texto mostra um site e o link leva a outro; domínio parecido com marca; encurtador; página em serviço gratuito (formulários, drives, páginas estáticas); IP direto.
 - Anexos: .html/.htm (página de login local), .iso/.img/.lnk/.js/.exe, Office com macro, compactado, extensão dupla.
 - Conteúdo: urgência, ameaça de bloqueio, pedido de senha/dados/pagamento, troca de dados bancários (BEC), QR Code.
+- Técnicas detectadas: achados determinísticos do catálogo de técnicas, lidos no próprio .eml (anexos HTML/SVG/ZIP, links, telefone, domínios sósia, relato). Os marcados [forte] não aparecem em e-mail legítimo: trate como prova. Use o nome da técnica em "tipo_ataque".
+- Abuso de serviço legítimo: consentimento OAuth (o link é da Microsoft/Google de verdade, mas autoriza um app do atacante a ler e-mails/arquivos; trocar a senha NÃO resolve, é preciso revogar o app), código de dispositivo, golpe por telefone (fatura verdadeira do PayPal com número para "cancelar": o golpe é a ligação) e conta de parceiro invadida. Nesses casos SPF/DKIM/DMARC=pass e domínio oficial NÃO indicam legitimidade.
+- Fraude de conta salário/dados bancários: pedido de troca vindo de e-mail pessoal ou de domínio quase igual ao do fornecedor é phishing (BEC) até ser confirmado por telefone conhecido.
+- QR Code: "qr_codes" traz o que o leitor de QR leu nas imagens/PDFs do e-mail (o link vira URL e passa pela reputação). QR que leva para site de fora, num e-mail que pede para escanear com o celular, é quishing: o acesso sai do celular, fora do proxy e do antivírus. QR de PIX não é link: avalie quem é o recebedor (golpe do boleto/PIX).
 - Reputação: 3 ou mais motores no VirusTotal ou URLhaus listado = forte. 1 motor isolado costuma ser falso positivo. "Nunca analisado" não prova que é seguro.
 - Domínio com menos de 30 dias + marca imitada = perfil típico de phishing.
 - Contato legítimo: domínio oficial, autenticação passando, sem pedido fora do normal, links para o próprio domínio, contexto que o usuário esperava.
@@ -209,6 +213,12 @@ f.config([-2640, (Y_ANALISE + Y_DECISAO) // 2], [
     ("maxAnexos", 4, "number"),
     # Domínios da própria organização: nunca entram na lista de IOCs para bloqueio (separe por vírgula).
     ("dominiosConfiaveis", "cybersecurity.local", "string"),
+    # Pessoas-chave (diretoria, financeiro, RH): e-mail de FORA com um destes nomes vira sinal de fraude (BEC).
+    # Nome e sobrenome, separados por vírgula. Ex.: "Carla Mendes, Ana Ribeiro".
+    ("nomesInternos", "", "string"),
+    # Leitor de QR Code (serviço leitor-qr do ng-soc-lab, rede interna automacao_qr) e quantos arquivos ler por e-mail.
+    ("leitorQr", "http://leitor-qr:8080/ler", "string"),
+    ("maxArquivosQr", 4, "number"),
     # rotina de decisões
     ("tipoPhishing", "Phishing confirmado", "string"),
     ("tipoLegitimo", "Contato legítimo", "string"),
@@ -259,10 +269,20 @@ a.glpi("Lê os documentos", [2200, Y - 200], "GET", "/Document/{{ $json.document
 a.codigo("Escolhe o que baixar", [2420, Y - 200], "escolher-downloads.js")
 a.glpi("Baixa os anexos", [2640, Y - 200], "GET", "/Document/{{ $json.documento_id }}",
        cabecalhos={"Accept": "={{ $json.baixar ? 'application/octet-stream' : 'application/json' }}"}, texto=True)
-a.codigo("Extrai as evidências", [2860, Y], "extrair-evidencias.js", "ip.js", "texto.js", "email.js", "indicadores.js")
+# QR Code: imagens e PDFs do e-mail (e QR "desenhado" no corpo) vão para o leitor-qr do laboratório (rede interna,
+# sem internet). Leitor fora do ar não para a análise: "Extrai as evidências" segue sem o QR e o parecer avisa.
+a.codigo("Lista imagens e PDFs (QR)", [2860, Y - 200], "listar-arquivos-qr.js", "ip.js", "texto.js", "email.js", "indicadores.js", "qr.js")
+a.se("Tem QR para ler?", [3080, Y - 200], "={{ !$json.nenhum }}")
+a.no("Lê os QR Codes", "n8n-nodes-base.httpRequest", 4.2, [3300, Y - 400], {
+    "method": "POST", "url": "={{ $('Configuração').first().json.leitorQr }}",
+    "sendBody": True, "specifyBody": "json", "jsonBody": "={{ JSON.stringify({ nome: $json.nome, dados: $json.dados }) }}",
+    "options": {"timeout": 30000, "batching": {"batch": {"batchSize": 1, "batchInterval": 0}},
+                "response": {"response": {"fullResponse": True, "neverError": True}}},
+}, onError="continueRegularOutput")
+a.codigo("Extrai as evidências", [3520, Y], "extrair-evidencias.js", "ip.js", "texto.js", "email.js", "indicadores.js", "tecnicas.js", "qr.js")
 
 # Reputação: cada fonte só roda se houver o que consultar; as consultas são só LEITURA (nada é enviado para análise).
-x = 3080
+x = 3740
 for fonte, nome_no, titulo, http in (
     ("virustotal", "VirusTotal", "Consultar o VirusTotal?", dict(
         url="=https://www.virustotal.com/api/v3/{{ $json.caminho }}", credencial=CRED_VIRUSTOTAL,
@@ -334,7 +354,11 @@ a.liga("Tem anexo?", "Lê os documentos", 0)
 a.liga("Tem anexo?", "Extrai as evidências", 1)
 a.liga("Lê os documentos", "Escolhe o que baixar")
 a.liga("Escolhe o que baixar", "Baixa os anexos")
-a.liga("Baixa os anexos", "Extrai as evidências")
+a.liga("Baixa os anexos", "Lista imagens e PDFs (QR)")
+a.liga("Lista imagens e PDFs (QR)", "Tem QR para ler?")
+a.liga("Tem QR para ler?", "Lê os QR Codes", 0)
+a.liga("Tem QR para ler?", "Extrai as evidências", 1)
+a.liga("Lê os QR Codes", "Extrai as evidências")
 a.liga("Extrai as evidências", "Consultar o VirusTotal?")
 for atual, proxima in (("VirusTotal", "Consultar o URLhaus?"), ("URLhaus", "Consultar o RDAP?"), ("RDAP", "Monta o dossiê")):
     pergunta = {"VirusTotal": "Consultar o VirusTotal?", "URLhaus": "Consultar o URLhaus?", "RDAP": "Consultar o RDAP?"}[atual]
