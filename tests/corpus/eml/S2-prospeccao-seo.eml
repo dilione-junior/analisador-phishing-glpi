@@ -1,0 +1,52 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Mon, 23 Nov
+	2026 12:37:19 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Mon,
+	23 Nov 2026 12:37:19 +0000
+Authentication-Results: spf=pass (sender IP is 209.85.220.73)
+	smtp.mailfrom=gmail.com; dkim=pass (signature was verified)
+	header.d=gmail.com;dmarc=pass action=none header.from=gmail.com;compauth=pass
+	reason=100
+Received-SPF: Pass (protection.outlook.com: domain of gmail.com designates
+	209.85.220.73 as permitted sender) receiver=protection.outlook.com;
+	client-ip=209.85.220.73; helo=gmail.com;
+Received: from mail-sor-f73.google.com (209.85.220.73) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Mon, 23 Nov 2026 12:37:19 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20230601;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Thiago Rocha <thiago.rocha.seo@gmail.com>
+To: contato@cybersecurity.local
+Subject: 27 erros de SEO no site de voces
+Date: Mon, 23 Nov 2026 12:37:19 +0000
+Message-ID: <CAKd9nP2wQ7xR4mT1vY8_sL3bF6hN0jC5aE2gUo9iZ@mail.gmail.com>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Ol=C3=A1, equipe Cybersecurity!
+
+Analisei o site de voc=C3=AAs e encontrei 27 erros de SEO que est=C3=A3o fa=
+zendo voc=C3=AAs perderem posi=C3=A7=C3=B5es no Google. Trabalho com otimiz=
+a=C3=A7=C3=A3o h=C3=A1 8 anos e posso enviar um relat=C3=B3rio gratuito com=
+ as corre=C3=A7=C3=B5es.
+
+Posso mandar o or=C3=A7amento? Se n=C3=A3o tiver interesse, =C3=A9 s=C3=B3 =
+responder "n=C3=A3o" que eu n=C3=A3o envio mais.
+
+Abra=C3=A7o,
+Thiago Rocha
+Consultor de SEO

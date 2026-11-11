@@ -1,0 +1,43 @@
+Received: from CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com with HTTPS; Fri, 20 Nov 2026
+	12:00:00 +0000
+Authentication-Results: dkim=none (message not signed)
+	header.d=none;dmarc=none action=none header.from=cybersecurity.local;
+From: =?utf-8?q?Central_de_Servi=C3=A7os_de_TI?=
+	<servicedesk@cybersecurity.local>
+To: lucas.ferreira@cybersecurity.local
+Subject: Sua senha da rede expira em 5 dias
+Date: Fri, 20 Nov 2026 12:00:00 +0000
+Message-ID: <CP8PR80MB4932SENHA1200@CP8PR80MB4932.lamprd80.prod.outlook.com>
+X-MS-Exchange-Organization-AuthAs: Internal
+X-MS-Exchange-Organization-AuthSource: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_CP8PR80MB4932SENHA_"
+MIME-Version: 1.0
+
+--_000_CP8PR80MB4932SENHA_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Ol=C3=A1, Lucas,
+
+A sua senha da rede expira em 5 dias (25/11/2026). Para trocar, pressione C=
+trl+Alt+Del no computador da empresa e escolha "Alterar uma senha", ou use =
+o portal interno https://senha.cybersecurity.local quando estiver na VPN.
+
+A TI nunca pede a sua senha por e-mail, telefone ou mensagem.
+
+Central de Servi=C3=A7os de TI - ramal 4000
+
+--_000_CP8PR80MB4932SENHA_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Calibri,Arial;font-size:11pt">
+<p>Ol=C3=A1, Lucas,</p>
+<p>A sua senha da rede expira em <b>5 dias</b> (25/11/2026). Para trocar, p=
+ressione <b>Ctrl+Alt+Del</b> no computador da
+empresa e escolha "Alterar uma senha", ou use o portal interno https://senh=
+a.cybersecurity.local quando estiver na VPN.</p>
+<p>A TI nunca pede a sua senha por e-mail, telefone ou mensagem.</p>
+<p>Central de Servi=C3=A7os de TI - ramal 4000</p></body></html>
+--_000_CP8PR80MB4932SENHA_--

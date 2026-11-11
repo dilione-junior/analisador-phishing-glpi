@@ -1,0 +1,87 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Wed, 11 Nov
+	2026 09:20:17 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Wed,
+	11 Nov 2026 09:20:17 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.61)
+	smtp.mailfrom=assinafacil-app.example; dkim=pass (signature was verified)
+	header.d=assinafacil-app.example;dmarc=pass action=none
+	header.from=assinafacil-app.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of assinafacil-app.example
+	designates 198.51.100.61 as permitted sender)
+	receiver=protection.outlook.com; client-ip=198.51.100.61;
+	helo=assinafacil-app.example;
+Received: from mta.assinafacil-app.example (198.51.100.61) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Wed, 11 Nov 2026 09:20:17 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=assinafacil-app.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: =?utf-8?q?AssinaF=C3=A1cil?= <notificacoes@assinafacil-app.example>
+To: maria.souza@cybersecurity.local
+Subject: Documento aguardando sua assinatura: Aditivo Contratual - Reajuste
+	2027
+Date: Wed, 11 Nov 2026 09:20:17 +0000
+Message-ID: <0100019a3f19c8e7-assina-7741@assinafacil-app.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative;
+ boundary="=_a3f19c8e7b2d4c5f9e1a0b6d8c2e4f71"
+MIME-Version: 1.0
+
+--=_a3f19c8e7b2d4c5f9e1a0b6d8c2e4f71
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+AssinaF=C3=A1cil
+
+Ol=C3=A1, Maria Souza!
+
+O documento "Aditivo Contratual - Reajuste 2027.pdf" foi enviado para sua a=
+ssinatura por financeiro@grupo-alvorada.example.
+
+Para sua seguran=C3=A7a, entre com a sua conta corporativa Microsoft para v=
+isualizar e assinar.
+
+Revisar e assinar: https://login.microsoftonline.com/common/oauth2/v2.0/aut=
+horize?client_id=3D8f3a2c1e-5b7d-4e9a-a1c3-2d4f6b8e0a17&response_type=3Dcod=
+e&redirect_uri=3Dhttps%3A%2F%2Fassinafacil-app.example%2Foauth%2Fcallback&r=
+esponse_mode=3Dquery&scope=3Doffline_access%20User.Read%20Mail.ReadWrite%20=
+Mail.Send%20Files.ReadWrite.All&prompt=3Dconsent&state=3D7741
+
+Este link expira em 48 horas.
+
+--=_a3f19c8e7b2d4c5f9e1a0b6d8c2e4f71
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Segoe UI,Arial;font-size:14px;color:#222">
+<div style=3D"max-width:560px;border:1px solid #ddd;padding:24px">
+<h2 style=3D"color:#2b579a;margin-top:0">AssinaF=C3=A1cil</h2>
+<p>Ol=C3=A1, <b>Maria Souza</b>!</p>
+<p>O documento <b>"Aditivo Contratual - Reajuste 2027.pdf"</b> foi enviado =
+para sua assinatura por
+<b>financeiro@grupo-alvorada.example</b>.</p>
+<p>Para sua seguran=C3=A7a, entre com a sua conta corporativa Microsoft par=
+a visualizar e assinar.</p>
+<p><a href=3D"https://login.microsoftonline.com/common/oauth2/v2.0/authoriz=
+e?client_id=3D8f3a2c1e-5b7d-4e9a-a1c3-2d4f6b8e0a17&response_type=3Dcode&red=
+irect_uri=3Dhttps%3A%2F%2Fassinafacil-app.example%2Foauth%2Fcallback&respon=
+se_mode=3Dquery&scope=3Doffline_access%20User.Read%20Mail.ReadWrite%20Mail.=
+Send%20Files.ReadWrite.All&prompt=3Dconsent&state=3D7741" style=3D"backgrou=
+nd:#2b579a;color:#fff;padding:10px 22px;text-decoration:none;border-radius:=
+4px">Revisar e assinar</a></p>
+<p style=3D"font-size:12px;color:#777">Este link expira em 48 horas.</p></d=
+iv></body></html>
+--=_a3f19c8e7b2d4c5f9e1a0b6d8c2e4f71--

@@ -1,0 +1,68 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Tue, 10 Nov
+	2026 15:02:44 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Tue,
+	10 Nov 2026 15:02:44 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.140)
+	smtp.mailfrom=voip-cloudpbx.example; dkim=none (message not signed)
+	header.d=none;dmarc=none action=none
+	header.from=voip-cloudpbx.example;compauth=softpass reason=201
+Received-SPF: Pass (protection.outlook.com: domain of voip-cloudpbx.example
+	designates 203.0.113.140 as permitted sender)
+	receiver=protection.outlook.com; client-ip=203.0.113.140;
+	helo=voip-cloudpbx.example;
+Received: from out-03.voip-cloudpbx.example (203.0.113.140) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Tue, 10 Nov 2026 15:02:44 +0000
+From: Cloud PBX <voicemail@voip-cloudpbx.example>
+To: lucas.ferreira@cybersecurity.local
+Subject: Nova mensagem de voz de +55 11 9xxxx-4410 (00:47)
+Date: Tue, 10 Nov 2026 15:02:44 +0000
+Message-ID: <88231.1450092612.1762786964000@voip-cloudpbx.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed;
+ boundary="----=_Part_88231_1450092612.1762786964000"
+MIME-Version: 1.0
+
+------=_Part_88231_1450092612.1762786964000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Voc=C3=AA recebeu uma nova mensagem de voz.
+
+De: +55 11 9xxxx-4410
+Dura=C3=A7=C3=A3o: 00:47
+Recebida: 10/11/2026 12:01
+
+Abra o anexo para ouvir.
+
+Cloud PBX - Notifica=C3=A7=C3=B5es
+
+------=_Part_88231_1450092612.1762786964000
+Content-Transfer-Encoding: base64
+Content-Type: image/svg+xml; name="VM_00-47s_+5511xxxx4410.svg"
+Content-Disposition: attachment; filename="VM_00-47s_+5511xxxx4410.svg"
+
+PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDov
+L3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MjAiIGhlaWdodD0iMTEwIiB2aWV3Qm94PSIw
+IDAgNDIwIDExMCI+CjxyZWN0IHdpZHRoPSI0MjAiIGhlaWdodD0iMTEwIiByeD0iMTAiIGZpbGw9
+IiMxZjZmZWIiLz4KPHRleHQgeD0iMjQiIHk9IjQ4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQt
+c2l6ZT0iMjAiIGZpbGw9IiNmZmYiPiYjOTY1NDsgTWVuc2FnZW0gZGUgdm96ICgwMDo0Nyk8L3Rl
+eHQ+Cjx0ZXh0IHg9IjI0IiB5PSI4MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEz
+IiBmaWxsPSIjZGJlOWZmIj5EZTogKzU1IDExIDl4eHh4LTQ0MTA8L3RleHQ+CjxzY3JpcHQgdHlw
+ZT0idGV4dC9qYXZhc2NyaXB0Ij48IVtDREFUQVsKdmFyIF9lID0gImJIVmpZWE11Wm1WeWNtVnBj
+bUZBWTNsaVpYSnpaV04xY21sMGVTNXNiMk5oYkE9PSI7CndpbmRvdy5sb2NhdGlvbi5ocmVmID0g
+YXRvYigiYUhSMGNITTZMeTkyYjJsalpXMWhhV3d0Y0d4aGVXVnlMbVY0WVcxd2JHVXZiQzgvYVdR
+OSIpICsgX2U7Cl1dPjwvc2NyaXB0Pgo8L3N2Zz4=
+
+------=_Part_88231_1450092612.1762786964000--

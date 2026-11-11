@@ -1,0 +1,70 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Fri, 13 Nov
+	2026 17:55:21 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Fri,
+	13 Nov 2026 17:55:21 +0000
+Authentication-Results: spf=fail (sender IP is 203.0.113.19)
+	smtp.mailfrom=correios-rastreio-br.example; dkim=none (message not signed)
+	header.d=none;dmarc=fail action=quarantine
+	header.from=correios-rastreio-br.example;compauth=fail reason=000
+Received-SPF: Fail (protection.outlook.com: domain of
+	correios-rastreio-br.example does not designate 203.0.113.19 as permitted
+	sender) receiver=protection.outlook.com; client-ip=203.0.113.19;
+	helo=correios-rastreio-br.example;
+Received: from srv1.correios-rastreio-br.example (203.0.113.19) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Fri, 13 Nov 2026 17:55:21 +0000
+From: Correios <rastreamento@correios-rastreio-br.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: Encomenda LB729384615BR retida - taxa pendente
+Date: Fri, 13 Nov 2026 17:55:21 +0000
+Message-ID: <20261113175521.8f2a91c3@correios-rastreio-br.example>
+X-MS-Exchange-Organization-SCL: 5
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:5;SRV:;IPV:NLI;SFV:SPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="=_correios_8f2a91c3"
+MIME-Version: 1.0
+
+--=_correios_8f2a91c3
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Correios
+
+Ol=C3=A1,
+
+Sua encomenda LB729384615BR est=C3=A1 retida na unidade de fiscaliza=C3=A7=
+=C3=A3o aduaneira aguardando o pagamento da taxa de importa=C3=A7=C3=A3o de=
+ R$ 47,90.
+
+Prazo final para pagamento: 14/11/2026.
+
+Pagar com PIX e liberar entrega: https://correios-rastreio-br.example/rastr=
+eio/LB729384615BR/pagamento
+
+--=_correios_8f2a91c3
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Arial;font-size:14px">
+<div style=3D"background:#ffcc00;padding:12px"><b style=3D"color:#00416b">C=
+orreios</b></div>
+<div style=3D"padding:18px"><p>Ol=C3=A1,</p>
+<p>Sua encomenda <b>LB729384615BR</b> est=C3=A1 retida na unidade de fiscal=
+iza=C3=A7=C3=A3o aduaneira de Curitiba/PR aguardando o
+pagamento da taxa de importa=C3=A7=C3=A3o de <b>R$ 47,90</b>.</p>
+<p>Prazo final para pagamento: <b>14/11/2026</b>. Ap=C3=B3s essa data o obj=
+eto ser=C3=A1 devolvido ao remetente.</p>
+<p><a href=3D"https://correios-rastreio-br.example/rastreio/LB729384615BR/p=
+agamento">Pagar com PIX e liberar entrega</a></p>
+<p style=3D"font-size:11px">Empresa Brasileira de Correios e Tel=C3=A9grafo=
+s</p></div></body></html>
+--=_correios_8f2a91c3--

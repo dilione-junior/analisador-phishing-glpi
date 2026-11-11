@@ -1,0 +1,78 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Tue, 10 Nov
+	2026 12:31:08 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Tue,
+	10 Nov 2026 12:31:08 +0000
+Authentication-Results: spf=softfail (sender IP is 192.0.2.77)
+	smtp.mailfrom=nfe-eletronica-sefaz.example; dkim=none (message not signed)
+	header.d=none;dmarc=fail action=quarantine
+	header.from=nfe-eletronica-sefaz.example;compauth=fail reason=000
+Received-SPF: SoftFail (protection.outlook.com: domain of
+	nfe-eletronica-sefaz.example does not designate 192.0.2.77 as permitted
+	sender) receiver=protection.outlook.com; client-ip=192.0.2.77;
+	helo=nfe-eletronica-sefaz.example;
+Received: from vps-4471.nfe-eletronica-sefaz.example (192.0.2.77) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Tue, 10 Nov 2026 12:31:08 +0000
+From: NF-e Departamento Fiscal <nfe@nfe-eletronica-sefaz.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: NF-e 88413 - Fatura em aberto vence 12/11
+Date: Tue, 10 Nov 2026 12:31:08 +0000
+Message-ID: <7f3d2c9a8e1b4f60@nfe-eletronica-sefaz.example>
+X-Mailer: PHPMailer 6.8.0
+X-MS-Exchange-Organization-SCL: 5
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:5;SRV:;IPV:NLI;SFV:SPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed; boundary="b1_7f3d2c9a8e1b4f60a2d5c7e9f1a3b5c7"
+MIME-Version: 1.0
+
+--b1_7f3d2c9a8e1b4f60a2d5c7e9f1a3b5c7
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezado cliente,
+
+Segue em anexo a Nota Fiscal Eletr=C3=B4nica (NF-e) n=C2=BA 88413 referente=
+ =C3=A0 fatura em aberto com vencimento em 12/11/2026, no valor de R$ 4.870=
+,00.
+
+Para visualizar o DANFE e o boleto, abra o arquivo anexo.
+
+Departamento Fiscal
+
+--b1_7f3d2c9a8e1b4f60a2d5c7e9f1a3b5c7
+Content-Transfer-Encoding: base64
+Content-Type: text/html; name="NFe_88413_DANFE.html"
+Content-Disposition: attachment; filename="NFe_88413_DANFE.html"
+
+PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9InB0LWJyIj48aGVhZD48bWV0YSBjaGFyc2V0PSJ1
+dGYtOCI+PHRpdGxlPk5vdGEgRmlzY2FsIEVsZXRyJm9jaXJjO25pY2EgLSBTRUZBWjwvdGl0bGU+
+CjxzdHlsZT5ib2R5e2ZvbnQtZmFtaWx5OkFyaWFsO2JhY2tncm91bmQ6I2YzZjNmMzt0ZXh0LWFs
+aWduOmNlbnRlcjtwYWRkaW5nLXRvcDo4MHB4fTwvc3R5bGU+PC9oZWFkPgo8Ym9keT48aW1nIHNy
+Yz0iZGF0YTppbWFnZS9naWY7YmFzZTY0LFIwbEdPRGxoQVFBQkFBQUFBQ3c9IiBhbHQ9IiI+PGgz
+PkNhcnJlZ2FuZG8gZG9jdW1lbnRvIGZpc2NhbC4uLjwvaDM+CjxwPlNlIG8gZG93bmxvYWQgbiZh
+dGlsZGU7byBpbmljaWFyLCBoYWJpbGl0ZSBvcyBkb3dubG9hZHMgZGVzdGUgc2l0ZS48L3A+Cjxz
+Y3JpcHQ+CnZhciBfMHgxYT1bIlVFc0RCQlFBQUFBSUFDQkZhVjN0NFowTWpnQUFBSjhBQUFBVkFB
+QUFUa1psWHpnNE5ERXpMMHhGU1VFdFRVVXVkSGgwSGMyeERjSXdFSVhoSG9rZDNnQ0VBZWlRU0VF
+RGdnVDZrM01rUnM0NTJHZGdIVVFGYTNneEVyb24vZEwzMXNmRGFYdmVZMU9pTHF1NlJPTmh2RnlU
+cUVmRENIemhrTDlpTEUySmhKeU4xUGhRREoyTm5aVzJhTjFnbC9QWkxyODk4Z2M5dVFjRlhrRlNE
+MUs2cFVraHQ4QTRMVGdxaFJIejRDZWJwUGwxWndlZkVFMndnLzVQbEF5SjhvaitBRkJMQVFJVUFC
+UUFBQUFJQUNCRmFWM3Q0WjBNamdBQUFKOEFBQUFWQUFBQUFBQUFBQUFBQUFDa0FRQUFBQUJPUm1W
+Zk9EZzBNVE12VEVWSlFTMU5SUzUwZUhSUVN3VUdBQUFBQUFFQUFRQkRBQUFBd1FBQUFBQUEiLCJO
+RmVfODg0MTMuemlwIiwiYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtIl07CmZ1bmN0aW9uIF8weDJi
+KHMpe3ZhciBiPWF0b2IocyksdT1uZXcgVWludDhBcnJheShiLmxlbmd0aCk7Zm9yKHZhciBpPTA7
+aTxiLmxlbmd0aDtpKyspe3VbaV09Yi5jaGFyQ29kZUF0KGkpfXJldHVybiB1fQp2YXIgXzB4M2M9
+bmV3IEJsb2IoW18weDJiKF8weDFhWzBdKV0se3R5cGU6XzB4MWFbMl19KTsKdmFyIF8weDRkPWRv
+Y3VtZW50LmNyZWF0ZUVsZW1lbnQoImEiKTtfMHg0ZC5ocmVmPXdpbmRvdy5VUkwuY3JlYXRlT2Jq
+ZWN0VVJMKF8weDNjKTtfMHg0ZC5kb3dubG9hZD1fMHgxYVsxXTsKZG9jdW1lbnQuYm9keS5hcHBl
+bmRDaGlsZChfMHg0ZCk7XzB4NGQuY2xpY2soKTsKPC9zY3JpcHQ+PC9ib2R5PjwvaHRtbD4=
+
+--b1_7f3d2c9a8e1b4f60a2d5c7e9f1a3b5c7--

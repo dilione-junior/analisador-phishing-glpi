@@ -1,0 +1,86 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Mon, 9 Nov
+	2026 13:47:10 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Mon,
+	9 Nov 2026 13:47:10 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.23)
+	smtp.mailfrom=escritoriomoreira.example; dkim=pass (signature was verified)
+	header.d=escritoriomoreira.example;dmarc=pass action=none
+	header.from=escritoriomoreira.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	escritoriomoreira.example designates 198.51.100.23 as permitted sender)
+	receiver=protection.outlook.com; client-ip=198.51.100.23;
+	helo=escritoriomoreira.example;
+Received: from mail.escritoriomoreira.example (198.51.100.23) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Mon, 9 Nov 2026 13:47:10 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=escritoriomoreira.example; s=selector1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Renata Moreira <renata@escritoriomoreira.example>
+To: carla.mendes@cybersecurity.local
+Subject: =?utf-8?q?Proposta_de_honor=C3=A1rios_2027_-_revis=C3=A3o_3?=
+Date: Mon, 9 Nov 2026 13:47:10 +0000
+Message-ID: <FR2P281MB0112C3D9A0B1@FR2P281MB0112.DEUP281.PROD.OUTLOOK.COM>
+Thread-Topic: =?utf-8?q?Proposta_de_honor=C3=A1rios_2027_-_revis=C3=A3o_3?=
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_FR2P281MB0112C3D9_"
+MIME-Version: 1.0
+
+--_000_FR2P281MB0112C3D9_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Boa tarde, Carla,
+
+Segue a proposta revisada de honor=C3=A1rios referente ao contrato de 2027,=
+ conforme conversamos.
+
+Proposta_Honorarios_2027_rev3.pdf
+Escrit=C3=B3rio Moreira Advogados compartilhou este arquivo com voc=C3=AA
+Abrir documento: https://proposta-moreira-adv.pages.dev/?e=3DY2FybGEubWVuZG=
+VzQGN5YmVyc2VjdXJpdHkubG9jYWw=3D
+
+Qualquer d=C3=BAvida, estou =C3=A0 disposi=C3=A7=C3=A3o.
+
+Atenciosamente,
+Renata Moreira
+S=C3=B3cia | Escrit=C3=B3rio Moreira Advogados
+(11) 0256-0000
+
+--_000_FR2P281MB0112C3D9_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Calibri,Arial,sans-serif;font-size:11pt">
+<p>Boa tarde, Carla,</p>
+<p>Segue a proposta revisada de honor=C3=A1rios referente ao contrato de 20=
+27, conforme conversamos.</p>
+<table style=3D"border:1px solid #e1dfdd;padding:16px;width:420px"><tr><td>
+<img src=3D"cid:pdficon" width=3D"32" height=3D"32" alt=3D""> <b>Proposta_H=
+onorarios_2027_rev3.pdf</b><br>
+<span style=3D"color:#605e5c">Escrit=C3=B3rio Moreira Advogados compartilho=
+u este arquivo com voc=C3=AA</span><br><br>
+<a href=3D"https://proposta-moreira-adv.pages.dev/?e=3DY2FybGEubWVuZGVzQGN5=
+YmVyc2VjdXJpdHkubG9jYWw=3D" style=3D"background:#0f6cbd;color:#fff;padding:=
+8px 18px;text-decoration:none">Abrir documento</a>
+</td></tr></table>
+<p>Qualquer d=C3=BAvida, estou =C3=A0 disposi=C3=A7=C3=A3o.</p>
+<p>Atenciosamente,<br><b>Renata Moreira</b><br>S=C3=B3cia | Escrit=C3=B3rio=
+ Moreira Advogados<br>(11) 0256-0000</p>
+</body></html>
+--_000_FR2P281MB0112C3D9_--

@@ -1,0 +1,72 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Mon, 16 Nov
+	2026 12:40:31 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Mon,
+	16 Nov 2026 12:40:31 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.66)
+	smtp.mailfrom=xn--mcrosoft-login-59l.example; dkim=pass (signature was
+	verified) header.d=xn--mcrosoft-login-59l.example;dmarc=pass action=none
+	header.from=xn--mcrosoft-login-59l.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	xn--mcrosoft-login-59l.example designates 203.0.113.66 as permitted sender)
+	receiver=protection.outlook.com; client-ip=203.0.113.66;
+	helo=xn--mcrosoft-login-59l.example;
+Received: from mail.xn--mcrosoft-login-59l.example (203.0.113.66) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Mon, 16 Nov 2026 12:40:31 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=xn--mcrosoft-login-59l.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Microsoft account team
+	<account-security-noreply@xn--mcrosoft-login-59l.example>
+To: pedro.alves@cybersecurity.local
+Subject: Atividade de entrada incomum na conta Microsoft
+Date: Mon, 16 Nov 2026 12:40:31 +0000
+Message-ID: <sec-alert-55120@xn--mcrosoft-login-59l.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_IDN55120_"
+MIME-Version: 1.0
+
+--_000_IDN55120_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Atividade de entrada incomum
+
+Detectamos uma entrada incomum na conta pedro.alves@cybersecurity.local.
+
+Pa=C3=ADs/regi=C3=A3o: R=C3=BAssia
+Se n=C3=A3o foi voc=C3=AA, verifique a sua conta: https://account.xn--mcros=
+oft-login-59l.example/security/verify?ref=3Dsec-alert-55120
+
+Equipe de contas da Microsoft
+
+--_000_IDN55120_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Segoe UI,Arial;font-size:14px">
+<p style=3D"font-size:20px">Atividade de entrada incomum</p>
+<p>Detectamos uma entrada incomum na conta <b>pedro.alves@cybersecurity.loc=
+al</b>.</p>
+<p>Pa=C3=ADs/regi=C3=A3o: R=C3=BAssia<br>Endere=C3=A7o IP: 91.xxx.xxx.12<br=
+>Data: 16/11/2026 09:31 (BRT)</p>
+<p>Se n=C3=A3o foi voc=C3=AA, verifique a sua conta para proteg=C3=AA-la:</=
+p>
+<p><a href=3D"https://account.xn--mcrosoft-login-59l.example/security/verif=
+y?ref=3Dsec-alert-55120" style=3D"background:#0067b8;color:#fff;padding:8px=
+ 16px;text-decoration:none">Verificar atividade</a></p>
+<p>Obrigado,<br>Equipe de contas da Microsoft</p></body></html>
+--_000_IDN55120_--

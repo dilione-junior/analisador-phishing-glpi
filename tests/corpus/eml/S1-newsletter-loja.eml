@@ -1,0 +1,71 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Mon, 23 Nov
+	2026 07:00:00 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Mon,
+	23 Nov 2026 07:00:00 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.77)
+	smtp.mailfrom=mail.megaofertas-online.example; dkim=pass (signature was
+	verified) header.d=megaofertas-online.example;dmarc=pass action=none
+	header.from=megaofertas-online.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	mail.megaofertas-online.example designates 198.51.100.77 as permitted sender)
+	receiver=protection.outlook.com; client-ip=198.51.100.77;
+	helo=mail.megaofertas-online.example;
+Received: from mta-7.mail.megaofertas-online.example (198.51.100.77) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Mon, 23 Nov 2026 07:00:00 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=megaofertas-online.example; s=mkt;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: MegaOfertas <ofertas@megaofertas-online.example>
+To: lucas.ferreira@cybersecurity.local
+Subject: =?utf-8?b?8J+UpSBCTEFDSyBOT1ZFTUJFUjogYXTDqSA3MCUgT0ZGIHPDsyBob2pl?=
+List-Unsubscribe: <https://www.megaofertas-online.example/descadastrar?e=8a7f>,
+	<mailto:unsub@megaofertas-online.example>
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+Precedence: bulk
+Date: Mon, 23 Nov 2026 07:00:00 +0000
+Message-ID: <bn26.8a7f@mail.megaofertas-online.example>
+X-MS-Exchange-Organization-SCL: 5
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:5;SRV:;IPV:NLI;SFV:SPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="----=_Part_bn26_mkt"
+MIME-Version: 1.0
+
+------=_Part_bn26_mkt
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+BLACK NOVEMBER - At=C3=A9 70% OFF em eletr=C3=B4nicos
+
+VER OFERTAS: https://www.megaofertas-online.example/black-november?utm_sour=
+ce=3Dnewsletter
+
+Descadastrar: https://www.megaofertas-online.example/descadastrar?e=3D8a7f
+
+------=_Part_bn26_mkt
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Arial;background:#111;color:#fff;text-alig=
+n:center">
+<h1 style=3D"color:#ffd400">BLACK NOVEMBER</h1><p style=3D"font-size:20px">=
+At=C3=A9 70% OFF em eletr=C3=B4nicos</p>
+<p><a href=3D"https://www.megaofertas-online.example/black-november?utm_sou=
+rce=3Dnewsletter&utm_campaign=3Dbn26" style=3D"color:#ffd400">VER OFERTAS</=
+a></p>
+<p style=3D"font-size:11px;color:#999">Voc=C3=AA recebeu este e-mail porque=
+ se cadastrou em nosso site.
+<a href=3D"https://www.megaofertas-online.example/descadastrar?e=3D8a7f" st=
+yle=3D"color:#999">Descadastrar</a></p></body></html>
+------=_Part_bn26_mkt--

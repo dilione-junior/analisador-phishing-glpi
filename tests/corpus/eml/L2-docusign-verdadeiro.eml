@@ -1,0 +1,83 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Thu, 19 Nov
+	2026 15:44:12 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Thu,
+	19 Nov 2026 15:44:12 +0000
+Authentication-Results: spf=pass (sender IP is 64.207.219.13)
+	smtp.mailfrom=docusign.net; dkim=pass (signature was verified)
+	header.d=docusign.net;dmarc=pass action=none
+	header.from=docusign.net;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of docusign.net designates
+	64.207.219.13 as permitted sender) receiver=protection.outlook.com;
+	client-ip=64.207.219.13; helo=docusign.net;
+Received: from mailch1.docusign.net (64.207.219.13) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Thu, 19 Nov 2026 15:44:12 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=docusign.net; s=mail;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Fernanda Alvorada via DocuSign <dse_NA4@docusign.net>
+Reply-To: Fernanda Alvorada <fernanda@grupo-alvorada.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: Complete com DocuSign: Contrato_Fornecimento_2027.pdf
+Date: Thu, 19 Nov 2026 15:44:12 +0000
+Message-ID: <3f1c7a2e8b4d4c119e5f0a2b4c6d8e10@docusign.net>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative;
+ boundary="----=_NextPart_DocuSign_3f1c7a2e"
+MIME-Version: 1.0
+
+------=_NextPart_DocuSign_3f1c7a2e
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Grupo Alvorada enviou um documento para voc=C3=AA revisar e assinar.
+
+REVISAR DOCUMENTO: https://na4.docusign.net/Signing/EmailStart.aspx?a=3D3f1=
+c7a2e-8b4d-4c11-9e5f-0a2b4c6d8e10&etti=3D24&acct=3D6e1f2a3b-4c5d-4e6f-8a9b-=
+0c1d2e3f4a5b&er=3D7d8e9f0a-1b2c-4d3e-8f4a-5b6c7d8e9f0a
+
+Fernanda Alvorada
+fernanda@grupo-alvorada.example
+
+Ana, segue o contrato de fornecimento 2027 para assinatura, conforme reuni=
+=C3=A3o de ontem.
+
+------=_NextPart_DocuSign_3f1c7a2e
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Helvetica,Arial;background:#eaeaea">
+<table align=3D"center" width=3D"640" style=3D"background:#fff;padding:24px=
+"><tr><td>
+<p><img src=3D"https://na4.docusign.net/Member/Images/email/docusign-logo.p=
+ng" alt=3D"DocuSign" width=3D"116"></p>
+<div style=3D"background:#1e4ca1;color:#fff;padding:28px;text-align:center">
+<p>Grupo Alvorada enviou um documento para voc=C3=AA revisar e assinar.</p>
+<a href=3D"https://na4.docusign.net/Signing/EmailStart.aspx?a=3D3f1c7a2e-8b=
+4d-4c11-9e5f-0a2b4c6d8e10&etti=3D24&acct=3D6e1f2a3b-4c5d-4e6f-8a9b-0c1d2e3f=
+4a5b&er=3D7d8e9f0a-1b2c-4d3e-8f4a-5b6c7d8e9f0a" style=3D"background:#ffc423=
+;color:#333;padding:12px 28px;text-decoration:none">REVISAR DOCUMENTO</a></=
+div>
+<p><b>Fernanda Alvorada</b><br><a href=3D"mailto:fernanda@grupo-alvorada.ex=
+ample">fernanda@grupo-alvorada.example</a></p>
+<p>Ana, segue o contrato de fornecimento 2027 para assinatura, conforme reu=
+ni=C3=A3o de ontem.</p>
+<p style=3D"font-size:11px;color:#666">N=C3=A3o compartilhe este e-mail. Es=
+te e-mail cont=C3=A9m um link seguro para o DocuSign.
+N=C3=A3o compartilhe este e-mail, link ou c=C3=B3digo de acesso com outras =
+pessoas.<br>
+Sobre o DocuSign: assine documentos eletronicamente em apenas minutos.</p><=
+/td></tr></table></body></html>
+------=_NextPart_DocuSign_3f1c7a2e--

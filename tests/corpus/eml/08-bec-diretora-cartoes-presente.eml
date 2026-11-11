@@ -1,0 +1,55 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Thu, 12 Nov
+	2026 10:48:02 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Thu,
+	12 Nov 2026 10:48:02 +0000
+Authentication-Results: spf=pass (sender IP is 209.85.220.41)
+	smtp.mailfrom=gmail.com; dkim=pass (signature was verified)
+	header.d=gmail.com;dmarc=pass action=none header.from=gmail.com;compauth=pass
+	reason=100
+Received-SPF: Pass (protection.outlook.com: domain of gmail.com designates
+	209.85.220.41 as permitted sender) receiver=protection.outlook.com;
+	client-ip=209.85.220.41; helo=gmail.com;
+Received: from mail-sor-f41.google.com (209.85.220.41) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Thu, 12 Nov 2026 10:48:02 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20230601;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Carla Mendes <carla.mendes.diretoria@gmail.com>
+To: lucas.ferreira@cybersecurity.local
+Subject: Disponivel?
+Date: Thu, 12 Nov 2026 10:48:02 +0000
+Message-ID: <CAJx7mB0Q4hR2pV9e1kY_3tF8wN6zLs5aD0cU2gXo7iP@mail.gmail.com>
+X-Mailer: iPhone Mail (21H16)
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Lucas, est=C3=A1 dispon=C3=ADvel?
+
+Estou em uma reuni=C3=A3o com o conselho e n=C3=A3o consigo atender liga=C3=
+=A7=C3=A3o. Preciso de um favor urgente e discreto: comprar 6 cart=C3=B5es-=
+presente da Google Play de R$ 500 para a premia=C3=A7=C3=A3o surpresa da eq=
+uipe comercial. N=C3=A3o comente com ningu=C3=A9m por enquanto, =C3=A9 surp=
+resa.
+
+Me responda por aqui que eu passo os detalhes. Depois o financeiro te reemb=
+olsa.
+
+Carla Mendes
+Diretora Executiva
+
+Enviado do meu iPhone

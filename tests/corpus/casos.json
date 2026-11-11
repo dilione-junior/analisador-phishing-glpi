@@ -1,0 +1,1053 @@
+{
+ "_aviso": "Gerado por tests/corpus/gerar-corpus.py: edite lá e gere de novo.",
+ "casos": [
+  {
+   "id": "01-m365-senha-expirando",
+   "arquivo": "eml/01-m365-senha-expirando.eml",
+   "titulo": "Credenciais do Microsoft 365: \"sua senha expira hoje\" com domínio sósia (rn no lugar de m)",
+   "tecnica": "Página falsa de login do Microsoft 365 em domínio novo e bem configurado (SPF/DKIM/DMARC passam)",
+   "relato": "Recebi esse e-mail da Microsoft dizendo que minha senha expira hoje. Não cliquei, achei estranho o endereço.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002",
+     "T1598.003"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "marca",
+    "link-disfarcado",
+    "urgencia"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "rnicrosoft-online.example"
+    ],
+    "nao_pode_ter": [
+     "portal.office.com",
+     "office.com",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "rnicrosoft-online.example": 4
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "02-aitm-conta-fornecedor-comprometida",
+   "arquivo": "eml/02-aitm-conta-fornecedor-comprometida.eml",
+   "titulo": "AiTM: conta real de um escritório parceiro foi invadida e manda \"documento compartilhado\"",
+   "tecnica": "Adversary-in-the-Middle (kit tipo Tycoon 2FA/EvilProxy): o link leva a uma página em Cloudflare Pages com o e-mail da vítima em base64 na URL, que faz proxy do login real da Microsoft e rouba o cookie de sessão (passa por cima do MFA). O e-mail sai do servidor legítimo do parceiro: SPF/DKIM/DMARC passam.",
+   "relato": "A Renata do Escritório Moreira me mandou uma proposta, mas não estávamos negociando nada com eles agora. Abri o link e apareceu uma verificação \"não sou robô\" e depois a tela de login da Microsoft. Digitei minha senha e aprovei o MFA no celular, mas o documento não abriu.",
+   "requerente": "carla.mendes (Diretoria)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "AiTM",
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "Executive",
+    "gravidade": "critica",
+    "mitre": [
+     "T1566.002",
+     "T1557",
+     "T1539"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "hospedagem"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "aitm-isca"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "proposta-moreira-adv.pages.dev"
+    ],
+    "nao_pode_ter": [
+     "pages.dev"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "escritoriomoreira.example": 3412
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "Remetente legítimo (autenticação passa, domínio antigo): o analisador ainda não reconhece o padrão AiTM (e-mail da vítima em base64 na URL, \"documento compartilhado\" fora do SharePoint/OneDrive, página em pages.dev/workers.dev). Sem o relato, a nota fica baixa.",
+   "nota": ""
+  },
+  {
+   "id": "03-quishing-mfa",
+   "arquivo": "eml/03-quishing-mfa.eml",
+   "titulo": "Quishing: \"reconfigure o MFA\" com QR Code em imagem, imitando a TI da própria empresa",
+   "tecnica": "QR Code Phishing: o link fica dentro de uma imagem (filtros de e-mail não leem) e a vítima abre no celular, fora da proteção do computador. Imita a TI interna com um domínio parecido com o da empresa.",
+   "relato": "Chegou esse pedido da TI para reconfigurar o MFA pelo QR Code. É de vocês? Não escaneei.",
+   "requerente": "pedro.alves (TI)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "QR",
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002",
+     "T1656"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "qrcode"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "qrcode-decodificado"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "cybersecurity-ti.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "cybersecurity-ti.example": 2
+    }
+   },
+   "ioc_escondido": "mfa-cybersecurity.example",
+   "lacuna": "O link está só dentro do QR Code (imagem): o analisador ainda não lê QR Codes, então o domínio mfa-cybersecurity.example não aparece nos IOCs. Também não reconhece imitação do domínio da PRÓPRIA empresa.",
+   "nota": ""
+  },
+  {
+   "id": "04-html-smuggling-nfe",
+   "arquivo": "eml/04-html-smuggling-nfe.eml",
+   "titulo": "HTML smuggling: \"Nota Fiscal Eletrônica\" com anexo .html que monta um .zip no navegador",
+   "tecnica": "HTML Smuggling: o anexo é uma página que decodifica um base64 com atob(), cria um Blob e força o download de um .zip. O arquivo nasce dentro do navegador, então o gateway de e-mail nunca vê o .zip.",
+   "relato": "Não reconheço essa nota fiscal, não temos compra com essa empresa. Não abri o anexo.",
+   "requerente": "ana.ribeiro (Compras)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Malware Delivery"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.001",
+     "T1027.006",
+     "T1204.002"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "anexo-perigoso",
+    "spf",
+    "dmarc",
+    "pagamento"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "html-smuggling"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "nfe-eletronica-sefaz.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "nfe-eletronica-sefaz.example": 11
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "O analisador vê \"anexo .html\", mas não reconhece o HTML smuggling (atob + Blob + download automático).",
+   "nota": ""
+  },
+  {
+   "id": "05-svg-smuggling-mensagem-de-voz",
+   "arquivo": "eml/05-svg-smuggling-mensagem-de-voz.eml",
+   "titulo": "SVG com JavaScript: \"nova mensagem de voz\" que redireciona para página falsa",
+   "tecnica": "SVG Smuggling: SVG é imagem, mas aceita <script>. Ao abrir no navegador, o JavaScript monta a URL com atob() e leva a vítima para a página falsa, já com o e-mail dela no endereço.",
+   "relato": "Recebi aviso de mensagem de voz por e-mail, mas a gente nem usa esse sistema. Abri o anexo e ele abriu o navegador numa página da Microsoft pedindo login, fechei na hora.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "alta",
+    "mitre": [
+     "T1566.001",
+     "T1027.006"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "anexo-perigoso"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "svg-script"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "voip-cloudpbx.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "voip-cloudpbx.example": 6
+    }
+   },
+   "ioc_escondido": "voicemail-player.example",
+   "lacuna": "O analisador marca o .svg como perigoso, mas não lê o <script> nem decodifica o atob(): o domínio voicemail-player.example (destino real) não aparece nos IOCs.",
+   "nota": ""
+  },
+  {
+   "id": "06-oauth-consent-phishing",
+   "arquivo": "eml/06-oauth-consent-phishing.eml",
+   "titulo": "Consent phishing: link VERDADEIRO da Microsoft pedindo permissão para um app malicioso ler e enviar e-mails",
+   "tecnica": "OAuth Consent Phishing: a página de login é a real (login.microsoftonline.com), mas o app pede offline_access + Mail.ReadWrite + Mail.Send + Files.ReadWrite.All e devolve o código para um site do atacante (redirect_uri). Trocar a senha NÃO resolve: o token do app continua valendo até a permissão ser revogada.",
+   "relato": "Cliquei para assinar o documento, entrei com a minha conta e apareceu uma tela pedindo permissões, cliquei em Aceitar. Depois não apareceu documento nenhum.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "OAuth",
+     "Consent Phishing"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "critica",
+    "mitre": [
+     "T1566.002",
+     "T1528"
+    ]
+   },
+   "sinais_obrigatorios": [],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "oauth-consentimento"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "assinafacil-app.example"
+    ],
+    "nao_pode_ter": [
+     "login.microsoftonline.com",
+     "microsoftonline.com"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "assinafacil-app.example": 8
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "O link é do domínio oficial da Microsoft, então hoje ele vai para \"fora do bloqueio\" e não gera sinal. Falta reconhecer URL de consentimento OAuth (oauth2/authorize + prompt=consent + escopos de e-mail/arquivos + redirect_uri externo) e orientar a revogar o app no Entra ID (trocar senha não basta).",
+   "nota": ""
+  },
+  {
+   "id": "07-sharepoint-tenant-comprometido",
+   "arquivo": "eml/07-sharepoint-tenant-comprometido.eml",
+   "titulo": "Abuso do SharePoint: compartilhamento verdadeiro vindo de um cliente invadido (golpe em 2 etapas)",
+   "tecnica": "SharePoint/OneDrive Abuse: o e-mail é uma notificação legítima da Microsoft (tudo passa), o link é sharepoint.com de verdade. O PDF hospedado lá tem um botão \"Acessar documento\" que leva à página falsa. Pelo e-mail, quase nada denuncia: o relato do usuário é a melhor evidência.",
+   "relato": "Abri o link do SharePoint, apareceu um PDF com um botão \"Acessar documento\" e ele pediu a minha senha da Microsoft numa página de outro endereço. Não digitei. A construtora Nogueira é nossa cliente, mas eu não esperava esse comprovante.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "alta",
+    "mitre": [
+     "T1566.002",
+     "T1199"
+    ]
+   },
+   "sinais_obrigatorios": [],
+   "sinais_proibidos": [
+    "marca"
+   ],
+   "sinais_futuros": [
+    "relato-pagina-falsa"
+   ],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "sharepoint.com",
+     "sharepointonline.com",
+     "construtoranogueira-my.sharepoint.com"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "Pelo e-mail, nada denuncia: a evidência está no relato (\"pediu a senha numa página de outro endereço\"). O analisador ainda não pesa o relato do usuário como evidência, só como interação. Atenção: o domínio do cliente invadido (Reply-To) entra nos IOCs; o analista não deve bloqueá-lo (cortaria um cliente).",
+   "nota": ""
+  },
+  {
+   "id": "08-bec-diretora-cartoes-presente",
+   "arquivo": "eml/08-bec-diretora-cartoes-presente.eml",
+   "titulo": "BEC (fraude do \"chefe\"): diretora pede cartões-presente por Gmail",
+   "tecnica": "Business Email Compromise: nome de uma diretora real com um Gmail qualquer, urgência, sigilo e pedido de compra de cartões-presente. Sem link nem anexo: filtros técnicos não pegam.",
+   "relato": "Recebi esse pedido em nome da diretora Carla, mas pelo Gmail. Não respondi.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "BEC"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566",
+     "T1656"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "bec"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "bec-nome-interno"
+   ],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "gmail.com",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "Não liga o NOME do remetente a uma pessoa da organização (Carla Mendes é diretora) nem pega \"Diretora\" no feminino; sem isso a nota fica baixa e o caso depende da IA.",
+   "nota": ""
+  },
+  {
+   "id": "09-bec-fornecedor-dados-bancarios",
+   "arquivo": "eml/09-bec-fornecedor-dados-bancarios.eml",
+   "titulo": "BEC de fornecedor: domínio sósia (i -> l) entra na conversa e troca a conta de pagamento",
+   "tecnica": "Vendor Email Compromise / thread hijacking: o golpista copiou uma conversa real (provavelmente de uma caixa invadida do fornecedor) e responde de um domínio quase igual, com carta em PDF e novos dados bancários.",
+   "relato": "A Gráfica Paulista pediu para trocar a conta do pagamento do pedido 4471. Ainda não paguei. Pode verificar?",
+   "requerente": "ana.ribeiro (Compras)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "BEC"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "alta",
+    "mitre": [
+     "T1566.001",
+     "T1656",
+     "T1534"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "bec",
+    "dominio-novo"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "dominio-sosia-conversa"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "graficapaullsta.example"
+    ],
+    "nao_pode_ter": [
+     "graficapaulista.example",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "graficapaullsta.example": 5
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "Não compara o domínio do remetente com os domínios que JÁ aparecem na conversa citada (graficapaullsta x graficapaulista): é o sinal mais forte desse golpe.",
+   "nota": ""
+  },
+  {
+   "id": "10-bec-desvio-de-salario",
+   "arquivo": "eml/10-bec-desvio-de-salario.eml",
+   "titulo": "Desvio de salário: \"funcionário\" pede ao RH troca da conta salário pelo e-mail pessoal",
+   "tecnica": "Payroll Diversion (BEC contra o RH): o golpista usa o nome de um funcionário real num Outlook.com e pede a troca da conta de depósito. Nenhum link, nenhum anexo, autenticação passa.",
+   "relato": "Chegou no e-mail do RH um pedido do João Lima para trocar a conta salário, mas veio de um Outlook pessoal. Não alteramos nada ainda.",
+   "requerente": "joao.lima (RH)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "BEC"
+    ],
+    "delivery_channel": "Email",
+    "target": "HR",
+    "gravidade": "media",
+    "mitre": [
+     "T1566",
+     "T1656"
+    ]
+   },
+   "sinais_obrigatorios": [],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "bec-conta-salario"
+   ],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "outlook.com",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "Nenhuma regra pega \"troca de conta salário\" nem nome de funcionário vindo de webmail. Hoje sai como legítimo/inconclusivo: depende inteiramente da IA e do analista.",
+   "nota": ""
+  },
+  {
+   "id": "11-receita-federal-cpf",
+   "arquivo": "eml/11-receita-federal-cpf.eml",
+   "titulo": "Receita Federal: \"pendência no CPF\" com link encurtado e prazo de 48 horas",
+   "tecnica": "Golpe de órgão público (gov.br) com encurtador para esconder o destino e emissão de DARF falso (pagamento).",
+   "relato": "Chegou no meu e-mail do trabalho uma pendência da Receita sobre o meu CPF. Não cliquei.",
+   "requerente": "pedro.alves (TI)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002",
+     "T1656"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "marca",
+    "encurtador",
+    "urgencia"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "receita-regularize.example"
+    ],
+    "nao_pode_ter": [
+     "bit.ly",
+     "gov.br"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "receita-regularize.example": 9
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "Calibração: marca imitada + domínio com menos de 30 dias ainda soma 55 (abaixo de 60) e fica inconclusivo sem a IA. Para um N3 é phishing.",
+   "nota": ""
+  },
+  {
+   "id": "12-correios-taxa-pix",
+   "arquivo": "eml/12-correios-taxa-pix.eml",
+   "titulo": "Correios: \"taxa de importação\" paga por PIX (a usuária pagou)",
+   "tecnica": "Golpe de entrega/taxa: página falsa gera um PIX. Prejuízo financeiro direto; MED do PIX é a resposta.",
+   "relato": "Eu estava esperando uma encomenda e paguei a taxa de R$ 47,90 pelo PIX. Depois vi que o endereço não era dos Correios.",
+   "requerente": "ana.ribeiro (Compras)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "critica",
+    "mitre": [
+     "T1566.002",
+     "T1656"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "marca",
+    "spf",
+    "dmarc",
+    "pagamento"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "correios-rastreio-br.example"
+    ],
+    "nao_pode_ter": [
+     "correios.com.br"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "correios-rastreio-br.example": 3
+    },
+    "urlhaus": {
+     "correios-rastreio-br.example": true
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "13-docusign-falso-ipfs",
+   "arquivo": "eml/13-docusign-falso-ipfs.eml",
+   "titulo": "DocuSign falso para a diretoria, com página hospedada no IPFS",
+   "tecnica": "Isca de assinatura (DocuSign) com página de login em IPFS (gateway público): difícil de derrubar e com o e-mail da vítima no # da URL para preencher o login.",
+   "relato": "DocuSign do RH sobre bonificação da diretoria, mas o RH disse que não mandou nada. Não abri.",
+   "requerente": "carla.mendes (Diretoria)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "Executive",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "marca",
+    "hospedagem"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "docsign-envelopes.example"
+    ],
+    "nao_pode_ter": [
+     "ipfs.io",
+     "docusign.com",
+     "docusign.net"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "docsign-envelopes.example": 15
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "Calibração: marca imitada + domínio com menos de 30 dias ainda soma 53 (abaixo de 60) e fica inconclusivo sem a IA. Para um N3 é phishing.",
+   "nota": ""
+  },
+  {
+   "id": "14-homografo-idn",
+   "arquivo": "eml/14-homografo-idn.eml",
+   "titulo": "Homógrafo: domínio com letra cirílica que se lê \"microsoft-login\"",
+   "tecnica": "IDN Homograph: \"і\" cirílico no lugar do \"i\" latino. Na tela parece mіcrosoft-login; na rede é xn--...",
+   "relato": "Recebi alerta de login da Rússia. O endereço parece da Microsoft, mas achei a letra estranha. Não cliquei.",
+   "requerente": "pedro.alves (TI)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002",
+     "T1583.001"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "punycode-remetente",
+    "url-punycode",
+    "marca"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "xn--mcrosoft-login-59l.example"
+    ],
+    "nao_pode_ter": [
+     "microsoft.com",
+     "live.com"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "xn--mcrosoft-login-59l.example": 2
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "Calibração: marca imitada + domínio com menos de 30 dias ainda soma 55 (abaixo de 60) e fica inconclusivo sem a IA. Para um N3 é phishing.",
+   "nota": ""
+  },
+  {
+   "id": "15-malware-zip-lnk",
+   "arquivo": "eml/15-malware-zip-lnk.eml",
+   "titulo": "Malware: \"comprovante de PIX\" em .zip com atalho .pdf.lnk (padrão dos trojans bancários)",
+   "tecnica": "Entrega de malware: o .zip esconde um atalho (.lnk) com ícone de PDF que roda PowerShell. Padrão comum de trojans bancários brasileiros. O e-mail em si só mostra um .zip.",
+   "relato": "Recebi um comprovante de PIX de alguém que não conheço. Baixei e abri o zip, tinha um PDF que não abriu nada.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Malware Delivery"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "critica",
+    "mitre": [
+     "T1566.001",
+     "T1204.002",
+     "T1059.001"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "anexo-compactado",
+    "pagamento"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "zip-conteudo-perigoso"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "transferencias-pix.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "transferencias-pix.example": 7
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "O analisador vê só \"anexo .zip\": não lista os nomes dos arquivos de dentro (o .pdf.lnk é a prova).",
+   "nota": ""
+  },
+  {
+   "id": "16-callback-fatura-paypal",
+   "arquivo": "eml/16-callback-fatura-paypal.eml",
+   "titulo": "Callback phishing (TOAD): fatura VERDADEIRA do PayPal com \"ligue para cancelar\"",
+   "tecnica": "Telephone-Oriented Attack Delivery: o golpista cria uma fatura real no PayPal (tudo legítimo e autenticado) e escreve na observação um telefone de \"cancelamento\". Na ligação, pede acesso remoto (AnyDesk) ou dados bancários. Vishing iniciado por e-mail.",
+   "relato": "Chegou uma cobrança do PayPal de R$ 1.899 de antivírus Norton, que não assinamos. Tem um 0800 para cancelar. Liguei? Não, achei melhor perguntar.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Vishing"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.004",
+     "T1656"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "pagamento",
+    "urgencia"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "callback-telefone"
+   ],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "paypal.com",
+     "www.paypal.com"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "Tudo é legítimo (PayPal, autenticação, link): o golpe está no TELEFONE da observação. Falta reconhecer \"ligue para cancelar\" + cobrança inesperada de assinatura, e extrair o telefone como IOC.",
+   "nota": ""
+  },
+  {
+   "id": "17-encaminhado-rh-falso-senha",
+   "arquivo": "eml/17-encaminhado-rh-falso-senha.eml",
+   "titulo": "Encaminhado como anexo: \"RH\" falso com reajuste salarial; o usuário digitou a senha",
+   "tecnica": "Imitação de área interna (RH) com domínio parecido com o da empresa e isca de reajuste/PLR. O usuário encaminhou como anexo (o jeito certo): o analisador tem que olhar a mensagem DE DENTRO.",
+   "relato": "Abri o portal do reajuste e coloquei meu usuário e senha da rede, a página deu erro. Depois vi que o endereço não é o nosso. Estou mandando o e-mail em anexo.",
+   "requerente": "joao.lima (RH)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "HR",
+    "gravidade": "critica",
+    "mitre": [
+     "T1566.002",
+     "T1656"
+    ]
+   },
+   "sinais_obrigatorios": [],
+   "sinais_proibidos": [],
+   "sinais_futuros": [
+    "imita-organizacao"
+   ],
+   "bloqueio": {
+    "deve_ter": [
+     "rh-cybersecurity.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "rh-cybersecurity.example": 4
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "Não reconhece imitação do domínio da própria empresa (rh-cybersecurity.example x cybersecurity.local) nem o pedido \"acesse com o seu usuário e senha da rede\" (o sinal \"credenciais\" não pega essa frase).",
+   "nota": ""
+  },
+  {
+   "id": "L1-microsoft-alerta-verdadeiro",
+   "arquivo": "eml/L1-microsoft-alerta-verdadeiro.eml",
+   "titulo": "LEGÍTIMO: alerta verdadeiro de entrada incomum da Microsoft (o usuário estava em viagem)",
+   "tecnica": "Controle de falso positivo: texto parecido com phishing (\"atividade incomum\"), mas remetente e links oficiais.",
+   "relato": "Recebi alerta de login em Portugal. Eu estou em Lisboa a trabalho essa semana. É verdadeiro? Não cliquei.",
+   "requerente": "pedro.alves (TI)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "marca",
+    "marca-link",
+    "link-disfarcado",
+    "dmarc",
+    "reply-to"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "account.live.com",
+     "live.com",
+     "microsoft.com",
+     "accountprotection.microsoft.com"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L2-docusign-verdadeiro",
+   "arquivo": "eml/L2-docusign-verdadeiro.eml",
+   "titulo": "LEGÍTIMO: envelope verdadeiro do DocuSign (contrato esperado pela usuária)",
+   "tecnica": "Controle de falso positivo: plataforma de assinatura legítima, link oficial docusign.net.",
+   "relato": "Estou esperando o contrato do Grupo Alvorada pelo DocuSign. Pode confirmar se esse é seguro antes de eu assinar?",
+   "requerente": "ana.ribeiro (Compras)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "marca",
+    "marca-link",
+    "link-disfarcado",
+    "dmarc"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "docusign.net",
+     "na4.docusign.net"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": "O Reply-To para o domínio do cliente (grupo-alvorada.example) é normal no DocuSign e gera o sinal \"reply-to\" (+15); o caso confere se isso sozinho não derruba a classificação."
+  },
+  {
+   "id": "L3-sharepoint-parceiro-esperado",
+   "arquivo": "eml/L3-sharepoint-parceiro-esperado.eml",
+   "titulo": "LEGÍTIMO: compartilhamento verdadeiro do SharePoint pelo contador (arquivo pedido pela usuária)",
+   "tecnica": "Controle de falso positivo e par do caso 07: mesmo formato de e-mail, mas o arquivo era esperado.",
+   "relato": "O nosso contador Paulo mandou o balancete pelo SharePoint, eu tinha pedido ontem. Só quero confirmar se é seguro.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "marca",
+    "link-disfarcado",
+    "dmarc"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "sharepoint.com",
+     "sharepointonline.com",
+     "contabilmartins-my.sharepoint.com"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L4-ti-interna-senha-expirando",
+   "arquivo": "eml/L4-ti-interna-senha-expirando.eml",
+   "titulo": "LEGÍTIMO: aviso interno verdadeiro de senha expirando (sem link externo)",
+   "tecnica": "Controle de falso positivo: fala de senha e prazo, mas é interno, autenticado e não pede a senha.",
+   "relato": "Recebi aviso de senha expirando. É da nossa TI mesmo? Não cliquei em nada.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [],
+   "sinais_proibidos": [
+    "marca",
+    "link-disfarcado",
+    "dmarc",
+    "spf"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local",
+     "senha.cybersecurity.local"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L5-nfe-fornecedor-conhecido",
+   "arquivo": "eml/L5-nfe-fornecedor-conhecido.eml",
+   "titulo": "LEGÍTIMO: NF-e verdadeira do fornecedor conhecido (o mesmo que o caso 09 imita)",
+   "tecnica": "Controle de falso positivo: fala de pagamento, boleto e vencimento, com PDF e XML; domínio antigo e autenticado.",
+   "relato": "Chegou a nota fiscal da Gráfica Paulista, o pedido é nosso mesmo. Só confirmando se o e-mail é seguro, porque ontem tentaram um golpe com o nome deles.",
+   "requerente": "ana.ribeiro (Compras)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "anexo-perigoso",
+    "dupla-extensao",
+    "dmarc",
+    "spf"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "graficapaulista.example": 5120
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L6-banco-comunicado-verdadeiro",
+   "arquivo": "eml/L6-banco-comunicado-verdadeiro.eml",
+   "titulo": "LEGÍTIMO: comunicado verdadeiro do banco, de subdomínio oficial e com descadastro",
+   "tecnica": "Controle de falso positivo: marca de banco, mas de domínio oficial, autenticado e sem pedido de dados.",
+   "relato": "Chegou um e-mail do Itaú no meu e-mail do trabalho. É golpe? Não cliquei.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "marca",
+    "marca-link",
+    "link-disfarcado",
+    "dmarc"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "itau.com.br",
+     "comunicacao.itau.com.br",
+     "www.itau.com.br"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "S1-newsletter-loja",
+   "arquivo": "eml/S1-newsletter-loja.eml",
+   "titulo": "SPAM: newsletter de loja (Black November), autenticada e com descadastro",
+   "tecnica": "Marketing não solicitado: incômodo, mas sem golpe (sem pedido de dados, link para a própria loja).",
+   "relato": "Não me cadastrei nessa loja e está chegando todo dia. É perigoso?",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "spam",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "marca",
+    "link-disfarcado",
+    "dmarc"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "megaofertas-online.example": 1460
+    }
+   },
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "S2-prospeccao-seo",
+   "arquivo": "eml/S2-prospeccao-seo.eml",
+   "titulo": "SPAM: prospecção fria de serviço de SEO pelo Gmail",
+   "tecnica": "Prospecção comercial não solicitada: sem link, sem pedido de dados, sem urgência.",
+   "relato": "Chegou na caixa de contato. Não sei se é golpe.",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "spam",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "marca",
+    "bec",
+    "webmail"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "gmail.com",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {},
+   "ioc_escondido": "",
+   "lacuna": "",
+   "nota": ""
+  }
+ ]
+}

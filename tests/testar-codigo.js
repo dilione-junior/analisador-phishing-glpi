@@ -214,6 +214,15 @@ teste('IOCs: só o que é do atacante; oficial, webmail e compartilhado ficam fo
   assert.match(motivo('gmail.com'), /webmail/);
   assert.match(motivo('itau.com.br'), /oficial de Itaú/);
 });
+teste('IOCs: encurtador (bit.ly) não vai inteiro para o bloqueio, só a URL', () => {
+  const ev = extrair(nosDoChamado(null, '', '&lt;p&gt;De: Receita &amp;lt;aviso@receita-cpf.example&amp;gt;&lt;br&gt;Link: https://bit.ly/4cPfRgL&lt;/p&gt;'));
+  assert.ok(!ev.bloqueio.dominios.includes('bit.ly') && !ev.iocs.dominios.includes('bit.ly'), JSON.stringify(ev.bloqueio));
+  assert.ok(ev.iocs.urls.includes('https://bit.ly/4cPfRgL'));
+  assert.match(ev.iocs_fora.find((x) => x.valor === 'bit.ly').motivo, /encurtador/);
+});
+teste('SharePoint Online (sharepointonline.com) é oficial da Microsoft: não é marca imitada nem IOC', () => {
+  assert.strictEqual(L.marcaImitada('sharepointonline.com', 'Roberto (via SharePoint Online)'), null);
+});
 teste('IOCs: domínio da organização (dominiosConfiaveis) nunca entra', () => {
   const nos = nosDoChamado(amostra('phishing-banco.eml'));
   nos['Configuração'] = { ...CFG, dominiosConfiaveis: 'itau-seguranca.example' };

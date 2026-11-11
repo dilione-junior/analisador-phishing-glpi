@@ -1,0 +1,88 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Mon, 9 Nov
+	2026 11:02:51 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Mon,
+	9 Nov 2026 11:02:51 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.45)
+	smtp.mailfrom=rnicrosoft-online.example; dkim=pass (signature was verified)
+	header.d=rnicrosoft-online.example;dmarc=pass action=none
+	header.from=rnicrosoft-online.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	rnicrosoft-online.example designates 203.0.113.45 as permitted sender)
+	receiver=protection.outlook.com; client-ip=203.0.113.45;
+	helo=rnicrosoft-online.example;
+Received: from mail.rnicrosoft-online.example (203.0.113.45) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Mon, 9 Nov 2026 11:02:51 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=rnicrosoft-online.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Microsoft 365 <no-reply@rnicrosoft-online.example>
+To: maria.souza@cybersecurity.local
+Subject: =?utf-8?q?A=C3=A7=C3=A3o_necess=C3=A1ria=3A_sua_senha_expira_hoje?=
+Date: Mon, 9 Nov 2026 11:02:51 +0000
+Message-ID: <20261109110251.4f2a9c@rnicrosoft-online.example>
+X-Mailer: PHPMailer 6.9.1
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_CP8PR80MB4932A1F0E2_"
+MIME-Version: 1.0
+
+--_000_CP8PR80MB4932A1F0E2_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Sua senha expira hoje
+
+Ol=C3=A1, maria.souza@cybersecurity.local
+
+A senha da sua conta do Microsoft 365 expira hoje =C3=A0s 23:59. Para evita=
+r a perda de acesso ao Outlook, Teams e OneDrive, mantenha a sua senha atua=
+l pelo link abaixo. Caso contr=C3=A1rio a sua conta ser=C3=A1 bloqueada e a=
+s mensagens novas ser=C3=A3o recusadas.
+
+https://portal.office.com/manter-senha <https://rnicrosoft-online.example/o=
+wa/auth/logon.aspx?replaceCurrent=3D1&login_hint=3Dmaria.souza%40cybersecur=
+ity.local>
+
+Obrigado,
+Equipe de contas Microsoft
+
+--_000_CP8PR80MB4932A1F0E2_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><meta charset=3D"utf-8"></head><body style=3D"font-family:Segoe=
+ UI,Arial,sans-serif;color:#323130">
+<table width=3D"100%" cellpadding=3D"0" cellspacing=3D"0"><tr><td style=3D"=
+padding:24px 0">
+<img src=3D"https://rnicrosoft-online.example/assets/ms-logo.png" alt=3D"Mi=
+crosoft" width=3D"108" height=3D"23"></td></tr>
+<tr><td style=3D"font-size:22px;padding-bottom:12px">Sua senha expira hoje<=
+/td></tr>
+<tr><td style=3D"font-size:14px;line-height:20px">Ol=C3=A1, maria.souza@cyb=
+ersecurity.local<br><br>
+A senha da sua conta do Microsoft 365 expira hoje =C3=A0s 23:59. Para evita=
+r a perda de acesso ao Outlook, Teams e OneDrive,
+mantenha a sua senha atual pelo link abaixo. Caso contr=C3=A1rio a sua cont=
+a ser=C3=A1 bloqueada e as mensagens novas ser=C3=A3o recusadas.<br><br>
+<a href=3D"https://rnicrosoft-online.example/owa/auth/logon.aspx?replaceCur=
+rent=3D1&login_hint=3Dmaria.souza%40cybersecurity.local" style=3D"backgroun=
+d:#0078d4;color:#fff;padding:10px 20px;text-decoration:none">https://portal=
+.office.com/manter-senha</a><br><br>
+Obrigado,<br>Equipe de contas Microsoft</td></tr>
+<tr><td style=3D"font-size:11px;color:#8a8886;padding-top:24px">Microsoft C=
+orporation, One Microsoft Way, Redmond, WA 98052</td></tr>
+</table></body></html>
+--_000_CP8PR80MB4932A1F0E2_--

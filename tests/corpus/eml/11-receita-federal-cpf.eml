@@ -1,0 +1,80 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Fri, 13 Nov
+	2026 13:30:00 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Fri,
+	13 Nov 2026 13:30:00 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.140)
+	smtp.mailfrom=bounces.receita-regularize.example; dkim=pass (signature was
+	verified) header.d=receita-regularize.example;dmarc=pass action=none
+	header.from=receita-regularize.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	bounces.receita-regularize.example designates 198.51.100.140 as permitted
+	sender) receiver=protection.outlook.com; client-ip=198.51.100.140;
+	helo=bounces.receita-regularize.example;
+Received: from o1.ptr4471.receita-regularize.example (198.51.100.140) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Fri, 13 Nov 2026 13:30:00 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=receita-regularize.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+Return-Path: <bounces+4471-a1b2@bounces.receita-regularize.example>
+From: Receita Federal do Brasil <notificacao@receita-regularize.example>
+To: pedro.alves@cybersecurity.local
+Subject: =?utf-8?q?Notifica=C3=A7=C3=A3o_de_pend=C3=AAncia_-_CPF_***=2E482=2E917-**?=
+Date: Fri, 13 Nov 2026 13:30:00 +0000
+Message-ID: <6734a1f0c2b4e.3f1a2b3c4d@receita-regularize.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative;
+ boundary="----==_mimepart_6734a1f0c2b4e_3f1a2b3c4d"
+MIME-Version: 1.0
+
+------==_mimepart_6734a1f0c2b4e_3f1a2b3c4d
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+gov.br Receita Federal
+
+Notifica=C3=A7=C3=A3o de pend=C3=AAncia - CPF ***.482.917-**
+
+Identificamos diverg=C3=AAncias na sua Declara=C3=A7=C3=A3o de Imposto de R=
+enda 2026. O seu CPF est=C3=A1 sujeito a ficar suspenso e a cobran=C3=A7a d=
+e multa de 20%.
+
+Regularize a situa=C3=A7=C3=A3o em at=C3=A9 48 horas e evite o bloqueio do =
+CPF.
+
+Consultar pend=C3=AAncia e emitir DARF: https://bit.ly/4cPfRgL2026
+
+------==_mimepart_6734a1f0c2b4e_3f1a2b3c4d
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Arial;font-size:14px">
+<div style=3D"background:#1351b4;color:#fff;padding:14px"><b>gov.br</b> &nb=
+sp; Receita Federal</div>
+<div style=3D"padding:20px">
+<p><b>Notifica=C3=A7=C3=A3o de pend=C3=AAncia - CPF ***.482.917-**</b></p>
+<p>Identificamos diverg=C3=AAncias na sua Declara=C3=A7=C3=A3o de Imposto d=
+e Renda 2026 (ano-calend=C3=A1rio 2025). O seu CPF est=C3=A1 sujeito
+a ficar <b>suspenso</b> e a cobran=C3=A7a de multa de 20% sobre o imposto d=
+evido.</p>
+<p>Regularize a situa=C3=A7=C3=A3o em at=C3=A9 <b>48 horas</b> e evite o bl=
+oqueio do CPF e a inscri=C3=A7=C3=A3o em d=C3=ADvida ativa.</p>
+<p><a href=3D"https://bit.ly/4cPfRgL2026" style=3D"background:#168821;color=
+:#fff;padding:10px 20px;text-decoration:none">Consultar pend=C3=AAncia e em=
+itir DARF</a></p>
+<p style=3D"font-size:11px;color:#555">Minist=C3=A9rio da Fazenda - Receita=
+ Federal do Brasil</p></div></body></html>
+------==_mimepart_6734a1f0c2b4e_3f1a2b3c4d--
