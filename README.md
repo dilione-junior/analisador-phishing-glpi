@@ -233,6 +233,7 @@ O CI roda os testes e o conjunto de referência, confere se o JSON está atualiz
 - [x] Conjunto de referência (25 e-mails com gabarito) e avaliação no CI: base para a fase de Phishing Intelligence.
 - [ ] Phishing Intelligence (versão reduzida): feeds de IOC, catálogo de técnicas (os `sinais_futuros` do conjunto),
   radar semanal com aprovação humana, taxonomia na saída da IA, aprender com as decisões dos analistas.
+  Plano e ponto de parada: [docs/plano-phishing-intelligence.md](docs/plano-phishing-intelligence.md).
 - [ ] Busca de outras vítimas: quantos chamados/usuários relataram o mesmo remetente ou link (campanha).
 - [ ] `/painel` no Telegram: relatos do dia, tempo até a decisão e precisão da IA (métricas do Redis).
 - [ ] Ler o caixa de e-mail `phishing@` (botão "Reportar" do Outlook) e abrir o chamado sozinho.
