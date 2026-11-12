@@ -257,7 +257,7 @@ teste('PIX: lê recebedor, chave, valor e txid; texto qualquer não é PIX', () 
   assert.strictEqual(Q.lerPix('https://000201.example'), null);
 });
 teste('hospedagem por subdomínio: o subdomínio do cliente pode ser bloqueado, o serviço não', () => {
-  assert.deepStrictEqual(['golpe.pages.dev', 'pages.dev', 'www.wixsite.com', 'x.y.netlify.app', 'drive.google.com'].map(T.subdominioDeCliente), [true, false, false, true, false]);
+  assert.deepStrictEqual(['golpe.pages.dev', 'pages.dev', 'www.wixsite.com', 'x.y.netlify.app', 'drive.google.com', 'www.golpe.vercel.app', 'www.vercel.app'].map(T.subdominioDeCliente), [true, false, false, true, false, true, false]);
 });
 
 // ---------------------------------------------------------------- Fluxo 1
@@ -308,7 +308,7 @@ function nosDoChamado(conteudoEml, nomeArquivo = 'email.eml', relato = RELATO) {
     }),
   };
 }
-const extrair = (nos) => executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'tecnicas.js', 'qr.js'], {}, nos)[0];
+const extrair = (nos) => executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'feeds.js', 'tecnicas.js', 'qr.js'], {}, nos)[0];
 const EV = extrair(nosDoChamado(amostra('phishing-banco.eml')));
 const ids = (ev) => ev.sinais.map((s) => s.id);
 const qrNos = (respostas, pedidos = [{ nome: 'a.pdf', desenhado: false }]) => ({
@@ -446,6 +446,95 @@ teste('IA fora do ar: vale o parecer automático', () => {
 teste('IA diz "legítimo" com nota alta -> inconclusivo', () => {
   const d = { ...D, fortes: [], pontuacao: 70, sugestao_automatica: 'phishing' };
   assert.strictEqual(parecer(JSON.stringify({ classificacao: 'legitimo', confianca: 80 }), d).classificacao, 'inconclusivo');
+});
+
+// ---------------------------------------------------------------- Feeds de IOC
+console.log('Feeds de IOC');
+const F = new Function(['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'feeds.js'].map((b) => ler(`lib/${b}`)).join('\n')
+  + '\nreturn { normalizarUrlFeed, hostDoAtacanteFeed, hostsParaConsulta, chavesDosFeeds };')();
+teste('URL normalizada igual nas duas pontas: sem esquema, porta, # e barra final; host minúsculo', () => {
+  assert.strictEqual(F.normalizarUrlFeed('HTTPS://Golpe.Example:8443/Login/?a=1#maria@x'), 'golpe.example/Login/?a=1');
+  assert.strictEqual(F.normalizarUrlFeed('http://golpe.example/'), 'golpe.example');
+  assert.strictEqual(F.normalizarUrlFeed('https://golpe.example/x/'), F.normalizarUrlFeed('http://golpe.example/x#y'));
+  assert.strictEqual(F.normalizarUrlFeed('não é url'), '');
+});
+teste('host inteiro só do atacante: nunca serviço compartilhado, marca, webmail ou a casa', () => {
+  for (const h of ['sites.google.com', 'storage.googleapis.com', 'github.com', 'raw.githubusercontent.com', 'pages.dev', 'gmail.com',
+    'www.itau.com.br', 'bit.ly', 'ipfs.io', 'intranet.cybersecurity.local', '203.0.113.9']) assert.strictEqual(F.hostDoAtacanteFeed(h, ['cybersecurity.local']), false, h);
+  for (const h of ['golpe.pages.dev', 'docs-proposta-online.example', 'login.golpe.example']) assert.strictEqual(F.hostDoAtacanteFeed(h), true, h);
+});
+teste('chaves da consulta: estado primeiro, URL, host e pais, IP público e sha256; nada da casa', () => {
+  const c = F.chavesDosFeeds({ urls: ['https://a.b.golpe.example/x#1', 'https://intranet.cybersecurity.local/'], ips: ['1.2.3.4', '10.0.0.1'],
+    hashes: ['F'.repeat(64)], hosts: [{ host: 'remetente.example', onde: 'remetente' }], confiaveis: ['cybersecurity.local'] }).map((x) => x.chave);
+  assert.strictEqual(c[0], 'feed:estado');
+  for (const k of ['feed:url:a.b.golpe.example/x', 'feed:host:a.b.golpe.example', 'feed:host:b.golpe.example', 'feed:host:golpe.example',
+    'feed:ip:1.2.3.4', 'feed:sha256:' + 'f'.repeat(64), 'feed:host:remetente.example']) assert.ok(c.includes(k), k);
+  assert.ok(!c.some((k) => k.includes('cybersecurity.local') || k.includes('10.0.0.1')), c.join(' '));
+});
+const OPENPHISH = 'https://kit.golpe.example/a/1\nhttps://sites.google.com/view/golpe\nhttps://www.padaria.example/wp-content/x/login.php\nlixo sem url\n';
+const THREATFOX = { query_status: 'ok', data: [
+  { ioc: 'c2.golpe.example', ioc_type: 'domain', threat_type: 'botnet_cc', malware_printable: 'AsyncRAT', confidence_level: 100, first_seen: '2026-11-12 10:00:00 UTC' },
+  { ioc: '1.2.3.5:443', ioc_type: 'ip:port', threat_type: 'botnet_cc', malware_printable: 'Remcos', confidence_level: 75 },
+  { ioc: 'B'.repeat(64), ioc_type: 'sha256_hash', threat_type: 'payload', malware_printable: 'Grandoreiro', confidence_level: 80 },
+  { ioc: 'github.com', ioc_type: 'domain', threat_type: 'payload_delivery', confidence_level: 100 },
+  { ioc: 'duvida.example', ioc_type: 'domain', threat_type: 'payload_delivery', confidence_level: 25 },
+  { ioc: 'invadido.example', ioc_type: 'domain', threat_type: 'payload_delivery', confidence_level: 90, is_compromised: true },
+] };
+const carga = (op, tf, estado = null) => executar('preparar-feeds.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'feeds.js'], {}, {
+  'Configuração': { ...CFG, dominiosConfiaveis: 'cybersecurity.local', feedDias: 7 }, 'Lê o estado dos feeds': { estado },
+  'Baixa o OpenPhish': op, 'Baixa o ThreatFox': tf,
+});
+teste('carga dos feeds: uma chave por IOC, 7 dias; compartilhado só URL; invadido marcado; baixa confiança fora', () => {
+  const itens = carga({ statusCode: 200, data: OPENPHISH }, { statusCode: 200, body: THREATFOX });
+  const m = new Map(itens.map((i) => [i.chave, i]));
+  for (const k of ['feed:url:kit.golpe.example/a/1', 'feed:host:kit.golpe.example', 'feed:url:sites.google.com/view/golpe', 'feed:host:c2.golpe.example',
+    'feed:ip:1.2.3.5', 'feed:sha256:' + 'b'.repeat(64)]) assert.ok(m.has(k), k);
+  for (const k of ['feed:host:sites.google.com', 'feed:host:github.com', 'feed:host:duvida.example']) assert.ok(!m.has(k), k);
+  assert.strictEqual(JSON.parse(m.get('feed:host:www.padaria.example').valor).comprometido, true);
+  assert.strictEqual(JSON.parse(m.get('feed:host:invadido.example').valor).comprometido, true);
+  assert.strictEqual(JSON.parse(m.get('feed:host:c2.golpe.example').valor).comprometido, false);
+  assert.strictEqual(m.get('feed:host:kit.golpe.example').ttl, 7 * 86400);
+  const estado = JSON.parse(itens[itens.length - 1].valor);
+  assert.strictEqual(itens[itens.length - 1].chave, 'feed:estado');
+  assert.deepStrictEqual([estado.fontes.openphish.ok, estado.fontes.openphish.itens, estado.fontes.threatfox.ok], [true, 3, true]);
+});
+teste('carga dos feeds: fonte fora do ar guarda o erro e mantém a última carga boa', () => {
+  const antes = JSON.stringify({ fontes: { threatfox: { ok: true, ultimo_ok: '2026-11-11T00:00:00.000Z' } } });
+  const itens = carga({ statusCode: 200, data: '<html>manutenção</html>' }, { statusCode: 401, body: 'Unauthorized' }, antes);
+  assert.strictEqual(itens.length, 1, 'só o estado');
+  const estado = JSON.parse(itens[0].valor);
+  assert.deepStrictEqual([estado.fontes.openphish.ok, estado.fontes.threatfox.ok, estado.fontes.threatfox.ultimo_ok], [false, false, '2026-11-11T00:00:00.000Z']);
+  assert.ok(/401/.test(estado.fontes.threatfox.erro) && /vazio/.test(estado.fontes.openphish.erro));
+});
+const achou = (chave, valor) => ({ ...F.chavesDosFeeds({ urls: [] })[0], chave, tipo: chave.split(':')[1], valor: chave.split(':').slice(2).join(':'), onde: 'link', achado: JSON.stringify(valor) });
+const estadoOk = { chave: 'feed:estado', tipo: 'estado', achado: JSON.stringify({ fontes: { openphish: { ok: true, itens: 300, ultimo_ok: new Date().toISOString() } } }) };
+const resumoFeeds = (itens) => executar('resumir-feeds.js', ['texto.js'], itens, {})[0];
+teste('na análise: link no feed é evidência forte; site invadido e IP só somam', () => {
+  const r = resumoFeeds([estadoOk,
+    achou('feed:url:kit.golpe.example/a/1', { fontes: ['openphish'], ameaca: 'phishing', origem: 'ioc' }),
+    achou('feed:host:www.padaria.example', { fontes: ['threatfox'], ameaca: 'payload_delivery', origem: 'url', comprometido: true }),
+    achou('feed:ip:1.2.3.5', { fontes: ['threatfox'], ameaca: 'botnet_cc', malware: 'Remcos', origem: 'ioc' }),
+    { chave: 'feed:host:nada.example', tipo: 'host', valor: 'nada.example', achado: null }]);
+  assert.deepStrictEqual([r.feeds.carregado, r.feeds.consultadas, r.feeds.achados.length], [true, 4, 3]);
+  const d = executar('montar-dossie.js', ['texto.js'], {}, { 'Extrai as evidências': { ...EV, sinais: [] }, 'Resume os feeds': r, 'Resume o VirusTotal': { virustotal: [] }, 'Resume o URLhaus': { urlhaus: [] }, 'Resume o RDAP': { rdap: [] } })[0];
+  const peso = (id) => d.sinais.find((s) => s.id === id)?.peso;
+  assert.deepStrictEqual([peso('feed-url'), peso('feed-site-invadido'), peso('feed-ip')], [45, 20, 25]);
+  assert.strictEqual(d.fortes.length, 1);
+  assert.ok(/OpenPhish/.test(d.fortes[0]) && d.sugestao_automatica === 'phishing');
+  assert.ok(d.dossie.includes('feeds_de_ioc') && !d.dossie.includes('https://kit'), 'IOC desarmado no dossiê');
+});
+teste('feeds velhos, nunca carregados ou Redis com erro: o parecer avisa', () => {
+  const comFeeds = (feeds) => parecer(null, { ...D, reputacao: { ...D.reputacao, feeds } }).avisos.join(' | ');
+  assert.ok(/ainda não foram carregados/.test(comFeeds(resumoFeeds([{ chave: 'feed:estado', tipo: 'estado', achado: null }]).feeds)));
+  const velho = JSON.stringify({ fontes: { threatfox: { ok: false, erro: 'HTTP 401', ultimo_ok: new Date(Date.now() - 30 * 3600000).toISOString() } } });
+  assert.ok(/Feed threatfox sem atualizar há 30 h \(último erro: HTTP 401\)/.test(comFeeds(resumoFeeds([{ tipo: 'estado', achado: velho }]).feeds)));
+  assert.ok(/Não consegui consultar os feeds/.test(comFeeds(resumoFeeds([{ tipo: 'url', error: { message: 'ECONNREFUSED' } }]).feeds)));
+  assert.ok(!/[Ff]eed/.test(comFeeds(resumoFeeds([estadoOk]).feeds)), 'feed em dia não gera aviso');
+});
+teste('extração: consultas aos feeds vão junto com as outras', () => {
+  const c = EV.consultas.feeds.map((q) => q.chave);
+  assert.strictEqual(c[0], 'feed:estado');
+  assert.ok(c.includes('feed:url:itau-seguranca.example/atualizar?id=9') && c.includes('feed:host:itau-seguranca.example'), c.join(' '));
 });
 
 const P = parecer(JSON.stringify({ classificacao: 'phishing', confianca: 92, gravidade: 'alta', tipo_ataque: 'roubo de credenciais <b>', resumo: 'Página falsa do Itaú <script>alert(1)</script>', evidencias: ['DMARC=fail'], acoes_soc: ['Bloquear'] }));

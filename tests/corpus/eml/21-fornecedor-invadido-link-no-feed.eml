@@ -1,0 +1,70 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Thu, 19 Nov
+	2026 15:22:10 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Thu,
+	19 Nov 2026 15:22:10 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.120)
+	smtp.mailfrom=construtoravale.example; dkim=pass (signature was verified)
+	header.d=construtoravale.example;dmarc=pass action=none
+	header.from=construtoravale.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of construtoravale.example
+	designates 198.51.100.120 as permitted sender)
+	receiver=protection.outlook.com; client-ip=198.51.100.120;
+	helo=construtoravale.example;
+Received: from mail.construtoravale.example (198.51.100.120) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Thu, 19 Nov 2026 15:22:10 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=construtoravale.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Marcos Teixeira <marcos.teixeira@construtoravale.example>
+To: ana.ribeiro@cybersecurity.local
+Subject: =?utf-8?q?RE=3A_Proposta_revisada_-_reforma_3=C2=BA_andar?=
+Date: Thu, 19 Nov 2026 15:22:10 +0000
+Message-ID: <CV9f3a2c7e.1763565730@construtoravale.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="_000_CV9f3a2c7e_"
+MIME-Version: 1.0
+
+--_000_CV9f3a2c7e_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Boa tarde, Ana,
+
+Conforme conversamos, segue a proposta revisada para a reforma do 3=C2=BA a=
+ndar.
+
+Proposta_Revisada_Reforma.pdf: https://docs-proposta-online.example/visuali=
+zar/9f3a2c7e
+
+Fico no aguardo.
+
+Att.,
+Marcos Teixeira
+Construtora Vale
+
+--_000_CV9f3a2c7e_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Calibri,Arial;font-size:11pt">
+<p>Boa tarde, Ana,</p><p>Conforme conversamos, segue a proposta revisada pa=
+ra a reforma do 3=C2=BA andar.</p>
+<p><a href=3D"https://docs-proposta-online.example/visualizar/9f3a2c7e">Pro=
+posta_Revisada_Reforma.pdf</a></p>
+<p>Fico no aguardo.</p><p>Att.,<br>Marcos Teixeira<br>Construtora Vale</p><=
+/body></html>
+--_000_CV9f3a2c7e_--

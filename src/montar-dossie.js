@@ -6,9 +6,39 @@ const resumo = (no, campo) => { try { return $(no).first().json[campo] ?? []; } 
 const vt = resumo('Resume o VirusTotal', 'virustotal');
 const urlhaus = resumo('Resume o URLhaus', 'urlhaus');
 const rdap = resumo('Resume o RDAP', 'rdap');
+const feedsBruto = resumo('Resume os feeds', 'feeds');
+const feeds = feedsBruto && Array.isArray(feedsBruto.achados) ? feedsBruto : null;
 
 const sinais = [...ev.sinais];
 const fortes = [];
+
+// Feeds de IOC (OpenPhish, ThreatFox): URL exata, hash ou host do atacante listado = evidência forte (pega a campanha
+// nova que o VirusTotal ainda não conhece). Site invadido e IP valem menos: o dono pode ser legítimo / o IP muda de mãos.
+// Um sinal por tipo (o mais forte), com quantos IOCs bateram.
+const NOME_FONTE = { openphish: 'OpenPhish', threatfox: 'ThreatFox' };
+const porTipo = new Map();
+for (const a of feeds?.achados ?? []) {
+  const fonte = a.fontes.map((f) => NOME_FONTE[f] ?? f).join(' + ') || 'feed';
+  const detalhe = [a.ameaca, a.malware].filter(Boolean).join(', ');
+  const doRemetente = a.onde === 'remetente' || a.onde === 'responder-para' ? ' (domínio do remetente)' : '';
+  let s;
+  if (a.tipo === 'url') s = { id: 'feed-url', peso: 45, forte: true, texto: `${fonte}: o link ${desarmar(a.valor)} está listado${detalhe ? ` (${detalhe})` : ''}` };
+  else if (a.tipo === 'sha256' || a.tipo === 'md5') s = { id: 'feed-hash', peso: 45, forte: true, texto: `${fonte}: anexo é malware conhecido (${a.tipo} ${a.valor.slice(0, 16)}…${detalhe ? `, ${detalhe}` : ''})` };
+  else if (a.tipo === 'host' && !a.comprometido) {
+    s = { id: 'feed-host', peso: 40, forte: true, texto: a.origem === 'url'
+      ? `${fonte}: ${desarmar(a.valor)}${doRemetente} hospeda outra página de phishing listada (ex.: ${desarmar(a.exemplo)})`
+      : `${fonte}: domínio ${desarmar(a.valor)}${doRemetente} listado${detalhe ? ` como ${detalhe}` : ''}` };
+  } else if (a.tipo === 'host') s = { id: 'feed-site-invadido', peso: 20, forte: false, texto: `${fonte}: ${desarmar(a.valor)} tem página maliciosa em caminho típico de site invadido (o dono pode ser legítimo; confira o link do e-mail)` };
+  else if (a.tipo === 'ip') s = { id: 'feed-ip', peso: 25, forte: false, texto: `${fonte}: IP ${desarmar(a.valor)}${a.onde === 'origem' ? ' (do envio ou de um link)' : ''} listado${detalhe ? ` (${detalhe})` : ''}` };
+  if (!s) continue;
+  const ja = porTipo.get(s.id);
+  if (!ja) porTipo.set(s.id, { ...s, n: 1, valor: a.valor, fonte });
+  else ja.n++;
+}
+for (const s of porTipo.values()) {
+  sinais.push({ id: s.id, peso: s.peso, descricao: s.texto + (s.n > 1 ? ` e mais ${s.n - 1}` : '') });
+  if (s.forte) fortes.push(`${s.fonte} (${s.id.replace('feed-', '')} ${linha(s.valor, 60)})`);
+}
 for (const v of vt ?? []) {
   if (!v.encontrado) continue;
   if (v.maliciosos >= 3) {
@@ -64,6 +94,9 @@ const fontes = {
   virustotal: vt === null ? 'não consultado' : vt,
   urlhaus: urlhaus === null ? 'não consultado' : urlhaus,
   rdap: rdap === null ? 'não consultado' : rdap,
+  feeds_de_ioc: feeds === null ? 'não consultado' : (feeds.achados.length
+    ? feeds.achados.slice(0, 8).map((a) => `${a.fontes.join('+')}: ${a.tipo} ${desarmar(linha(a.valor, 120))}${a.ameaca ? ` (${a.ameaca}${a.malware ? ', ' + a.malware : ''})` : ''}${a.comprometido ? ' [site invadido]' : ''}`)
+    : `nada encontrado (${feeds.consultadas} IOCs conferidos)`),
 };
 const dossie = {
   chamado: { id: ev.chamado.id, titulo: ev.chamado.titulo, requerentes: ev.chamado.requerentes },
@@ -89,5 +122,5 @@ return [{ json: {
   fortes,
   pontuacao,
   sugestao_automatica: sugestao,
-  reputacao: { virustotal: vt ?? [], urlhaus: urlhaus ?? [], rdap: rdap ?? [] },
+  reputacao: { virustotal: vt ?? [], urlhaus: urlhaus ?? [], rdap: rdap ?? [], feeds },
 } }];

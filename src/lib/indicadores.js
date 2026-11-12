@@ -46,16 +46,23 @@ const ENCURTADORES = new Set(['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'is.gd'
 const HOSPEDAGEM_ABUSADA = ['drive.google.com', 'docs.google.com', 'forms.gle', 'sites.google.com', 'firebaseapp.com', 'web.app',
   'pages.dev', 'workers.dev', 'r2.dev', 'github.io', 'netlify.app', 'vercel.app', 'glitch.me', 'weebly.com', 'wixsite.com',
   '000webhostapp.com', 'blogspot.com', 'dropbox.com', '1drv.ms', 'onedrive.live.com', 'notion.site', 'ipfs.io', 'ngrok-free.app',
-  'ngrok.io', 'trycloudflare.com', 'typeform.com', 'jotform.com', 'canva.site', 'webflow.io', 'framer.app'];
+  'ngrok.io', 'trycloudflare.com', 'typeform.com', 'jotform.com', 'canva.site', 'webflow.io', 'framer.app',
+  // Hospedagem em que o CAMINHO identifica o cliente (storage.googleapis.com/<bucket>, github.com/<usuário>): o domínio
+  // é de todo mundo. Bloquear um deles pararia a empresa; só a URL exata pode ir para o bloqueio.
+  'googleapis.com', 'github.com', 'githubusercontent.com', 'gitlab.com', 'bitbucket.org', 'discordapp.com', 'discordapp.net',
+  'dropboxusercontent.com', 'telegra.ph', 'linktr.ee', 'mediafire.com', 'wetransfer.com', 'we.tl', 'archive.org',
+  'pastebin.com', 'paste.ee', 'mega.nz', 'docsend.com', 'canva.com', 'notion.so', 'translate.goog', 'dweb.link',
+  'cloudflare-ipfs.com', 't.me'];
 
 // Hospedagens em que cada SUBDOMÍNIO é de um único cliente (golpe.pages.dev é só do atacante): o subdomínio pode ir
 // para o bloqueio; o domínio do serviço (pages.dev) nunca.
 const HOSPEDAGEM_POR_SUBDOMINIO = ['firebaseapp.com', 'web.app', 'pages.dev', 'workers.dev', 'r2.dev', 'github.io', 'netlify.app',
   'vercel.app', 'glitch.me', 'weebly.com', 'wixsite.com', '000webhostapp.com', 'blogspot.com', 'notion.site', 'ngrok-free.app',
   'ngrok.io', 'trycloudflare.com', 'canva.site', 'webflow.io', 'framer.app'];
+// "www.golpe.vercel.app" também é do cliente; "www.vercel.app" é do serviço.
 function subdominioDeCliente(host) {
-  const h = String(host ?? '').toLowerCase();
-  return !h.startsWith('www.') && HOSPEDAGEM_POR_SUBDOMINIO.some((d) => h.endsWith('.' + d));
+  const h = String(host ?? '').toLowerCase().replace(/^www\./, '');
+  return HOSPEDAGEM_POR_SUBDOMINIO.some((d) => h.endsWith('.' + d));
 }
 
 const WEBMAIL_GRATUITO =new Set(['gmail.com', 'outlook.com', 'hotmail.com', 'live.com', 'yahoo.com', 'yahoo.com.br', 'bol.com.br',

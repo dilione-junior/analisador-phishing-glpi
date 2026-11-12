@@ -1,6 +1,6 @@
 # Conjunto de referência (corpus) do analisador
 
-São 33 e-mails `.eml` feitos para parecer exatamente com o que chega numa caixa do Microsoft 365, cada um com o
+São 38 e-mails `.eml` feitos para parecer exatamente com o que chega numa caixa do Microsoft 365, cada um com o
 **gabarito de um analista N3**: classificação certa, tipo de ataque, alvo, gravidade, MITRE, o que deve e o que não
 pode ir para o bloqueio. Serve para provar, com números, que uma mudança deixou o analisador **mais inteligente**
 e não só **diferente**.
@@ -58,6 +58,10 @@ O resultado é determinístico (mesmos bytes a cada execução). O que torna os 
 | `sinais_obrigatorios` / `sinais_proibidos` | sinais que o analisador **já** tem que dar / que seriam falso positivo |
 | `bloqueio.deve_ter` / `nao_pode_ter` | o que tem que ir para as listas do Wazuh / o que nunca pode ir (domínio oficial, da casa, compartilhado) |
 | `reputacao` | VirusTotal, URLhaus e idade do domínio (RDAP) simulados. Na maioria dos casos o VirusTotal **não conhece** o link, como numa campanha nova |
+
+Os feeds de IOC simulados ficam em [`feeds.json`](feeds.json) (texto do OpenPhish e resposta do ThreatFox, com ruído
+realista). O avaliador passa esse conteúdo pelo mesmo nó que carrega o Redis ("Prepara os IOCs dos feeds") e todos os
+casos consultam o resultado: é assim que um legítimo pode tropeçar num IOC do feed. `--sem-feeds` mede o placar sem eles.
 | `lacuna` | o que o analisador **ainda não sabe** fazer nesse caso: o erro aparece no relatório, mas não quebra o CI |
 | `sinais_futuros` | o sinal que vai provar que a lacuna foi resolvida. **É a lista de trabalho do catálogo de técnicas** |
 | `ioc_escondido` | IOC que só aparece se o analisador abrir a camada escondida (QR Code, JavaScript do SVG) |
@@ -93,6 +97,9 @@ distinguem spam de legítimo (quem faz isso é a IA); só não pode virar phishi
 | 18 | Fatura em anexo .html | **tela de login dentro do anexo**: o formulário manda a senha para o atacante | phishing | `html-login-local` |
 | 19 | Contrato "assine pelo celular" | **quishing em PDF**: o link só existe no QR desenhado dentro do PDF anexo | phishing | `qrcode-decodificado` |
 | 20 | "Verificação de segurança" | **QR desenhado com tabela HTML** (sem imagem) | phishing | `qrcode-desenhado` |
+| 21 | Proposta de fornecedor invadido | **campanha nova**: conta legítima autenticada; o host do link já está no OpenPhish com outro token | phishing | `feed-host` |
+| 22 | DARF da "contabilidade" em .zip | **malware**: o .zip parece inofensivo; o hash está no ThreatFox | phishing | `feed-hash` |
+| 23 | Certificado de evento | página em **bucket do Google Cloud**: host compartilhado, URL exata (sem o `#`) no OpenPhish | phishing | `feed-url` (e nunca `feed-host`) |
 | L1 | Alerta verdadeiro da Microsoft | texto de phishing, origem oficial | legítimo | — |
 | L2 | DocuSign verdadeiro | contrato esperado; Reply-To para o cliente | legítimo | — |
 | L3 | SharePoint verdadeiro do contador | par do caso 07, arquivo esperado | legítimo | — |
@@ -104,6 +111,8 @@ distinguem spam de legítimo (quem faz isso é a IA); só não pode virar phishi
 | L9 | TI interna: login no sistema de ponto | par do 06: `oauth2/authorize` verdadeiro, só perfil básico, volta para a casa | legítimo | — |
 | L10 | RH lembra a regra da conta salário | par do 10: fala de conta salário e e-mail pessoal, mas é interno | legítimo | — |
 | L11 | Boleto da gráfica com PIX | par do 19: QR em PDF, mas é código PIX do próprio fornecedor | legítimo | — |
+| L12 | Site de evento no Google Sites | par do 23: OUTRA página do Google Sites está no feed; o host não pode ser marcado | legítimo | nunca `feed-host`/`feed-url` |
+| L13 | Newsletter da padaria | site invadido (página em `/wp-content/` no ThreatFox): vira "site invadido", não evidência forte | legítimo | `feed-site-invadido` |
 | S1 | Newsletter "Black November" | marketing autenticado | spam | — |
 | S2 | Prospecção de SEO | Gmail, sem link | spam | — |
 

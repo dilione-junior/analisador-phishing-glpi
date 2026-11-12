@@ -8,6 +8,7 @@
 //       node tests/avaliar-corpus.js --ci       idem, e sai com erro se houver regressão (usado no CI)
 //       node tests/avaliar-corpus.js --json f   grava o resultado completo em f (para comparar versões)
 //       node tests/avaliar-corpus.js --caso 06  mostra o detalhe de um caso (sinais, IOCs, parecer)
+//       node tests/avaliar-corpus.js --sem-feeds  como se os feeds de IOC nunca tivessem sido carregados
 //
 // O que é regressão (quebra o CI):
 //  - um caso SEM "lacuna" no gabarito com classificação errada;
@@ -49,7 +50,19 @@ const CFG = {
   leitorQr: 'http://leitor-qr:8080/ler', maxArquivosQr: 4,
   // Pessoas-chave da organização fictícia do conjunto (diretoria e financeiro), como o lab configuraria.
   nomesInternos: 'Carla Mendes, Ana Ribeiro, Maria Souza',
+  feedDias: 7,
 };
+
+// Feeds de IOC simulados (tests/corpus/feeds.json) passam pelo MESMO nó que carrega o Redis na rotina 3;
+// o "Redis" aqui é um Map. Vale para TODOS os casos: é assim que um legítimo pode tropeçar num IOC do feed.
+// --sem-feeds: Redis vazio (feeds nunca carregados), para medir quanto os feeds acrescentam.
+const FEEDS = JSON.parse(fs.readFileSync(path.join(CORPUS, 'feeds.json'), 'utf8'));
+const REDIS = args.includes('--sem-feeds') ? new Map([['feed:estado', null]]) : new Map(executar('preparar-feeds.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'feeds.js'], {}, {
+  'Configuração': CFG,
+  'Lê o estado dos feeds': { estado: null },
+  'Baixa o OpenPhish': { statusCode: 200, data: FEEDS.openphish },
+  'Baixa o ThreatFox': { statusCode: 200, body: FEEDS.threatfox },
+}).map((i) => [i.chave, i.valor]));
 // O GLPI guarda o conteúdo do chamado com as tags escapadas.
 const comoGlpi = (texto) => `<p>${texto}</p>`.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -71,13 +84,15 @@ function analisar(c, numero) {
     nos['Lê os QR Codes'] = pedidos.map((p) => ({ statusCode: 200, body: {
       codigos: (c.qr?.[p.nome] ?? []).map((texto) => ({ texto, formato: 'QRCode', pagina: 1 })), protegido: false, erro: '' } }));
   }
-  const ev = executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'tecnicas.js', 'qr.js'], {}, nos)[0];
+  const ev = executar('extrair-evidencias.js', ['ip.js', 'texto.js', 'email.js', 'indicadores.js', 'feeds.js', 'tecnicas.js', 'qr.js'], {}, nos)[0];
   const rep = c.reputacao ?? {};
   const vt = ev.consultas.virustotal.map((q) => (rep.virustotal?.[q.valor] ? { tipo: q.tipo, valor: q.valor, encontrado: true, ...rep.virustotal[q.valor] } : { tipo: q.tipo, valor: q.valor, encontrado: false }));
   const urlhaus = ev.consultas.urlhaus.map((h) => (rep.urlhaus?.[h] ? { host: h, listado: true, urls: 3, online: 2, ameacas: ['phishing'], tags: ['phishing'] } : { host: h, listado: false }));
   const rdap = ev.consultas.rdap.map((d) => (rep.rdap?.[d] !== undefined ? { dominio: d, idade_dias: rep.rdap[d], criado_em: '' } : { dominio: d, erro: 'HTTP 404' }));
+  const procura = ev.consultas.feeds.map((q) => ({ ...q, achado: REDIS.get(q.chave) ?? null }));
+  const feeds = executar('resumir-feeds.js', ['texto.js'], procura, {})[0];
   const d = executar('montar-dossie.js', ['texto.js'], {}, {
-    'Extrai as evidências': ev, 'Resume o VirusTotal': { virustotal: vt }, 'Resume o URLhaus': { urlhaus }, 'Resume o RDAP': { rdap },
+    'Extrai as evidências': ev, 'Resume os feeds': feeds, 'Resume o VirusTotal': { virustotal: vt }, 'Resume o URLhaus': { urlhaus }, 'Resume o RDAP': { rdap },
   })[0];
   const p = executar('parecer-final.js', ['texto.js'], { error: 'IA desligada na avaliação' }, { 'Monta o dossiê': d, 'Extrai as evidências': ev })[0].parecer;
   return { ev, d, p };
@@ -142,7 +157,7 @@ if (filtro) {
 }
 
 const marca = { acerto: 'ok     ', parcial: 'parcial', erro: 'ERRO   ' };
-console.log('Conjunto de referência: só regras + travas (IA desligada), reputação simulada\n');
+console.log(`Conjunto de referência: só regras + travas (IA desligada), reputação simulada, ${REDIS.size - 1} IOCs nos feeds simulados\n`);
 for (const r of resultados) {
   const extra = [r.lacuna ? (r.lacunaResolvida ? 'lacuna RESOLVIDA? revise o gabarito' : 'lacuna conhecida') : '',
     r.escondidoAchado === false ? 'IOC escondido não achado' : '', ...r.problemas].filter(Boolean).join('; ');

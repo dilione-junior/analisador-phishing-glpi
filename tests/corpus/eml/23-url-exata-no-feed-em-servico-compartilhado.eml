@@ -1,0 +1,66 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Fri, 20 Nov
+	2026 09:05:44 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Fri,
+	20 Nov 2026 09:05:44 +0000
+Authentication-Results: spf=pass (sender IP is 203.0.113.140)
+	smtp.mailfrom=eventos-associacao.example; dkim=pass (signature was verified)
+	header.d=eventos-associacao.example;dmarc=pass action=none
+	header.from=eventos-associacao.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	eventos-associacao.example designates 203.0.113.140 as permitted sender)
+	receiver=protection.outlook.com; client-ip=203.0.113.140;
+	helo=eventos-associacao.example;
+Received: from mail.eventos-associacao.example (203.0.113.140) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Fri, 20 Nov 2026 09:05:44 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=eventos-associacao.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: =?utf-8?q?Associa=C3=A7=C3=A3o_de_Gestores?=
+	<certificados@eventos-associacao.example>
+To: maria.souza@cybersecurity.local
+Subject: =?utf-8?q?Seu_certificado_est=C3=A1_dispon=C3=ADvel?=
+Date: Fri, 20 Nov 2026 09:05:44 +0000
+Message-ID: <cert7731.1763629544@eventos-associacao.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="----=_Part_cert_7731"
+MIME-Version: 1.0
+
+------=_Part_cert_7731
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Ol=C3=A1,
+
+Os certificados do Encontro Regional de Gestores j=C3=A1 est=C3=A3o dispon=
+=C3=ADveis.
+
+Baixar certificado: https://storage.googleapis.com/arquivos-compartilhados-=
+7731/visualizar.html#maria.souza@cybersecurity.local
+
+Associa=C3=A7=C3=A3o de Gestores
+
+------=_Part_cert_7731
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Arial;font-size:14px">
+<p>Ol=C3=A1,</p><p>Os certificados do Encontro Regional de Gestores j=C3=A1=
+ est=C3=A3o dispon=C3=ADveis.</p>
+<p><a href=3D"https://storage.googleapis.com/arquivos-compartilhados-7731/v=
+isualizar.html#maria.souza@cybersecurity.local">Baixar certificado</a></p><=
+p>Associa=C3=A7=C3=A3o de Gestores</p></body></html>
+------=_Part_cert_7731--

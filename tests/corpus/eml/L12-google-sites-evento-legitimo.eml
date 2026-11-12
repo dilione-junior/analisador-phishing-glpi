@@ -1,0 +1,63 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Fri, 20 Nov
+	2026 14:00:00 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Fri,
+	20 Nov 2026 14:00:00 +0000
+Authentication-Results: spf=pass (sender IP is 198.51.100.31)
+	smtp.mailfrom=associacaocomercial.example; dkim=pass (signature was verified)
+	header.d=associacaocomercial.example;dmarc=pass action=none
+	header.from=associacaocomercial.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	associacaocomercial.example designates 198.51.100.31 as permitted sender)
+	receiver=protection.outlook.com; client-ip=198.51.100.31;
+	helo=associacaocomercial.example;
+Received: from mail.associacaocomercial.example (198.51.100.31) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Fri, 20 Nov 2026 14:00:00 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=associacaocomercial.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: =?utf-8?q?Associa=C3=A7=C3=A3o_Comercial?=
+	<eventos@associacaocomercial.example>
+To: todos@cybersecurity.local
+Subject: =?utf-8?q?Programa=C3=A7=C3=A3o_da_Semana_de_Seguran=C3=A7a_2026?=
+Date: Fri, 20 Nov 2026 14:00:00 +0000
+Message-ID: <semana2026.1763647200@associacaocomercial.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="----=_Part_semana_2026"
+MIME-Version: 1.0
+
+------=_Part_semana_2026
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezados associados,
+
+A programa=C3=A7=C3=A3o da Semana de Seguran=C3=A7a 2026 est=C3=A1 no site =
+do evento: https://sites.google.com/view/semana-seguranca-2026
+
+Associa=C3=A7=C3=A3o Comercial
+
+------=_Part_semana_2026
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Arial;font-size:14px">
+<p>Prezados associados,</p><p>A programa=C3=A7=C3=A3o da Semana de Seguran=
+=C3=A7a 2026 est=C3=A1 no site do evento:
+<a href=3D"https://sites.google.com/view/semana-seguranca-2026">Semana de S=
+eguran=C3=A7a 2026</a>.</p><p>Associa=C3=A7=C3=A3o Comercial</p></body></ht=
+ml>
+------=_Part_semana_2026--

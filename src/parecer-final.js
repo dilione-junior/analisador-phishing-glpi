@@ -47,6 +47,15 @@ if ((classe === 'legitimo' || classe === 'spam') && d.pontuacao >= 50) {
   avisos.push(`A IA sugeriu "${classe}", mas a nota automática é ${d.pontuacao}/100: rebaixado para inconclusivo.`);
   classe = 'inconclusivo';
 }
+// Feeds de IOC velhos ou nunca carregados: a análise segue, mas sem pegar campanha nova pelo feed.
+const feeds = d.reputacao?.feeds;
+if (feeds?.erro) avisos.push(`Não consegui consultar os feeds de IOC no Redis (${feeds.erro}): a análise seguiu sem eles.`);
+else if (feeds && !feeds.carregado) avisos.push('Os feeds de IOC (OpenPhish/ThreatFox) ainda não foram carregados no Redis: a análise seguiu sem eles. Confira a rotina "A cada 6 horas" no n8n.');
+else if (feeds) {
+  for (const [nome, f] of Object.entries(feeds.fontes ?? {})) {
+    if (f.horas === null || f.horas > 24) avisos.push(`Feed ${nome} sem atualizar há ${f.horas ?? 'muito tempo (nunca deu certo)'}${f.horas !== null ? ' h' : ''}${f.erro ? ` (último erro: ${f.erro})` : ''}: os IOCs dele podem estar vencidos.`);
+  }
+}
 if (ev.qr?.falhou) avisos.push(`O leitor de QR Code (leitor-qr) não respondeu: ${ev.qr.arquivos} imagem(ns)/PDF(s) do e-mail não foram lidos. Confira o contêiner e use /reanalisar.`);
 if (!ev.tem_email && !ev.urls.length) {
   confianca = Math.min(confianca, 50);

@@ -18,6 +18,7 @@
 #
 # O resultado é determinístico (datas, fronteiras MIME e zips fixos): rodar de novo gera os mesmos bytes.
 import base64
+import hashlib
 import sys
 import io
 import json
@@ -1129,6 +1130,137 @@ caso(
     qr={'qr-desenhado-1.pgm': [destino_qr]},
 )
 
+# ================================================================ FEEDS DE IOC (OpenPhish / ThreatFox)
+# Casos em que SÓ o feed denuncia: e-mail bem escrito, conta autenticada, VirusTotal sem nada (campanha nova).
+# O conteúdo simulado dos feeds é gravado em feeds.json (FEED_OPENPHISH / FEED_THREATFOX, montados abaixo) e o
+# avaliador passa esse conteúdo pelo MESMO nó que carrega o Redis ("Prepara os IOCs dos feeds").
+FEED_OPENPHISH = []
+FEED_THREATFOX = []
+
+
+def threatfox(ioc, tipo, ameaca, malware, confianca=75, comprometido=False, dia='2026-11-19'):
+    FEED_THREATFOX.append({'id': str(900000 + len(FEED_THREATFOX)), 'ioc': ioc, 'threat_type': ameaca, 'ioc_type': tipo,
+                           'malware_printable': malware, 'confidence_level': confianca, 'is_compromised': comprometido,
+                           'first_seen': f'{dia} 10:00:00 UTC', 'last_seen': None, 'tags': []})
+
+
+# Ruído realista (o feed traz muito mais do que interessa a um chamado): nada disso aparece nos e-mails do conjunto.
+FEED_OPENPHISH += [
+    'https://secure-bancoverde-acesso.example/login/',
+    'http://entrega-pendente-rastreio.example/taxa?c=88120',
+    'https://golpe-netflix-pagamento.pages.dev/conta',
+    'https://www.lojinhadobairro.example/wp-content/uploads/2026/11/m365/index.php',
+]
+threatfox('c2-painel-loader.example', 'domain', 'botnet_cc', 'AsyncRAT')
+threatfox('203.0.113.200:4443', 'ip:port', 'botnet_cc', 'Remcos')
+threatfox('http://198.51.100.250/bins/x86', 'url', 'payload_delivery', 'Mirai')
+threatfox('a' * 64, 'sha256_hash', 'payload', 'Lumma Stealer')
+# Serviço compartilhado no feed: NUNCA pode marcar o host inteiro (só a URL exata).
+threatfox('https://github.com/usuario-qualquer-77/loader/releases/download/v1/setup.zip', 'url', 'payload_delivery', 'Vidar')
+threatfox('github.com', 'domain', 'payload_delivery', 'Vidar')
+# Relato com pouca confiança sobre um fornecedor legítimo do conjunto: abaixo do mínimo (50), tem de ser ignorado.
+threatfox('graficapaulista.example', 'domain', 'payload_delivery', 'desconhecido', confianca=25)
+
+# 21 ---------------------------------------------------------------- conta de fornecedor invadida + link no OpenPhish
+dom = 'construtoravale.example'
+ip = '198.51.100.120'
+data = 'Thu, 19 Nov 2026 15:22:10 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+alvo = 'https://docs-proposta-online.example/visualizar/9f3a2c7e'
+# Mesmo kit, outra vítima (token diferente): o host inteiro é do atacante.
+FEED_OPENPHISH.append('https://docs-proposta-online.example/visualizar/41bd07aa')
+htm = f'''<html><body style="font-family:Calibri,Arial;font-size:11pt">
+<p>Boa tarde, Ana,</p><p>Conforme conversamos, segue a proposta revisada para a reforma do 3º andar.</p>
+<p><a href="{alvo}">Proposta_Revisada_Reforma.pdf</a></p>
+<p>Fico no aguardo.</p><p>Att.,<br>Marcos Teixeira<br>Construtora Vale</p></body></html>'''
+txt = (f'Boa tarde, Ana,\n\nConforme conversamos, segue a proposta revisada para a reforma do 3º andar.\n\n'
+       f'Proposta_Revisada_Reforma.pdf: {alvo}\n\nFico no aguardo.\n\nAtt.,\nMarcos Teixeira\nConstrutora Vale\n')
+corpo = alternativo(txt, htm, '_000_CV9f3a2c7e_')
+caso(
+    id='21-fornecedor-invadido-link-no-feed',
+    titulo='Conta de fornecedor invadida: proposta com link para página que o OpenPhish já conhece (outra vítima)',
+    tecnica=('Campanha nova a partir de conta legítima invadida: e-mail autenticado, sem marca imitada, sem urgência e o '
+             'VirusTotal ainda não conhece o link. Só o feed denuncia: o mesmo host já aparece no OpenPhish com outro token.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'pass', 'pass'), rec_ext, dkim_assinatura(dom),
+               ('From', nome_codificado('Marcos Teixeira', f'marcos.teixeira@{dom}')),
+               ('To', f'ana.ribeiro@{ORG}'), ('Subject', assunto('RE: Proposta revisada - reforma 3º andar')),
+               ('Date', data), ('Message-ID', f'<CV9f3a2c7e.1763565730@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='A construtora mandou link de proposta, mas a reforma já foi fechada no mês passado. Achei estranho, não abri.',
+    requerente='ana.ribeiro (Compras)',
+    esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
+                  target='Finance', gravidade='media', mitre=['T1566.002']),
+    sinais_obrigatorios=['feed-host', 'autenticado'],
+    bloqueio=dict(deve_ter=['docs-proposta-online.example'], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 4380, 'docs-proposta-online.example': 400}),
+)
+
+# 22 ---------------------------------------------------------------- anexo com hash no ThreatFox
+dom = 'contabilidade-moraes.example'
+ip = '192.0.2.88'
+data = 'Thu, 19 Nov 2026 17:40:02 +0000'
+rec, rec_ext = received_exo(f'smtp.{dom}', ip, data)
+z = zip_fixo([('Guia_DARF_Novembro.pdf', pdf_minimo(['Guia DARF - teste do corpus', 'arquivo inofensivo'])),
+              ('LEIA-ME.txt', LEIA_ME)])
+threatfox(hashlib.sha256(z).hexdigest(), 'sha256_hash', 'payload', 'Grandoreiro')
+txt = ('Prezados,\n\nSegue a guia do DARF de novembro para pagamento. Vencimento dia 20.\n\nAtenciosamente,\n'
+       'Departamento Fiscal\nContabilidade Moraes\n')
+corpo = MIMEMultipart('mixed')
+corpo.set_boundary('----=_Part_DARF_1763574002')
+corpo.attach(texto(txt))
+corpo.attach(anexo(z, 'application/zip', 'Guia_DARF_Novembro.zip'))
+caso(
+    id='22-anexo-hash-no-threatfox',
+    titulo='Malware: .zip da "contabilidade" cujo hash já está no ThreatFox',
+    tecnica=('Entrega de malware por conta de escritório de contabilidade (domínio antigo, autenticado). O .zip parece '
+             'inofensivo por dentro; só o hash denuncia, porque já foi relatado como carga de trojan bancário.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'pass', 'pass'), rec_ext, dkim_assinatura(dom),
+               ('From', nome_codificado('Contabilidade Moraes - Fiscal', f'fiscal@{dom}')),
+               ('To', f'maria.souza@{ORG}'), ('Subject', assunto('Guia DARF - novembro')),
+               ('Date', data), ('Message-ID', f'<darf.1763574002@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='A contabilidade mandou o DARF em zip. Normalmente vem em PDF. Não abri.',
+    requerente='maria.souza (Financeiro)',
+    esperado=dict(classificacao='phishing', phishing_type=['Malware Delivery'], delivery_channel='Email',
+                  target='Finance', gravidade='media', mitre=['T1566.001']),
+    sinais_obrigatorios=['feed-hash', 'anexo-compactado'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 3650}),
+)
+
+# 23 ---------------------------------------------------------------- URL exata no OpenPhish, em serviço compartilhado
+dom = 'eventos-associacao.example'
+ip = '203.0.113.140'
+data = 'Fri, 20 Nov 2026 09:05:44 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+pagina = 'https://storage.googleapis.com/arquivos-compartilhados-7731/visualizar.html'
+alvo = f'{pagina}#maria.souza@{ORG}'
+FEED_OPENPHISH.append(pagina)
+htm = f'''<html><body style="font-family:Arial;font-size:14px">
+<p>Olá,</p><p>Os certificados do Encontro Regional de Gestores já estão disponíveis.</p>
+<p><a href="{alvo}">Baixar certificado</a></p><p>Associação de Gestores</p></body></html>'''
+txt = f'Olá,\n\nOs certificados do Encontro Regional de Gestores já estão disponíveis.\n\nBaixar certificado: {alvo}\n\nAssociação de Gestores\n'
+corpo = alternativo(txt, htm, '----=_Part_cert_7731')
+caso(
+    id='23-url-exata-no-feed-em-servico-compartilhado',
+    titulo='Página falsa no Google Cloud Storage: a URL exata está no OpenPhish (o host é de todo mundo)',
+    tecnica=('Página de login hospedada em bucket público (storage.googleapis.com), com o e-mail da vítima no #. O host é '
+             'compartilhado e não pode ser marcado inteiro; a URL exata (sem o #) está no feed.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'pass', 'pass'), rec_ext, dkim_assinatura(dom),
+               ('From', nome_codificado('Associação de Gestores', f'certificados@{dom}')),
+               ('To', f'maria.souza@{ORG}'), ('Subject', assunto('Seu certificado está disponível')),
+               ('Date', data), ('Message-ID', f'<cert7731.1763629544@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='Não participei de encontro nenhum. Chegou link de certificado. Não cliquei.',
+    requerente='maria.souza (Financeiro)',
+    esperado=dict(classificacao='phishing', phishing_type=['Credential Harvesting'], delivery_channel='Email',
+                  target='User', gravidade='media', mitre=['T1566.002']),
+    sinais_obrigatorios=['feed-url'],
+    sinais_proibidos=['feed-host'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=['storage.googleapis.com', 'googleapis.com', ORG]),
+    reputacao=dict(rdap={dom: 900}),
+)
+
 # ================================================================ LEGÍTIMOS (controle de falso positivo)
 
 # L1 ---------------------------------------------------------------- alerta real da Microsoft
@@ -1518,6 +1650,69 @@ caso(
     qr={'Boleto_Pedido_4480.pdf': [pix]},
 )
 
+# L12 --------------------------------------------------------------- Google Sites legítimo; outra página do Google Sites no feed
+dom = 'associacaocomercial.example'
+ip = '198.51.100.31'
+data = 'Fri, 20 Nov 2026 14:00:00 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+alvo = 'https://sites.google.com/view/semana-seguranca-2026'
+FEED_OPENPHISH.append('https://sites.google.com/view/login-cybersecurity-local')
+htm = f'''<html><body style="font-family:Arial;font-size:14px">
+<p>Prezados associados,</p><p>A programação da Semana de Segurança 2026 está no site do evento:
+<a href="{alvo}">Semana de Segurança 2026</a>.</p><p>Associação Comercial</p></body></html>'''
+txt = f'Prezados associados,\n\nA programação da Semana de Segurança 2026 está no site do evento: {alvo}\n\nAssociação Comercial\n'
+corpo = alternativo(txt, htm, '----=_Part_semana_2026')
+caso(
+    id='L12-google-sites-evento-legitimo',
+    titulo='LEGÍTIMO: site de evento no Google Sites, enquanto OUTRA página do Google Sites está no OpenPhish',
+    tecnica=('Controle de falso positivo dos feeds: o host sites.google.com é compartilhado. O feed só pode marcar a URL '
+             'exata do golpe, nunca o host inteiro (senão todo link do Google Sites viraria phishing).'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'pass', 'pass'), rec_ext, dkim_assinatura(dom),
+               ('From', nome_codificado('Associação Comercial', f'eventos@{dom}')),
+               ('To', f'todos@{ORG}'), ('Subject', assunto('Programação da Semana de Segurança 2026')),
+               ('Date', data), ('Message-ID', f'<semana2026.1763647200@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='A associação mandou link do Google Sites. É seguro?',
+    requerente='lucas.ferreira (Comercial)',
+    esperado=dict(classificacao='legitimo', phishing_type=[], delivery_channel='Email', target='User', gravidade='baixa', mitre=[]),
+    sinais_obrigatorios=['autenticado'],
+    sinais_proibidos=['feed-host', 'feed-url'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=['sites.google.com', 'google.com', ORG]),
+    reputacao=dict(rdap={dom: 5000}),
+)
+
+# L13 --------------------------------------------------------------- newsletter de site INVADIDO (o dono é legítimo)
+dom = 'padariasaopedro.example'
+ip = '192.0.2.77'
+data = 'Fri, 20 Nov 2026 18:00:00 +0000'
+rec, rec_ext = received_exo(f'mail.{dom}', ip, data)
+threatfox(f'https://www.{dom}/wp-content/plugins/galeria-x/m365/login.php', 'url', 'payload_delivery', 'phishing kit')
+htm = f'''<html><body style="font-family:Georgia,serif;font-size:15px">
+<p>Olá!</p><p>O cardápio de Natal da Padaria São Pedro já está no ar: <a href="https://www.{dom}/natal">veja as encomendas</a>.</p>
+<p style="font-size:11px"><a href="https://www.{dom}/descadastrar?e=553">Descadastrar</a></p></body></html>'''
+txt = f'Olá!\n\nO cardápio de Natal da Padaria São Pedro já está no ar: https://www.{dom}/natal\n\nDescadastrar: https://www.{dom}/descadastrar?e=553\n'
+corpo = alternativo(txt, htm, '----=_Part_natal_553')
+caso(
+    id='L13-newsletter-de-site-invadido',
+    titulo='LEGÍTIMO: newsletter da padaria cujo site foi invadido (página de phishing em /wp-content/ no ThreatFox)',
+    tecnica=('Controle de falso positivo dos feeds: o ThreatFox tem uma página maliciosa pendurada no WordPress invadido da '
+             'padaria. O host vira "site invadido" (peso menor, avisa o analista), não evidência forte: o e-mail da própria '
+             'padaria, autenticado e com link para o cardápio, continua legítimo.'),
+    cabecalhos=rec + [*autenticacao_exo(ip, dom, dom, 'pass', 'pass', 'pass'), rec_ext, dkim_assinatura(dom),
+               ('From', nome_codificado('Padaria São Pedro', f'contato@{dom}')),
+               ('To', f'joao.lima@{ORG}'), ('Subject', assunto('Encomendas de Natal abertas')),
+               ('List-Unsubscribe', f'<https://www.{dom}/descadastrar?e=553>'),
+               ('Date', data), ('Message-ID', f'<natal553.1763661600@{dom}>'), *antispam_exo()],
+    corpo=corpo,
+    relato='Recebo sempre e-mail da padaria aqui do lado, mas o antivírus da minha casa disse que o site deles é perigoso. É golpe?',
+    requerente='joao.lima (RH)',
+    esperado=dict(classificacao='legitimo', phishing_type=[], delivery_channel='Email', target='User', gravidade='baixa', mitre=[]),
+    sinais_obrigatorios=['autenticado', 'feed-site-invadido'],
+    sinais_proibidos=['feed-host', 'feed-url'],
+    bloqueio=dict(deve_ter=[], nao_pode_ter=[ORG]),
+    reputacao=dict(rdap={dom: 4200}),
+)
+
 # ================================================================ SPAM (não malicioso)
 
 # S1 ---------------------------------------------------------------- newsletter de loja desconhecida
@@ -1598,6 +1793,12 @@ def gravar():
             'bloqueio': c['bloqueio'], 'reputacao': c.get('reputacao', {}),
             'ioc_escondido': c.get('ioc_escondido', ''), 'qr': c.get('qr', {}), 'lacuna': c.get('lacuna', ''), 'nota': c.get('nota', ''),
         })
+    # Feeds simulados no formato de cada fonte: texto (OpenPhish) e resposta do get_iocs (ThreatFox).
+    with open(os.path.join(AQUI, 'feeds.json'), 'w', encoding='utf-8', newline='\n') as f:
+        json.dump({'_aviso': 'Gerado por tests/corpus/gerar-corpus.py: edite lá e gere de novo.',
+                   'openphish': '\n'.join(FEED_OPENPHISH) + '\n',
+                   'threatfox': {'query_status': 'ok', 'data': FEED_THREATFOX}}, f, ensure_ascii=False, indent=1)
+        f.write('\n')
     with open(os.path.join(AQUI, 'casos.json'), 'w', encoding='utf-8', newline='\n') as f:
         json.dump({'_aviso': 'Gerado por tests/corpus/gerar-corpus.py: edite lá e gere de novo.', 'casos': casos_json},
                   f, ensure_ascii=False, indent=1)

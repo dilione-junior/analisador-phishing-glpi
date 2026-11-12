@@ -7,15 +7,17 @@ e decide com um clique (**phishing**, **legítimo**, **spam** ou **escalar N2**)
 Faz parte do laboratório [NG-SOC](../ng-soc-lab) e reaproveita a mesma infraestrutura (n8n, GLPI, Redis) e as chaves de reputação do
 [Scanner de Segurança Web](../scanner-seguranca-web). Custo zero: só serviços gratuitos.
 
-Tudo roda num **único fluxo do n8n, `analisador-phishing-glpi-ia`**, com duas rotinas: cada uma tem o seu gatilho
-(análise a cada 2 min, decisões a cada 1 min) e o nó **Qual rotina?** manda cada execução para o seu ramo.
+Tudo roda num **único fluxo do n8n, `analisador-phishing-glpi-ia`**, com três rotinas: cada uma tem o seu gatilho
+(análise a cada 2 min, decisões a cada 1 min, feeds de IOC a cada 6 h) e os nós **Qual rotina?** / **Carga dos feeds?**
+mandam cada execução para o seu ramo.
 
 ```
 Usuário abre chamado no GLPI                      Rotina 1: análise (a cada 2 min)
 categoria "Segurança > Phishing e      ──────►    1. busca chamados ABERTOS da categoria + grupo Segurança da Informação
 e-mail suspeito" (anexa o .eml)                   2. lê o relato, os acompanhamentos e o .eml/.msg anexado
            │                                      3. extrai remetente real, SPF/DKIM/DMARC, IP de origem, links, anexos, sinais
-           │ grupo "Segurança da Informação"      4. reputação (só leitura): VirusTotal, URLhaus, RDAP (idade do domínio)
+           │ grupo "Segurança da Informação"      4. feeds de IOC no Redis (OpenPhish, ThreatFox) + reputação (só leitura):
+           │                                         VirusTotal, URLhaus, RDAP (idade do domínio)
            ▼ (atribuído pela categoria)           5. IA (Gemini) dá o parecer  →  travas  →  sugestão final
                                                   6. acompanhamento PRIVADO no GLPI + ficha no Telegram com botões
 
@@ -23,6 +25,10 @@ Analista no grupo "Relatos de Phishing"           Rotina 2: decisões (a cada 1 
   [🎣 É phishing] [✅ É legítimo]       ──────►    nota interna (decisão, checklist, IOCs) + resposta ao usuário (texto fixo)
   [📨 Spam]       [⬆️ Escalar N2]                  + solução no GLPI (ou inclui o grupo SOC N2) + confirmação no grupo
   /nota 123 texto · /reanalisar 123                + métrica: a IA acertou?
+
+OpenPhish + ThreatFox                             Rotina 3: feeds de IOC (a cada 6 h, minuto 17)
+                                       ──────►    um IOC por chave no Redis (URL, host, IP, hash), validade de 7 dias
+                                                  renovada a cada carga; nada vai sozinho para o Wazuh
 ```
 
 ## Visão do analista SOC
@@ -35,7 +41,8 @@ A ficha que chega no Telegram responde às perguntas da triagem de phishing, nes
 3. **Quem mandou de verdade**: From real (o último `<...>`, não o nome de exibição), Reply-To, Return-Path,
    SPF/DKIM/DMARC (só o `Authentication-Results` de cima vale: os de baixo podem ser forjados) e o IP de origem.
 4. **Evidências** e **sinais de legitimidade**, para o analista concordar ou discordar com base em fatos.
-5. **Reputação**: VirusTotal (link, domínio, hash do anexo), URLhaus e idade do domínio.
+5. **Reputação**: feeds de IOC (OpenPhish, ThreatFox: pegam a campanha nova que o VirusTotal ainda não conhece),
+   VirusTotal (link, domínio, hash do anexo), URLhaus e idade do domínio.
 6. **Ações recomendadas**: as de resposta a incidente vêm primeiro (trocar senha, isolar máquina, acionar o banco).
 7. **IOCs desarmados** (`hxxps://site[.]com`), prontos para copiar para o bloqueio sem virar link clicável. Só entra o que é do
    atacante: domínio oficial de marca (`itau.com.br`), webmail gratuito (`gmail.com`), serviço compartilhado (`drive.google.com`)
@@ -78,6 +85,8 @@ O roteiro completo de atendimento está em [docs/playbook-phishing.md](docs/play
 |---|---|---|
 | VirusTotal: 3+ motores maliciosos | +40 (forte) | link marcado por 7/94 motores |
 | URLhaus: host listado | +40 (forte) | host distribuindo phishing/malware |
+| Feed de IOC: link, hash ou host do atacante listado | +45 / +45 / +40 (forte) | link no OpenPhish (mesmo kit, outra vítima), anexo no ThreatFox |
+| Feed de IOC: site invadido / IP listado | +20 / +25 | página maliciosa em `/wp-content/` de site legítimo; IP de C2 do ThreatFox |
 | Link disfarçado | +25 | o texto mostra `itau.com.br`, o link leva para outro domínio |
 | Domínio parecido / marca imitada | +20 a +25 | `itau-seguranca...`, `micros0ft...`, nome "Microsoft 365" com domínio qualquer |
 | Anexo perigoso ou extensão dupla | +25 | `boleto.pdf.html`, `.iso`, `.lnk`, `.js`, Office com macro |
@@ -95,7 +104,7 @@ O roteiro completo de atendimento está em [docs/playbook-phishing.md](docs/play
 
 A soma vira a **nota automática** (0 a 100). A IA lê o dossiê completo e dá o parecer, mas com travas:
 
-- evidência forte (VirusTotal 3+, URLhaus ou técnica forte do catálogo) **nunca** vira "legítimo" ou "spam";
+- evidência forte (VirusTotal 3+, URLhaus, feed de IOC ou técnica forte do catálogo) **nunca** vira "legítimo" ou "spam";
 - nota automática 50+ não vira "legítimo": no máximo "inconclusivo";
 - a gravidade sobe pelo que o usuário fez (digitou senha / abriu anexo / pagou = **crítica**);
 - IA fora do ar ou resposta fora do formato = vale o parecer automático (o relato não fica parado).
@@ -193,7 +202,7 @@ Outros exemplos: `tests/amostras/legitimo-loja.eml` (contato legítimo) e `tests
 
 ## Configuração
 
-No nó **Configuração** (um só, para as duas rotinas; o JSON é gerado por `scripts/gerar-fluxo.py`; mude lá e gere de novo):
+No nó **Configuração** (um só, para as três rotinas; o JSON é gerado por `scripts/gerar-fluxo.py`; mude lá e gere de novo):
 
 | Campo | Padrão | Para quê |
 |---|---|---|
@@ -204,23 +213,41 @@ No nó **Configuração** (um só, para as duas rotinas; o JSON é gerado por `s
 | `dominiosConfiaveis` | `cybersecurity.local` | domínios da organização (separados por vírgula): nunca entram nos IOCs para bloqueio |
 | `nomesInternos` | vazio | pessoas-chave (diretoria, financeiro, RH), nome e sobrenome separados por vírgula: e-mail de fora com um destes nomes vira sinal de fraude (BEC) |
 | `leitorQr` / `maxArquivosQr` | `http://leitor-qr:8080/ler` / 4 | serviço que lê QR Codes e quantas imagens/PDFs do e-mail mandar para ele |
+| `feedDias` | 7 | quantos dias um IOC dos feeds fica no Redis depois da última vez que apareceu no feed |
 | `listaDominios` / `listaIps` / `listaHashes` | `ngsoc-phishing-*` | listas CDB do Wazuh do botão "Bloquear IOCs" |
 | `diasNaLista` | 90 | quantos dias cada IOC fica nas listas do Wazuh |
 | `tipoPhishing` / `tipoLegitimo` / `tipoSpam` / `grupoN2` | nomes do GLPI | usados na decisão |
 
 Chaves no Redis (prefixo `phishing:`): `relato:<id>` (já analisado, 90 dias), `analise:<id>` (ficha usada na decisão, 90 dias),
-`decisao:<id>` (trava), `cota:<data>`, `telegram:offset`, `metricas:ia_<sugestão>:analista_<decisão>` (precisão da IA).
+`decisao:<id>` (trava), `cota:<data>`, `telegram:offset`, `metricas:ia_<sugestão>:analista_<decisão>` (precisão da IA),
+`feed:url|host|ip|sha256|md5:<valor>` (IOCs dos feeds, `feedDias`) e `feed:estado` (última carga de cada fonte).
+
+### Feeds de IOC
+
+| Fonte | O que traz | Chave |
+|---|---|---|
+| [OpenPhish](https://openphish.com/) comunitário | ~300 URLs de phishing ativas, atualizado a cada 12 h | nenhuma |
+| [ThreatFox](https://threatfox.abuse.ch/) (`get_iocs`, último dia) | ~1.100 IOCs: URLs e domínios de entrega, IP:porta de C2, hashes de malware | `abuse.ch (Auth-Key)` |
+
+O URLhaus não entra como feed: a análise já consulta o host ao vivo. PhishTank está com o cadastro fechado.
+O host inteiro só é marcado quando é do atacante: marca oficial, webmail, encurtador, serviço compartilhado
+(`sites.google.com`, `storage.googleapis.com`, `github.com`...) e a própria organização ficam só como URL exata. Página
+em caminho típico de site invadido (`/wp-content/`...) ou domínio que o ThreatFox marca como `is_compromised` vira
+"site invadido" (peso menor). IOC com confiança abaixo de 50 no ThreatFox é ignorado. Se uma fonte falhar, as chaves da
+carga anterior valem até vencer e o parecer avisa quando a fonte passa de 24 h sem atualizar.
 
 ## Desenvolvimento
 
 ```bash
-node tests/testar-codigo.js      # 88 testes do código dos nós, sem n8n
-node tests/avaliar-corpus.js     # conjunto de referência: 33 e-mails realistas com gabarito de analista N3
+node tests/testar-codigo.js      # 96 testes do código dos nós, sem n8n
+node tests/avaliar-corpus.js     # conjunto de referência: 38 e-mails realistas com gabarito de analista N3
+node tests/avaliar-corpus.js --sem-feeds   # o mesmo, como se os feeds de IOC nunca tivessem sido carregados
 python scripts/gerar-fluxo.py    # gera workflow/analisador-phishing-glpi-ia.json a partir de src/ (nunca edite o JSON à mão)
 ```
 
-O [conjunto de referência](tests/corpus/README.md) tem 20 phishings atuais (AiTM, quishing em imagem, PDF e tabela HTML,
-HTML/SVG smuggling, consent phishing OAuth, abuso de SharePoint, BEC, callback...), 11 legítimos parecidos com golpe e 2 spams. Ele mede
+O [conjunto de referência](tests/corpus/README.md) tem 23 phishings atuais (AiTM, quishing em imagem, PDF e tabela HTML,
+HTML/SVG smuggling, consent phishing OAuth, abuso de SharePoint, BEC, callback, campanha nova que só o feed de IOC
+denuncia...), 13 legítimos parecidos com golpe e 2 spams. Ele mede
 o que as regras pegam sozinhas, sem a IA, e registra cada técnica que o analisador ainda não reconhece (`lacuna`).
 Toda melhoria tem que melhorar esse placar sem criar falso positivo.
 
@@ -242,7 +269,8 @@ O CI roda os testes e o conjunto de referência, confere se o JSON está atualiz
 - [x] Conjunto de referência (25 e-mails com gabarito) e avaliação no CI: base para a fase de Phishing Intelligence.
 - [x] Catálogo de técnicas (Phishing Intelligence, etapa 2): [docs/catalogo-tecnicas.md](docs/catalogo-tecnicas.md).
 - [x] Leitura de QR Code (imagem, PDF e QR desenhado) pelo serviço leitor-qr do laboratório.
-- [ ] Phishing Intelligence (versão reduzida), resto: feeds de IOC, radar semanal com aprovação humana, taxonomia na saída da IA, aprender com as decisões dos analistas.
+- [x] Feeds de IOC (Phishing Intelligence, etapa 1): OpenPhish + ThreatFox no Redis, conferidos em toda análise.
+- [ ] Phishing Intelligence (versão reduzida), resto: radar semanal com aprovação humana, taxonomia na saída da IA, aprender com as decisões dos analistas.
   Plano e ponto de parada: [docs/plano-phishing-intelligence.md](docs/plano-phishing-intelligence.md).
 - [ ] Busca de outras vítimas: quantos chamados/usuários relataram o mesmo remetente ou link (campanha).
 - [ ] `/painel` no Telegram: relatos do dia, tempo até a decisão e precisão da IA (métricas do Redis).
