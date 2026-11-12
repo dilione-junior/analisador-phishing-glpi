@@ -1,9 +1,10 @@
 """Gera o fluxo único do n8n (analisador-phishing-glpi-ia) a partir do código em src/.
 
-  workflow/analisador-phishing-glpi-ia.json, com duas rotinas no mesmo fluxo:
-    - análise  (a cada 2 min): GLPI -> evidências -> reputação -> IA -> GLPI + Telegram
+  workflow/analisador-phishing-glpi-ia.json, com três rotinas no mesmo fluxo:
+    - análise  (a cada 2 min): GLPI -> evidências -> feeds + reputação -> IA -> GLPI + Telegram
     - decisões (a cada 1 min): botões/comandos do Telegram -> GLPI
-  Cada gatilho começa uma execução separada; o nó "Qual rotina?" manda cada uma para o seu ramo.
+    - feeds    (a cada 6 h):   OpenPhish + ThreatFox -> Redis (IOCs com validade de 7 dias)
+  Cada gatilho começa uma execução separada; "Qual rotina?" e "Carga dos feeds?" mandam cada uma para o seu ramo.
 
 O código de cada nó "Code" fica em src/*.js (mais fácil de ler, revisar e testar).
 As bibliotecas de src/lib/ são coladas no começo dos nós que precisam delas.
@@ -28,6 +29,11 @@ CRED_ABUSECH = {"httpHeaderAuth": {"id": "scanAbusechKey01", "name": "abuse.ch (
 CRED_WAZUH = {"httpBasicAuth": {"id": "ngsocWazuhListas", "name": "Wazuh API (ngsoc-listas)"}}
 WAZUH_API = "https://wazuh.manager:55000"
 MODELO_GEMINI = "models/gemini-flash-lite-latest"
+# Feeds de IOC (rotina 3). OpenPhish comunitário: só URLs de phishing, sem chave (o endereço oficial redireciona
+# para o GitHub deles). ThreatFox: IOCs do último dia (URL, domínio, IP:porta, hashes), com a chave da abuse.ch.
+# O URLhaus continua na consulta AO VIVO por host (nó "URLhaus"): baixar o feed dele repetiria a mesma informação.
+OPENPHISH_FEED = "https://openphish.com/feed.txt"
+THREATFOX_API = "https://threatfox-api.abuse.ch/api/v1/"
 
 GLPI_API = "http://glpi/apirest.php"
 TELEGRAM_API = "https://api.telegram.org/bot{{ $env.PHISHING_TELEGRAM_TOKEN }}/"
@@ -73,6 +79,10 @@ class Fluxo:
     def agenda(self, nome, posicao, minutos):
         self.no(nome, "n8n-nodes-base.scheduleTrigger", 1.2, posicao,
                 {"rule": {"interval": [{"field": "minutes", "minutesInterval": minutos}]}})
+
+    def agenda_horas(self, nome, posicao, horas, minuto):
+        self.no(nome, "n8n-nodes-base.scheduleTrigger", 1.2, posicao,
+                {"rule": {"interval": [{"field": "hours", "hoursInterval": horas, "triggerAtMinute": minuto}]}})
 
     def se(self, nome, posicao, expressao):
         self.no(nome, "n8n-nodes-base.if", 2.2, posicao, {
@@ -186,6 +196,7 @@ Como avaliar (pense como analista):
 - Abuso de serviço legítimo: consentimento OAuth (o link é da Microsoft/Google de verdade, mas autoriza um app do atacante a ler e-mails/arquivos; trocar a senha NÃO resolve, é preciso revogar o app), código de dispositivo, golpe por telefone (fatura verdadeira do PayPal com número para "cancelar": o golpe é a ligação) e conta de parceiro invadida. Nesses casos SPF/DKIM/DMARC=pass e domínio oficial NÃO indicam legitimidade.
 - Fraude de conta salário/dados bancários: pedido de troca vindo de e-mail pessoal ou de domínio quase igual ao do fornecedor é phishing (BEC) até ser confirmado por telefone conhecido.
 - QR Code: "qr_codes" traz o que o leitor de QR leu nas imagens/PDFs do e-mail (o link vira URL e passa pela reputação). QR que leva para site de fora, num e-mail que pede para escanear com o celular, é quishing: o acesso sai do celular, fora do proxy e do antivírus. QR de PIX não é link: avalie quem é o recebedor (golpe do boleto/PIX).
+- Feeds de IOC (OpenPhish, ThreatFox) em "feeds_de_ioc": link, hash ou host do atacante listado = forte (campanha nova que o VirusTotal ainda não conhece); "site invadido" e IP listado = moderado.
 - Reputação: 3 ou mais motores no VirusTotal ou URLhaus listado = forte. 1 motor isolado costuma ser falso positivo. "Nunca analisado" não prova que é seguro.
 - Domínio com menos de 30 dias + marca imitada = perfil típico de phishing.
 - Contato legítimo: domínio oficial, autenticação passando, sem pedido fora do normal, links para o próprio domínio, contexto que o usuário esperava.
@@ -201,9 +212,11 @@ MITRE ATT&CK: T1566.001 (anexo), T1566.002 (link), T1566.003 (por serviço, rede
 # certo não são guardadas (economiza disco); as com erro, sim. A análise fica registrada no GLPI,
 # no Telegram e no Redis.
 f = Fluxo("phishGlpiIA00001", "analisador-phishing-glpi-ia", "analisador-phishing-glpi-ia.json", salvar_sucesso="none")
-Y_ANALISE, Y_DECISAO = 300, 1500
+Y_FEEDS, Y_ANALISE, Y_DECISAO = -900, 300, 1500
 f.agenda("A cada 2 minutos", [-2860, Y_ANALISE], 2)
 f.agenda("A cada minuto", [-2860, Y_DECISAO], 1)
+# Minuto 17: fora da hora cheia (quando o OpenPhish publica e todo mundo baixa).
+f.agenda_horas("A cada 6 horas", [-2860, Y_FEEDS], 6, 17)
 f.config([-2640, (Y_ANALISE + Y_DECISAO) // 2], [
     # rotina de análise
     ("categoria", "Segurança > Phishing e e-mail suspeito", "string"),
@@ -219,6 +232,8 @@ f.config([-2640, (Y_ANALISE + Y_DECISAO) // 2], [
     # Leitor de QR Code (serviço leitor-qr do ng-soc-lab, rede interna automacao_qr) e quantos arquivos ler por e-mail.
     ("leitorQr", "http://leitor-qr:8080/ler", "string"),
     ("maxArquivosQr", 4, "number"),
+    # Feeds de IOC: quantos dias um IOC fica no Redis depois da última vez que apareceu no feed.
+    ("feedDias", 7, "number"),
     # rotina de decisões
     ("tipoPhishing", "Phishing confirmado", "string"),
     ("tipoLegitimo", "Contato legítimo", "string"),
@@ -233,9 +248,13 @@ f.config([-2640, (Y_ANALISE + Y_DECISAO) // 2], [
 f.se("Qual rotina?", [-2420, (Y_ANALISE + Y_DECISAO) // 2], "={{ $('A cada minuto').isExecuted }}")
 f.liga("A cada 2 minutos", "Configuração")
 f.liga("A cada minuto", "Configuração")
+f.liga("A cada 6 horas", "Configuração")
 f.liga("Configuração", "Qual rotina?")
+f.se("Carga dos feeds?", [-2200, (Y_FEEDS + Y_ANALISE) // 2], "={{ $('A cada 6 horas').isExecuted }}")
 f.liga("Qual rotina?", "Lê o ponto de leitura", 0)               # verdadeiro: decisões
-f.liga("Qual rotina?", "Abre a sessão no GLPI (análise)", 1)     # falso: análise
+f.liga("Qual rotina?", "Carga dos feeds?", 1)
+f.liga("Carga dos feeds?", "Lê o estado dos feeds", 0)           # verdadeiro: feeds
+f.liga("Carga dos feeds?", "Abre a sessão no GLPI (análise)", 1)  # falso: análise
 
 # ===========================================================================
 # Rotina 1: analisa os relatos abertos no GLPI
@@ -279,10 +298,18 @@ a.no("Lê os QR Codes", "n8n-nodes-base.httpRequest", 4.2, [3300, Y - 400], {
     "options": {"timeout": 30000, "batching": {"batch": {"batchSize": 1, "batchInterval": 0}},
                 "response": {"response": {"fullResponse": True, "neverError": True}}},
 }, onError="continueRegularOutput")
-a.codigo("Extrai as evidências", [3520, Y], "extrair-evidencias.js", "ip.js", "texto.js", "email.js", "indicadores.js", "tecnicas.js", "qr.js")
+a.codigo("Extrai as evidências", [3520, Y], "extrair-evidencias.js", "ip.js", "texto.js", "email.js", "indicadores.js", "feeds.js", "tecnicas.js", "qr.js")
+
+# Feeds de IOC: consulta LOCAL no Redis (carregado pela rotina 3), sem cota e sem internet. Redis fora do ar não
+# para a análise: "Resume os feeds" registra o erro e o parecer avisa.
+a.se("Consultar os feeds?", [3740, Y], "={{ ($('Extrai as evidências').first().json.consultas.feeds ?? []).length > 0 }}")
+a.codigo("Fila dos feeds", [3960, Y - 200], "fila-consultas.js", trocas={"__FONTE__": "feeds"})
+a.redis("Procura nos feeds", [4180, Y - 200], {"operation": "get", "propertyName": "achado",
+        "key": "={{ $('Configuração').first().json.prefixoRedis + $json.chave }}", "options": {}}, onError="continueRegularOutput")
+a.codigo("Resume os feeds", [4400, Y - 200], "resumir-feeds.js", "texto.js")
 
 # Reputação: cada fonte só roda se houver o que consultar; as consultas são só LEITURA (nada é enviado para análise).
-x = 3740
+x = 4620
 for fonte, nome_no, titulo, http in (
     ("virustotal", "VirusTotal", "Consultar o VirusTotal?", dict(
         url="=https://www.virustotal.com/api/v3/{{ $json.caminho }}", credencial=CRED_VIRUSTOTAL,
@@ -359,7 +386,12 @@ a.liga("Lista imagens e PDFs (QR)", "Tem QR para ler?")
 a.liga("Tem QR para ler?", "Lê os QR Codes", 0)
 a.liga("Tem QR para ler?", "Extrai as evidências", 1)
 a.liga("Lê os QR Codes", "Extrai as evidências")
-a.liga("Extrai as evidências", "Consultar o VirusTotal?")
+a.liga("Extrai as evidências", "Consultar os feeds?")
+a.liga("Consultar os feeds?", "Fila dos feeds", 0)
+a.liga("Consultar os feeds?", "Consultar o VirusTotal?", 1)
+a.liga("Fila dos feeds", "Procura nos feeds")
+a.liga("Procura nos feeds", "Resume os feeds")
+a.liga("Resume os feeds", "Consultar o VirusTotal?")
 for atual, proxima in (("VirusTotal", "Consultar o URLhaus?"), ("URLhaus", "Consultar o RDAP?"), ("RDAP", "Monta o dossiê")):
     pergunta = {"VirusTotal": "Consultar o VirusTotal?", "URLhaus": "Consultar o URLhaus?", "RDAP": "Consultar o RDAP?"}[atual]
     a.liga(pergunta, f"Fila do {atual}", 0)
@@ -382,7 +414,7 @@ A cada 2 minutos procura no GLPI chamados **abertos**, da categoria **Segurança
 
 1. Lê o chamado, os acompanhamentos e os anexos (o `.eml`/`.msg` do e-mail é **lido como texto**; os outros anexos só têm o hash conferido, **nunca são abertos**).
 2. Extrai remetente real, SPF/DKIM/DMARC, IP de origem, links, anexos e sinais de phishing.
-3. Consulta a reputação **só para leitura** (VirusTotal, URLhaus, RDAP): nenhum link é visitado.
+3. Confere os **feeds de IOC** guardados no Redis (rotina 3) e consulta a reputação **só para leitura** (VirusTotal, URLhaus, RDAP): nenhum link é visitado.
 4. A IA (Gemini) dá o parecer; travas impedem que um e-mail malicioso a faça dizer "legítimo".
 5. Grava a análise como acompanhamento **privado** no GLPI e manda no grupo do Telegram com os botões.
 
@@ -507,5 +539,37 @@ A cada minuto lê o grupo **Relatos de Phishing** (espera até 45 s por novidade
 
 Segurança: só o grupo `PHISHING_TELEGRAM_CHAT_ID` e só os IDs em `PHISHING_ANALISTAS` decidem. Uma decisão por chamado (trava no Redis). Nada escrito pela IA vai para o usuário.
 Métrica: `phishing:metricas:ia_<sugestão>:analista_<decisão>` (quanto a IA acerta).""")
+
+# ===========================================================================
+# Rotina 3: carrega os feeds de IOC (OpenPhish + ThreatFox) no Redis
+# ===========================================================================
+c = f
+Y = Y_FEEDS
+c.redis("Lê o estado dos feeds", [-1760, Y], {"operation": "get", "propertyName": "estado",
+                                              "key": PREFIXO_REDIS + "feed:estado", "options": {}}, alwaysOutputData=True)
+c.no("Baixa o OpenPhish", "n8n-nodes-base.httpRequest", 4.2, [-1540, Y], {
+    "url": OPENPHISH_FEED,
+    "options": {"timeout": 60000, "response": {"response": {"fullResponse": True, "neverError": True, "responseFormat": "text"}}},
+}, executeOnce=True, onError="continueRegularOutput", **REPETE)
+c.no("Baixa o ThreatFox", "n8n-nodes-base.httpRequest", 4.2, [-1320, Y], {
+    "method": "POST", "url": THREATFOX_API, "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+    "sendBody": True, "specifyBody": "json", "jsonBody": '{"query": "get_iocs", "days": 1}',
+    "options": {"timeout": 60000, "response": {"response": {"fullResponse": True, "neverError": True}}},
+}, credentials=CRED_ABUSECH, executeOnce=True, onError="continueRegularOutput", **REPETE)
+c.codigo("Prepara os IOCs dos feeds", [-1100, Y], "preparar-feeds.js", "ip.js", "texto.js", "email.js", "indicadores.js", "feeds.js")
+c.redis("Grava os IOCs (7 dias)", [-880, Y], {
+    "operation": "set", "keyType": "string", "key": "={{ $('Configuração').first().json.prefixoRedis + $json.chave }}",
+    "value": "={{ $json.valor }}", "expire": True, "ttl": "={{ $json.ttl }}"})
+c.liga("Lê o estado dos feeds", "Baixa o OpenPhish")
+c.liga("Baixa o OpenPhish", "Baixa o ThreatFox")
+c.liga("Baixa o ThreatFox", "Prepara os IOCs dos feeds")
+c.liga("Prepara os IOCs dos feeds", "Grava os IOCs (7 dias)")
+c.nota("Nota - Feeds", [-1800, Y - 560], 760, 420, """## Rotina 3: feeds de IOC (OpenPhish + ThreatFox -> Redis)
+A cada 6 horas (minuto 17) baixa o **OpenPhish** comunitário (URLs de phishing) e o **ThreatFox** do último dia (URLs, domínios, IP:porta e hashes; chave da abuse.ch) e grava **um IOC por chave** no Redis: `phishing:feed:url|host|ip|sha256|md5:<valor>`, com validade de `feedDias` (7) renovada a cada carga.
+
+- Host inteiro só entra se for do atacante: marca oficial, webmail, encurtador, serviço compartilhado (sites.google, s3, github...) e a própria organização ficam só como URL exata.
+- Página em caminho de site invadido (`/wp-content/`...) marca o host como **invadido** (peso menor na análise).
+- Fonte com erro: as chaves anteriores valem até vencer; `phishing:feed:estado` guarda o erro e o parecer avisa se a fonte passar de 24 h sem atualizar.
+- **Nada vai sozinho para o Wazuh**: o feed só vira evidência; o bloqueio continua no botão do analista.""")
 
 f.salvar()

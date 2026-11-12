@@ -28,6 +28,13 @@ for (const v of d.reputacao.virustotal) {
   else reputacao.push(`VirusTotal: ${v.tipo} ${desarmar(linha(v.valor, 80))}: ${v.maliciosos}/${v.total} malicioso${v.suspeitos ? `, ${v.suspeitos} suspeito` : ''}${v.nome_ameaca ? ` (${v.nome_ameaca})` : ''}`);
 }
 for (const u of d.reputacao.urlhaus) if (u.listado) reputacao.push(`URLhaus: ${desarmar(u.host)} LISTADO (${u.online} URL no ar${u.tags.length ? '; ' + u.tags.join(', ') : ''})`);
+const NOME_FEED = { openphish: 'OpenPhish', threatfox: 'ThreatFox' };
+for (const a of (d.reputacao.feeds?.achados ?? []).slice(0, 4)) {
+  const fonte = a.fontes.map((f) => NOME_FEED[f] ?? f).join(' + ');
+  const tipo = { url: 'link', host: 'host', ip: 'IP', sha256: 'anexo', md5: 'anexo' }[a.tipo] ?? a.tipo;
+  reputacao.push(`${fonte}: ${tipo} ${desarmar(linha(a.tipo === 'sha256' ? a.valor.slice(0, 16) + '…' : a.valor, 80))} LISTADO`
+    + `${a.ameaca || a.malware ? ` (${[a.ameaca, a.malware].filter(Boolean).join(', ')})` : ''}${a.comprometido ? ' · site invadido' : ''}${a.visto_em ? ` · desde ${a.visto_em}` : ''}`);
+}
 for (const r of d.reputacao.rdap) if (r.idade_dias !== null && r.idade_dias !== undefined) reputacao.push(`Domínio ${desarmar(r.dominio)} criado em ${r.criado_em} (${r.idade_dias} dias)`);
 
 // IOCs já separados em "Extrai as evidências": domínios oficiais, webmail e serviços compartilhados ficam fora.

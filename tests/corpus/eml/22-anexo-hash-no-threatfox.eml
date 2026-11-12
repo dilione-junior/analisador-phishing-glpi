@@ -1,0 +1,72 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Thu, 19 Nov
+	2026 17:40:02 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Thu,
+	19 Nov 2026 17:40:02 +0000
+Authentication-Results: spf=pass (sender IP is 192.0.2.88)
+	smtp.mailfrom=contabilidade-moraes.example; dkim=pass (signature was
+	verified) header.d=contabilidade-moraes.example;dmarc=pass action=none
+	header.from=contabilidade-moraes.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of
+	contabilidade-moraes.example designates 192.0.2.88 as permitted sender)
+	receiver=protection.outlook.com; client-ip=192.0.2.88;
+	helo=contabilidade-moraes.example;
+Received: from smtp.contabilidade-moraes.example (192.0.2.88) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Thu, 19 Nov 2026 17:40:02 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=contabilidade-moraes.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: Contabilidade Moraes - Fiscal <fiscal@contabilidade-moraes.example>
+To: maria.souza@cybersecurity.local
+Subject: Guia DARF - novembro
+Date: Thu, 19 Nov 2026 17:40:02 +0000
+Message-ID: <darf.1763574002@contabilidade-moraes.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/mixed; boundary="----=_Part_DARF_1763574002"
+MIME-Version: 1.0
+
+------=_Part_DARF_1763574002
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Prezados,
+
+Segue a guia do DARF de novembro para pagamento. Vencimento dia 20.
+
+Atenciosamente,
+Departamento Fiscal
+Contabilidade Moraes
+
+------=_Part_DARF_1763574002
+Content-Transfer-Encoding: base64
+Content-Type: application/zip; name="Guia_DARF_Novembro.zip"
+Content-Disposition: attachment; filename="Guia_DARF_Novembro.zip"
+
+UEsDBBQAAAAIACBFaV3clzIGXQEAAHwCAAAWAAAAR3VpYV9EQVJGX05vdmVtYnJvLnBkZm2STU7D
+MBCF9z7F21TAAhIncShSVYlCCxJFoJJdxcJtpiWoxGA7qHBJFtwALoKdFFopRFZkf/Nm3vinc3s+
+OuRHCet8fX98Mo4QavbIej0E2dszITiTVq7UEsGtXJJB5AQT9PuMytwLo1ZCowuuitxgGnv5vaui
+qtKC7yTG/yb6vyYnbXyCa8oLOVBrTEMHxIlAN4nqeqV1MoOk0U3IqErPnbGvN3LRZsIhNg0349c9
+2XEfU7m0D+imPm6sJvnEBlmdzDmyBUSI426ILAdPkI2xf1EVEuenkxEOYclYQq4wV/q5MgfYw77U
+L1XxqlCUakGlcVOPh5l33xhs+hCtU6h7D+6qma2XHnIEA2moiVzS6pVsMZc7u1lrWrAQKQv/PqRC
+xAIL/DHuvOpIuWVp0mI84i0WJcctFnfjLbNaFivS9TbuindC6q5EKX/jm+dirNS27jMRMet0hjcj
+9gNQSwMEFAAAAAgAIEVpXe3hnQyOAAAAnwAAAAsAAABMRUlBLU1FLnR4dB3NsQ3CMBCF4R6JHd4A
+hAHokEhBA4IE+pNzJEbOOdhnYB1EBWt4MRK6J/3S99bHw2l73mNToi6rukTjYbxck6hHwwh84ZC/
+YixNiYScjdT4UAydjZ2VtmjdYJfz2S6/PfIHPbkHBV5BUg9SuqVJIbfAOC04KoUR8+Anm6T5dWcH
+nxBNsIP+T5QMifKI/gBQSwECFAAUAAAACAAgRWld3JcyBl0BAAB8AgAAFgAAAAAAAAAAAAAApAEA
+AAAAR3VpYV9EQVJGX05vdmVtYnJvLnBkZlBLAQIUABQAAAAIACBFaV3t4Z0MjgAAAJ8AAAALAAAA
+AAAAAAAAAACkAZEBAABMRUlBLU1FLnR4dFBLBQYAAAAAAgACAH0AAABIAgAAAAA=
+
+------=_Part_DARF_1763574002--

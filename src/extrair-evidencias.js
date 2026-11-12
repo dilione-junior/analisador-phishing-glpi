@@ -279,6 +279,16 @@ const rdap = unicos([de.dominio, responder.dominio, ...urls.map((u) => u.dominio
   .filter((d) => d && !ehIPv4(d))
   .map((d) => dominioRegistravel(d))
   .filter((d) => !conhecido(d) && !ENCURTADORES.has(d)), 3);
+// Feeds de IOC (OpenPhish, ThreatFox) já guardados no Redis pela rotina 3: consulta local, sem cota, sem internet.
+// Links (URL exata, host e domínios-pai), domínios do remetente, IPs e hashes dos anexos.
+const feeds = chavesDosFeeds({
+  urls: urls.map((u) => u.url),
+  hosts: [[de.dominio, 'remetente'], [responder.dominio, 'responder-para']]
+    .filter(([h]) => h && !conhecido(dominioRegistravel(h))).map(([host, onde]) => ({ host, onde })),
+  ips,
+  hashes: anexos.filter((a) => !a.print).map((a) => a.sha256).filter(Boolean),
+  confiaveis,
+});
 
 // ---------------- IOCs para bloqueio ----------------
 // Só entra o que é do atacante. Bloquear gmail.com, itau.com.br ou um serviço compartilhado pararia a empresa:
@@ -349,5 +359,5 @@ return [{ json: {
   iocs_fora: iocsFora.slice(0, 15),
   bloqueio,
   tem_email: fonte !== 'nenhuma',
-  consultas: { virustotal, urlhaus, rdap },
+  consultas: { virustotal, urlhaus, rdap, feeds },
 } }];

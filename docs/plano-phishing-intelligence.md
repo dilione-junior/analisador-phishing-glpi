@@ -14,7 +14,7 @@ Elastic) e mudança automática de prompts ou regras.
 | # | Etapa | Situação |
 |---|---|---|
 | 0 | Conjunto de referência: 25 `.eml` realistas com gabarito, avaliador no CI | **feito** em 11/11 (PR #4), instalado no n8n |
-| 1 | Feeds de IOC (OpenPhish, ThreatFox, URLhaus em lote) no Redis, conferidos na análise como evidência forte | a fazer |
+| 1 | Feeds de IOC (OpenPhish, ThreatFox) no Redis, conferidos na análise como evidência forte | **feito** em 12/11 (rotina 3 do fluxo) |
 | 2 | Catálogo de técnicas versionado (detectores no `.eml` + resumo no prompt): os `sinais_futuros` do conjunto | **feito** em 11/11 ([catálogo](catalogo-tecnicas.md)) |
 | 3 | Taxonomia da proposta (tipo, canal, alvo, gravidade, confiança) na saída da IA | a fazer |
 | 4 | Aprender com as decisões dos analistas (precedentes), junto com a ideia 1 (campanhas) | a fazer |
@@ -36,19 +36,25 @@ Elastic) e mudança automática de prompts ou regras.
 - Defeito antigo achado na etapa 2: subdomínio de hospedagem gratuita (`golpe.pages.dev`) não ia para o bloqueio;
   agora vai (o domínio do serviço, `pages.dev`, continua fora).
 
-## Próximo passo: etapa 1 (feeds de IOC)
+## Etapa 1 (feeds de IOC): feita em 12/11/2026
 
-A decidir antes de começar:
-
-- Quais feeds. Sugestão: OpenPhish community (gratuito), ThreatFox e URLhaus da abuse.ch (já temos a chave). PhishTank
-  está com o cadastro fechado.
-- Frequência da carga. Sugestão: a cada 6 horas, numa rotina nova dentro do mesmo fluxo único (sem criar outro fluxo).
-- Validade das entradas no Redis. Sugestão: 7 dias para URL e host.
-- Se o que estiver no feed também vai, sozinho, para as listas CDB do Wazuh. Sugestão: **não**; só depois do clique do
-  analista, como hoje.
-
-Como medir: acrescentar ao conjunto casos em que o link está no feed, mas o VirusTotal não conhece (o cenário de
-campanha nova).
+- **Fontes**: OpenPhish comunitário (URLs de phishing, sem chave) e ThreatFox `get_iocs` do último dia (URLs, domínios,
+  IP:porta, hashes; chave da abuse.ch). Os endereços antigos de exportação da abuse.ch (`/downloads/`, `/export/`)
+  respondem **410** desde 2025: só a API com `Auth-Key` funciona. O URLhaus ficou de fora como feed porque a análise já
+  consulta o host ao vivo (o lote recente dele é quase todo malware de IoT). Phishing.Database e PhishStats foram
+  avaliados e descartados (lista pequena e com cara de falso positivo / feed fora do ar).
+- **Rotina 3** do fluxo único, a cada 6 h no minuto 17: um IOC por chave no Redis (`phishing:feed:<tipo>:<valor>`),
+  validade de 7 dias renovada a cada carga (cerca de 1.700 chaves e 350 KB por carga, 54 ms de processamento).
+- **Na análise**: URL exata, hash ou host do atacante listado = evidência forte; site invadido +20; IP listado +25.
+  Aviso no parecer se uma fonte passar de 24 h sem atualizar ou se o Redis falhar.
+- **Nada vai sozinho para o Wazuh**.
+- **Defeitos antigos achados no caminho** (corrigidos): link em `storage.googleapis.com`, `github.com`, `mediafire.com` e
+  outras hospedagens "por caminho" mandava o domínio do serviço para o bloqueio do Wazuh; `www.golpe.vercel.app` não era
+  reconhecido como subdomínio do atacante.
+- **Placar**: 3 casos novos de campanha que só o feed denuncia (fornecedor invadido com link de kit conhecido, `.zip` com
+  hash no ThreatFox, URL exata em bucket do Google Cloud) e 2 legítimos de controle (Google Sites, newsletter de site
+  invadido). Com feeds: phishing **21 de 23**, 0 falsos negativos; legítimos e spam **15 de 15**, 0 falsos positivos.
+  Sem feeds (`--sem-feeds`): 18 de 23, **2 falsos negativos**.
 
 ## Etapa 2 (catálogo de técnicas): feita
 

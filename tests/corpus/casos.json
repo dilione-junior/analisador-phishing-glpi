@@ -920,6 +920,135 @@
    "nota": ""
   },
   {
+   "id": "21-fornecedor-invadido-link-no-feed",
+   "arquivo": "eml/21-fornecedor-invadido-link-no-feed.eml",
+   "titulo": "Conta de fornecedor invadida: proposta com link para página que o OpenPhish já conhece (outra vítima)",
+   "tecnica": "Campanha nova a partir de conta legítima invadida: e-mail autenticado, sem marca imitada, sem urgência e o VirusTotal ainda não conhece o link. Só o feed denuncia: o mesmo host já aparece no OpenPhish com outro token.",
+   "relato": "A construtora mandou link de proposta, mas a reforma já foi fechada no mês passado. Achei estranho, não abri.",
+   "requerente": "ana.ribeiro (Compras)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "feed-host",
+    "autenticado"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [
+     "docs-proposta-online.example"
+    ],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "construtoravale.example": 4380,
+     "docs-proposta-online.example": 400
+    }
+   },
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "22-anexo-hash-no-threatfox",
+   "arquivo": "eml/22-anexo-hash-no-threatfox.eml",
+   "titulo": "Malware: .zip da \"contabilidade\" cujo hash já está no ThreatFox",
+   "tecnica": "Entrega de malware por conta de escritório de contabilidade (domínio antigo, autenticado). O .zip parece inofensivo por dentro; só o hash denuncia, porque já foi relatado como carga de trojan bancário.",
+   "relato": "A contabilidade mandou o DARF em zip. Normalmente vem em PDF. Não abri.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Malware Delivery"
+    ],
+    "delivery_channel": "Email",
+    "target": "Finance",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.001"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "feed-hash",
+    "anexo-compactado"
+   ],
+   "sinais_proibidos": [],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "contabilidade-moraes.example": 3650
+    }
+   },
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "23-url-exata-no-feed-em-servico-compartilhado",
+   "arquivo": "eml/23-url-exata-no-feed-em-servico-compartilhado.eml",
+   "titulo": "Página falsa no Google Cloud Storage: a URL exata está no OpenPhish (o host é de todo mundo)",
+   "tecnica": "Página de login hospedada em bucket público (storage.googleapis.com), com o e-mail da vítima no #. O host é compartilhado e não pode ser marcado inteiro; a URL exata (sem o #) está no feed.",
+   "relato": "Não participei de encontro nenhum. Chegou link de certificado. Não cliquei.",
+   "requerente": "maria.souza (Financeiro)",
+   "esperado": {
+    "classificacao": "phishing",
+    "phishing_type": [
+     "Credential Harvesting"
+    ],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "media",
+    "mitre": [
+     "T1566.002"
+    ]
+   },
+   "sinais_obrigatorios": [
+    "feed-url"
+   ],
+   "sinais_proibidos": [
+    "feed-host"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "storage.googleapis.com",
+     "googleapis.com",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "eventos-associacao.example": 900
+    }
+   },
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
    "id": "L1-microsoft-alerta-verdadeiro",
    "arquivo": "eml/L1-microsoft-alerta-verdadeiro.eml",
    "titulo": "LEGÍTIMO: alerta verdadeiro de entrada incomum da Microsoft (o usuário estava em viagem)",
@@ -1344,6 +1473,87 @@
      "00020126360014br.gov.bcb.pix011400000000000191520400005303986540812450.005802BR5921GRAFICA PAULISTA LTDA6009SAO PAULO62110507PED44806304956E"
     ]
    },
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L12-google-sites-evento-legitimo",
+   "arquivo": "eml/L12-google-sites-evento-legitimo.eml",
+   "titulo": "LEGÍTIMO: site de evento no Google Sites, enquanto OUTRA página do Google Sites está no OpenPhish",
+   "tecnica": "Controle de falso positivo dos feeds: o host sites.google.com é compartilhado. O feed só pode marcar a URL exata do golpe, nunca o host inteiro (senão todo link do Google Sites viraria phishing).",
+   "relato": "A associação mandou link do Google Sites. É seguro?",
+   "requerente": "lucas.ferreira (Comercial)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado"
+   ],
+   "sinais_proibidos": [
+    "feed-host",
+    "feed-url"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "sites.google.com",
+     "google.com",
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "associacaocomercial.example": 5000
+    }
+   },
+   "ioc_escondido": "",
+   "qr": {},
+   "lacuna": "",
+   "nota": ""
+  },
+  {
+   "id": "L13-newsletter-de-site-invadido",
+   "arquivo": "eml/L13-newsletter-de-site-invadido.eml",
+   "titulo": "LEGÍTIMO: newsletter da padaria cujo site foi invadido (página de phishing em /wp-content/ no ThreatFox)",
+   "tecnica": "Controle de falso positivo dos feeds: o ThreatFox tem uma página maliciosa pendurada no WordPress invadido da padaria. O host vira \"site invadido\" (peso menor, avisa o analista), não evidência forte: o e-mail da própria padaria, autenticado e com link para o cardápio, continua legítimo.",
+   "relato": "Recebo sempre e-mail da padaria aqui do lado, mas o antivírus da minha casa disse que o site deles é perigoso. É golpe?",
+   "requerente": "joao.lima (RH)",
+   "esperado": {
+    "classificacao": "legitimo",
+    "phishing_type": [],
+    "delivery_channel": "Email",
+    "target": "User",
+    "gravidade": "baixa",
+    "mitre": []
+   },
+   "sinais_obrigatorios": [
+    "autenticado",
+    "feed-site-invadido"
+   ],
+   "sinais_proibidos": [
+    "feed-host",
+    "feed-url"
+   ],
+   "sinais_futuros": [],
+   "bloqueio": {
+    "deve_ter": [],
+    "nao_pode_ter": [
+     "cybersecurity.local"
+    ]
+   },
+   "reputacao": {
+    "rdap": {
+     "padariasaopedro.example": 4200
+    }
+   },
+   "ioc_escondido": "",
+   "qr": {},
    "lacuna": "",
    "nota": ""
   },

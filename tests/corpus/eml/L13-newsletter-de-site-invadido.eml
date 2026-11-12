@@ -1,0 +1,62 @@
+Received: from CP6P284CA0054.BRAP284.PROD.OUTLOOK.COM (2603:10d6:103:1ab::7)
+	by CP8PR80MB4932.lamprd80.prod.outlook.com (2603:10d6:103:12c::9) with
+	Microsoft SMTP Server (version=TLS1_2,
+	cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.18; Fri, 20 Nov
+	2026 18:00:00 +0000
+Received: from CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+	(2603:10d6:103:1ab:cafe::4b) by CP6P284CA0054.outlook.office365.com
+	(2603:10d6:103:1ab::7) with Microsoft SMTP Server (version=TLS1_3,
+	cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.18 via Frontend Transport; Fri,
+	20 Nov 2026 18:00:00 +0000
+Authentication-Results: spf=pass (sender IP is 192.0.2.77)
+	smtp.mailfrom=padariasaopedro.example; dkim=pass (signature was verified)
+	header.d=padariasaopedro.example;dmarc=pass action=none
+	header.from=padariasaopedro.example;compauth=pass reason=100
+Received-SPF: Pass (protection.outlook.com: domain of padariasaopedro.example
+	designates 192.0.2.77 as permitted sender) receiver=protection.outlook.com;
+	client-ip=192.0.2.77; helo=padariasaopedro.example;
+Received: from mail.padariasaopedro.example (192.0.2.77) by
+	CP2PEPF0000012A.mail.protection.outlook.com (10.167.243.36) with Microsoft
+	SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.8722.10
+	via Frontend Transport; Fri, 20 Nov 2026 18:00:00 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=padariasaopedro.example; s=s1;
+	h=from:to:subject:date:message-id:mime-version:content-type;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=Q2NvcnB1cy1kZS10ZXN0ZS1hbmFsaXNhZG9yLXBoaXNoaW5nLWdscGktYXNzaW5hdHVyYS1maWN0aWNpYQ==
+From: =?utf-8?q?Padaria_S=C3=A3o_Pedro?= <contato@padariasaopedro.example>
+To: joao.lima@cybersecurity.local
+Subject: Encomendas de Natal abertas
+List-Unsubscribe: <https://www.padariasaopedro.example/descadastrar?e=553>
+Date: Fri, 20 Nov 2026 18:00:00 +0000
+Message-ID: <natal553.1763661600@padariasaopedro.example>
+X-MS-Exchange-Organization-SCL: 1
+X-Forefront-Antispam-Report: CTRY:;LANG:pt;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CP8PR80MB4932.lamprd80.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(4022899009);DIR:INB;
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource: CP2PEPF0000012A.BRAP284.PROD.OUTLOOK.COM
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CP8PR80MB4932.lamprd80.prod.outlook.com
+Content-Type: multipart/alternative; boundary="----=_Part_natal_553"
+MIME-Version: 1.0
+
+------=_Part_natal_553
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Ol=C3=A1!
+
+O card=C3=A1pio de Natal da Padaria S=C3=A3o Pedro j=C3=A1 est=C3=A1 no ar:=
+ https://www.padariasaopedro.example/natal
+
+Descadastrar: https://www.padariasaopedro.example/descadastrar?e=3D553
+
+------=_Part_natal_553
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"font-family:Georgia,serif;font-size:15px">
+<p>Ol=C3=A1!</p><p>O card=C3=A1pio de Natal da Padaria S=C3=A3o Pedro j=C3=
+=A1 est=C3=A1 no ar: <a href=3D"https://www.padariasaopedro.example/natal">=
+veja as encomendas</a>.</p>
+<p style=3D"font-size:11px"><a href=3D"https://www.padariasaopedro.example/=
+descadastrar?e=3D553">Descadastrar</a></p></body></html>
+------=_Part_natal_553--

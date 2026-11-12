@@ -1,0 +1,117 @@
+{
+ "_aviso": "Gerado por tests/corpus/gerar-corpus.py: edite lá e gere de novo.",
+ "openphish": "https://secure-bancoverde-acesso.example/login/\nhttp://entrega-pendente-rastreio.example/taxa?c=88120\nhttps://golpe-netflix-pagamento.pages.dev/conta\nhttps://www.lojinhadobairro.example/wp-content/uploads/2026/11/m365/index.php\nhttps://docs-proposta-online.example/visualizar/41bd07aa\nhttps://storage.googleapis.com/arquivos-compartilhados-7731/visualizar.html\nhttps://sites.google.com/view/login-cybersecurity-local\n",
+ "threatfox": {
+  "query_status": "ok",
+  "data": [
+   {
+    "id": "900000",
+    "ioc": "c2-painel-loader.example",
+    "threat_type": "botnet_cc",
+    "ioc_type": "domain",
+    "malware_printable": "AsyncRAT",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900001",
+    "ioc": "203.0.113.200:4443",
+    "threat_type": "botnet_cc",
+    "ioc_type": "ip:port",
+    "malware_printable": "Remcos",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900002",
+    "ioc": "http://198.51.100.250/bins/x86",
+    "threat_type": "payload_delivery",
+    "ioc_type": "url",
+    "malware_printable": "Mirai",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900003",
+    "ioc": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "threat_type": "payload",
+    "ioc_type": "sha256_hash",
+    "malware_printable": "Lumma Stealer",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900004",
+    "ioc": "https://github.com/usuario-qualquer-77/loader/releases/download/v1/setup.zip",
+    "threat_type": "payload_delivery",
+    "ioc_type": "url",
+    "malware_printable": "Vidar",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900005",
+    "ioc": "github.com",
+    "threat_type": "payload_delivery",
+    "ioc_type": "domain",
+    "malware_printable": "Vidar",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900006",
+    "ioc": "graficapaulista.example",
+    "threat_type": "payload_delivery",
+    "ioc_type": "domain",
+    "malware_printable": "desconhecido",
+    "confidence_level": 25,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900007",
+    "ioc": "39ae0eed1128f0fe8da008a2abb91ccec9ecd1acf1de18c9b4381e2e97189aa2",
+    "threat_type": "payload",
+    "ioc_type": "sha256_hash",
+    "malware_printable": "Grandoreiro",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   },
+   {
+    "id": "900008",
+    "ioc": "https://www.padariasaopedro.example/wp-content/plugins/galeria-x/m365/login.php",
+    "threat_type": "payload_delivery",
+    "ioc_type": "url",
+    "malware_printable": "phishing kit",
+    "confidence_level": 75,
+    "is_compromised": false,
+    "first_seen": "2026-11-19 10:00:00 UTC",
+    "last_seen": null,
+    "tags": []
+   }
+  ]
+ }
+}
