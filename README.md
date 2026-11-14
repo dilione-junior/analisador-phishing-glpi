@@ -275,6 +275,8 @@ O CI roda os testes e o conjunto de referência, confere se o JSON está atualiz
 - [ ] Busca de outras vítimas: quantos chamados/usuários relataram o mesmo remetente ou link (campanha).
 - [ ] `/painel` no Telegram: relatos do dia, tempo até a decisão e precisão da IA (métricas do Redis).
 - [ ] Ler o caixa de e-mail `phishing@` (botão "Reportar" do Outlook) e abrir o chamado sozinho.
+  Plano: [docs/plano-caixa-relatos-email.md](docs/plano-caixa-relatos-email.md). Orientação aos usuários
+  (**encaminhar como anexo**): [docs/orientacao-usuarios.md](docs/orientacao-usuarios.md).
 
 ## Licença
 
