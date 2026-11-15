@@ -23,7 +23,17 @@ Sem esses dados o analisador ainda trabalha, mas marca o chamado como **análise
 
 ## Passo a passo
 
-**Outlook na web (outlook.com / Outlook novo)** — testado em 14/11/2026:
+**Botão "Reportar phishing" (caminho preferido, testado em 15/11/2026 no Outlook na web):**
+1. Abra o e-mail suspeito.
+2. No cabeçalho do e-mail, clique no ícone **Aplicativos** (quadradinhos ▦, ao lado de encaminhar) →
+   **Reportar phishing**.
+3. Marque o que você fez (clicou, digitou senha...) e clique em **Preparar relato**.
+4. Confira se o e-mail aparece como **anexo** na mensagem nova e clique em **Enviar**.
+
+O botão precisa estar instalado ([outlook-suplemento/README.md](../outlook-suplemento/README.md)). Sem ele, use
+os caminhos abaixo.
+
+**Outlook na web (outlook.com / Outlook novo), sem o botão** — testado em 14/11/2026:
 1. Clique em **Novo email**.
 2. **Arraste** o e-mail suspeito da lista para dentro da mensagem nova: ele vira anexo.
 3. Escreva uma linha (ex.: "Parece golpe, não cliquei") e envie para a caixa de relatos.

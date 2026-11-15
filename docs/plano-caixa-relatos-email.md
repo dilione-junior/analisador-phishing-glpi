@@ -40,7 +40,10 @@ segredo. Para a rotina da caixa:
 - O corpo traz "Assunto/Remetente do e-mail relatado" (texto do **atacante**) e "O que eu fiz:" (opções marcadas,
   com frases que `interacaoDoUsuario()` reconhece). Ao procurar interações, usar só o trecho "O que eu fiz" +
   "Comentário", senão um assunto como "Cliquei aqui" liga o aviso de senha por engano.
-- A prova de conceito mede uma coisa: o anexo sai no Outlook na web? Se não, jeito "C" (Graph).
+- **Prova de conceito OK (15/11/2026):** instalado por "Adicionar do arquivo" no Outlook na web (outlook.live.com,
+  conta pessoal) e testado: a mensagem abriu com o e-mail original **anexado**, assunto marcado, opções e
+  comentário no corpo, e chegou à caixa de Segurança. O jeito "C" (Graph) fica só para cliente onde o anexo falhar.
+- Falta testar: novo Outlook do Windows e Outlook clássico (mesmo manifesto).
 
 ## Sugestões ainda a confirmar com o usuário (14/11)
 
