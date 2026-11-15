@@ -1,0 +1,16 @@
+:root { color-scheme: light dark; --borda: #8a8886; --destaque: #c62828; --ok: #107c10; }
+body { margin: 0; font: 14px/1.4 "Segoe UI", system-ui, sans-serif; background: Canvas; color: CanvasText; }
+main { padding: 12px 16px; }
+h1 { font-size: 18px; margin: 0 0 12px; color: var(--destaque); }
+.caixa { border: 1px solid var(--borda); border-radius: 4px; padding: 8px; margin-bottom: 12px; }
+.rotulo { font-weight: 600; display: block; margin-bottom: 4px; }
+.destaque { font-weight: 600; word-break: break-word; }
+.discreto { opacity: .75; font-size: 12px; word-break: break-word; }
+fieldset { border: 1px solid var(--borda); border-radius: 4px; margin: 0 0 12px; padding: 8px; }
+legend { font-weight: 600; padding: 0 4px; }
+.opcao { display: block; margin: 4px 0; cursor: pointer; }
+textarea { width: 100%; box-sizing: border-box; font: inherit; margin-bottom: 12px; }
+button { width: 100%; padding: 8px; font: inherit; font-weight: 600; color: #fff; background: var(--destaque); border: 0; border-radius: 4px; cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+.ok { color: var(--ok); font-weight: 600; }
+.falha { color: var(--destaque); font-weight: 600; }

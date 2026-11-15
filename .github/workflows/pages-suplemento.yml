@@ -1,0 +1,39 @@
+name: pages-suplemento
+
+# Publica só a pasta outlook-suplemento/ no GitHub Pages (o Outlook carrega o botão de lá, por HTTPS).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outlook-suplemento/**'
+      - '.github/workflows/pages-suplemento.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Testes do suplemento
+        run: node tests/testar-suplemento.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: outlook-suplemento
+      - id: publicacao
+        uses: actions/deploy-pages@v4

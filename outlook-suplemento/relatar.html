@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' https://appsforoffice.microsoft.com; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https:; frame-src https:">
+  <title>Reportar phishing</title>
+  <link rel="stylesheet" href="relatar.css">
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script src="config.js"></script>
+  <script src="relato.js"></script>
+  <script src="relatar.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Reportar phishing</h1>
+
+    <section id="carregando"><p>Carregando…</p></section>
+
+    <section id="formulario" hidden>
+      <div class="caixa">
+        <div class="rotulo">E-mail que você vai reportar</div>
+        <div id="assunto" class="destaque"></div>
+        <div id="remetente" class="discreto"></div>
+      </div>
+
+      <fieldset>
+        <legend>Você fez alguma destas coisas?</legend>
+        <div id="interacoes"></div>
+        <label class="opcao"><input type="checkbox" id="nada"> Não fiz nada disso</label>
+      </fieldset>
+
+      <label for="comentario" class="rotulo">Comentário (opcional)</label>
+      <textarea id="comentario" rows="3" maxlength="1000" placeholder="Ex.: chegou para todo o setor; parece o banco X"></textarea>
+
+      <button id="preparar" type="button">Preparar relato</button>
+      <p class="discreto">Vai abrir uma mensagem para o time de Segurança com este e-mail anexado. Você só confere e clica em <b>Enviar</b>.</p>
+    </section>
+
+    <section id="pronto" hidden>
+      <p class="ok">Mensagem de relato aberta.</p>
+      <ol>
+        <li>Confira se o e-mail suspeito aparece como <b>anexo</b>.</li>
+        <li>Clique em <b>Enviar</b>.</li>
+        <li>Não clique em links nem abra anexos do e-mail suspeito.</li>
+      </ol>
+      <p class="discreto">Se o anexo não apareceu: feche a mensagem, abra uma mensagem nova para o time de Segurança e <b>arraste</b> o e-mail suspeito para dentro dela.</p>
+    </section>
+
+    <section id="erro" hidden>
+      <p class="falha" id="erro-texto"></p>
+      <p class="discreto">Alternativa: abra uma mensagem nova para <span id="erro-destino"></span> e <b>arraste</b> o e-mail suspeito para dentro dela.</p>
+    </section>
+  </main>
+</body>
+</html>
