@@ -30,6 +30,18 @@ chamado no GLPI. O chamado nasce sozinho e segue o caminho que já existe (anál
 - Contador no Redis (relatos por forma) para medir adoção; entra no futuro `/painel`.
 - Testes, corpus e demonstrações usam sempre relato **como anexo** (mais um caso de corpo, para cobrir o parcial).
 
+## Botão "Reportar phishing" no Outlook (15/11, prova de conceito)
+
+Suplemento próprio em [outlook-suplemento/](../outlook-suplemento/README.md), jeito "A" (simples): abre uma
+mensagem nova para a caixa com o e-mail aberto **anexado como item**; o usuário clica em Enviar. Sem login nem
+segredo. Para a rotina da caixa:
+
+- Assunto começa com `[Relato phishing]` → forma do relato "botão" (contador/ficha). É só rótulo, não confiança.
+- O corpo traz "Assunto/Remetente do e-mail relatado" (texto do **atacante**) e "O que eu fiz:" (opções marcadas,
+  com frases que `interacaoDoUsuario()` reconhece). Ao procurar interações, usar só o trecho "O que eu fiz" +
+  "Comentário", senão um assunto como "Cliquei aqui" liga o aviso de senha por engano.
+- A prova de conceito mede uma coisa: o anexo sai no Outlook na web? Se não, jeito "C" (Graph).
+
 ## Sugestões ainda a confirmar com o usuário (14/11)
 
 | # | Assunto | Sugestão |

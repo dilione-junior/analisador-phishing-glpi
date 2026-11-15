@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Suplemento "Reportar phishing" (Outlook). Instalação: outlook-suplemento/README.md -->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+           xsi:type="MailApp">
+  <Id>7666ee5d-dc4b-4d4f-8372-8c24926a7eff</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Segurança da Informação</ProviderName>
+  <DefaultLocale>pt-BR</DefaultLocale>
+  <DisplayName DefaultValue="Reportar phishing"/>
+  <Description DefaultValue="Envia o e-mail suspeito, como anexo, para o time de Segurança da Informação."/>
+  <IconUrl DefaultValue="https://dilione-junior.github.io/analisador-phishing-glpi/icones/icone-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://dilione-junior.github.io/analisador-phishing-glpi/icones/icone-128.png"/>
+  <SupportUrl DefaultValue="https://github.com/dilione-junior/analisador-phishing-glpi"/>
+  <AppDomains>
+    <AppDomain>https://dilione-junior.github.io</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://dilione-junior.github.io/analisador-phishing-glpi/relatar.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.3">
+        <bt:Set Name="Mailbox"/>
+      </bt:Sets>
+    </Requirements>
+    <Hosts>
+      <Host xsi:type="MailHost">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+            <OfficeTab id="TabDefault">
+              <Group id="grupoRelatoPhishing">
+                <Label resid="grupo.rotulo"/>
+                <Control xsi:type="Button" id="botaoReportarPhishing">
+                  <Label resid="botao.rotulo"/>
+                  <Supertip>
+                    <Title resid="botao.rotulo"/>
+                    <Description resid="botao.dica"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="icone.16"/>
+                    <bt:Image size="32" resid="icone.32"/>
+                    <bt:Image size="80" resid="icone.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="painel.url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="icone.16" DefaultValue="https://dilione-junior.github.io/analisador-phishing-glpi/icones/icone-16.png"/>
+        <bt:Image id="icone.32" DefaultValue="https://dilione-junior.github.io/analisador-phishing-glpi/icones/icone-32.png"/>
+        <bt:Image id="icone.80" DefaultValue="https://dilione-junior.github.io/analisador-phishing-glpi/icones/icone-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="painel.url" DefaultValue="https://dilione-junior.github.io/analisador-phishing-glpi/relatar.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="grupo.rotulo" DefaultValue="Segurança"/>
+        <bt:String id="botao.rotulo" DefaultValue="Reportar phishing"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="botao.dica" DefaultValue="Envia este e-mail, como anexo, para o time de Segurança da Informação analisar."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>
